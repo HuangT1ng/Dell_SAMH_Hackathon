@@ -1,7 +1,3 @@
-"""
-Main module demonstrating the use of NVIDIA NIM integration.
-"""
-
 from chat_service import ChatService
 from utils import create_user_message, format_response
 
@@ -13,7 +9,7 @@ def main():
     chat_service = ChatService()
     
     # Create a user message
-    user_message = create_user_message("What is the capital of France?")
+    user_message = create_user_message("whats nvidia nim?")
     messages = [user_message]
     
     try:
@@ -24,10 +20,10 @@ def main():
         response_content = chat_service.get_response_content(completion)
         
         # Extract reasoning content if available
-        reasoning_content = chat_service.get_reasoning_content(completion)
+        # reasoning_content = chat_service.get_reasoning_content(completion)
         
         # Format and display the response
-        formatted_response = format_response(response_content, reasoning_content)
+        formatted_response = format_response(response_content)
         print(formatted_response)
         
     except Exception as e:
