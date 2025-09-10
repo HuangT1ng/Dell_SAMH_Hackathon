@@ -4,9 +4,10 @@ import type { MoodEntry } from '../App';
 
 interface EntryHistoryProps {
   entries: MoodEntry[];
+  darkMode: boolean;
 }
 
-const EntryHistory: React.FC<EntryHistoryProps> = ({ entries }) => {
+const EntryHistory: React.FC<EntryHistoryProps> = ({ entries, darkMode }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedMood, setSelectedMood] = useState<number | null>(null);
   const [sortBy, setSortBy] = useState<'date-desc' | 'date-asc' | 'mood-high' | 'mood-low'>('date-desc');

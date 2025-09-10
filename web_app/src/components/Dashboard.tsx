@@ -6,9 +6,10 @@ import MoodChart from './MoodChart';
 interface DashboardProps {
   entries: MoodEntry[];
   onAddEntry: () => void;
+  darkMode: boolean;
 }
 
-const Dashboard: React.FC<DashboardProps> = ({ entries, onAddEntry }) => {
+const Dashboard: React.FC<DashboardProps> = ({ entries, onAddEntry, darkMode }) => {
   const recentEntries = entries.slice(0, 3);
   const todayEntry = entries.find(entry => {
     const today = new Date().toDateString();
@@ -41,10 +42,14 @@ const Dashboard: React.FC<DashboardProps> = ({ entries, onAddEntry }) => {
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {/* Today's Entry */}
-        <div className="bg-white/90 backdrop-blur-sm rounded-2xl p-6 shadow-lg border border-blue-100 hover:shadow-xl transition-all duration-300">
+        <div className={`backdrop-blur-sm rounded-2xl p-6 shadow-lg border hover:shadow-xl transition-all duration-300 ${
+          darkMode 
+            ? 'bg-[#40414F] border-gray-700' 
+            : 'bg-white/90 border-blue-100'
+        }`}>
           <div className="flex items-center gap-3 mb-4">
             <Calendar className="text-blue-600" size={24} />
-            <h3 className="text-lg font-semibold text-blue-900">Today's Mood</h3>
+            <h3 className={`text-lg font-semibold ${darkMode ? 'text-white' : 'text-blue-900'}`}>Today's Mood</h3>
           </div>
           {todayEntry ? (
             <div className="text-center">
@@ -56,7 +61,7 @@ const Dashboard: React.FC<DashboardProps> = ({ entries, onAddEntry }) => {
           ) : (
             <div className="text-center">
               <div className="text-4xl mb-2">📝</div>
-              <p className="text-gray-600 mb-3">No entry yet</p>
+              <p className={`mb-3 ${darkMode ? 'text-gray-300' : 'text-gray-600'}`}>No entry yet</p>
               <button
                 onClick={onAddEntry}
                 className="text-sm bg-gradient-to-r from-blue-600 to-cyan-600 text-white px-4 py-2 rounded-lg hover:shadow-lg hover:shadow-blue-500/30 transition-all duration-200"
@@ -68,44 +73,60 @@ const Dashboard: React.FC<DashboardProps> = ({ entries, onAddEntry }) => {
         </div>
 
         {/* Average Mood */}
-        <div className="bg-white/90 backdrop-blur-sm rounded-2xl p-6 shadow-lg border border-blue-100 hover:shadow-xl transition-all duration-300">
+        <div className={`backdrop-blur-sm rounded-2xl p-6 shadow-lg border hover:shadow-xl transition-all duration-300 ${
+          darkMode 
+            ? 'bg-[#40414F] border-gray-700' 
+            : 'bg-white/90 border-blue-100'
+        }`}>
           <div className="flex items-center gap-3 mb-4">
             <TrendingUp className="text-cyan-600" size={24} />
-            <h3 className="text-lg font-semibold text-blue-900">Average Mood</h3>
+            <h3 className={`text-lg font-semibold ${darkMode ? 'text-white' : 'text-blue-900'}`}>Average Mood</h3>
           </div>
           <div className="text-center">
             <div className="text-3xl font-bold text-cyan-600 mb-1">
               {averageMood.toFixed(1)}/5
             </div>
-            <p className="text-gray-600">Last {entries.length} entries</p>
+            <p className={`${darkMode ? 'text-gray-300' : 'text-gray-600'}`}>Last {entries.length} entries</p>
           </div>
         </div>
 
         {/* Total Entries */}
-        <div className="bg-white/90 backdrop-blur-sm rounded-2xl p-6 shadow-lg border border-blue-100 hover:shadow-xl transition-all duration-300">
+        <div className={`backdrop-blur-sm rounded-2xl p-6 shadow-lg border hover:shadow-xl transition-all duration-300 ${
+          darkMode 
+            ? 'bg-[#40414F] border-gray-700' 
+            : 'bg-white/90 border-blue-100'
+        }`}>
           <div className="flex items-center gap-3 mb-4">
             <Activity className="text-teal-600" size={24} />
-            <h3 className="text-lg font-semibold text-blue-900">Total Entries</h3>
+            <h3 className={`text-lg font-semibold ${darkMode ? 'text-white' : 'text-blue-900'}`}>Total Entries</h3>
           </div>
           <div className="text-center">
             <div className="text-3xl font-bold text-teal-600 mb-1">{entries.length}</div>
-            <p className="text-gray-600">Journal entries</p>
+            <p className={`${darkMode ? 'text-gray-300' : 'text-gray-600'}`}>Journal entries</p>
           </div>
         </div>
       </div>
 
       {/* Mood Chart */}
       {entries.length > 0 && (
-        <div className="bg-white/90 backdrop-blur-sm rounded-2xl p-6 shadow-lg border border-blue-100">
-          <h3 className="text-lg font-semibold text-blue-900 mb-4">Mood Trend</h3>
+        <div className={`backdrop-blur-sm rounded-2xl p-6 shadow-lg border ${
+          darkMode 
+            ? 'bg-[#40414F] border-gray-700' 
+            : 'bg-white/90 border-blue-100'
+        }`}>
+          <h3 className={`text-lg font-semibold mb-4 ${darkMode ? 'text-white' : 'text-blue-900'}`}>Mood Trend</h3>
           <MoodChart entries={entries.slice(0, 7).reverse()} />
         </div>
       )}
 
       {/* Recent Entries */}
-      <div className="bg-white/90 backdrop-blur-sm rounded-2xl p-6 shadow-lg border border-blue-100">
+        <div className={`backdrop-blur-sm rounded-2xl p-6 shadow-lg border ${
+          darkMode 
+            ? 'bg-[#40414F] border-gray-700' 
+            : 'bg-white/90 border-blue-100'
+        }`}>
         <div className="flex items-center justify-between mb-6">
-          <h3 className="text-lg font-semibold text-blue-900">Recent Entries</h3>
+          <h3 className={`text-lg font-semibold ${darkMode ? 'text-white' : 'text-blue-900'}`}>Recent Entries</h3>
           <button
             onClick={onAddEntry}
             className="flex items-center gap-2 bg-gradient-to-r from-blue-600 to-cyan-600 text-white px-4 py-2 rounded-lg hover:shadow-lg hover:shadow-blue-500/30 transition-all duration-200"
@@ -120,7 +141,11 @@ const Dashboard: React.FC<DashboardProps> = ({ entries, onAddEntry }) => {
             {recentEntries.map((entry) => (
               <div
                 key={entry.id}
-                className="border border-blue-100 rounded-xl p-4 hover:bg-blue-50/50 transition-colors duration-200"
+                className={`border rounded-xl p-4 transition-colors duration-200 ${
+                  darkMode 
+                    ? 'border-gray-700 hover:bg-gray-700/50' 
+                    : 'border-blue-100 hover:bg-blue-50/50'
+                }`}
               >
                 <div className="flex items-center justify-between mb-2">
                   <div className="flex items-center gap-3">
@@ -129,24 +154,24 @@ const Dashboard: React.FC<DashboardProps> = ({ entries, onAddEntry }) => {
                       {entry.moodLabel}
                     </span>
                   </div>
-                  <span className="text-sm text-gray-500">
+                  <span className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
                     {new Date(entry.date).toLocaleDateString()}
                   </span>
                 </div>
                 {entry.triggers.length > 0 && (
                   <div className="mb-2">
-                    <span className="text-sm text-gray-600">Triggers: </span>
-                    <span className="text-sm text-gray-700">{entry.triggers.join(', ')}</span>
+                    <span className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>Triggers: </span>
+                    <span className={`text-sm ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>{entry.triggers.join(', ')}</span>
                   </div>
                 )}
                 {entry.activities.length > 0 && (
                   <div className="mb-2">
-                    <span className="text-sm text-gray-600">Activities: </span>
-                    <span className="text-sm text-gray-700">{entry.activities.join(', ')}</span>
+                    <span className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>Activities: </span>
+                    <span className={`text-sm ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>{entry.activities.join(', ')}</span>
                   </div>
                 )}
                 {entry.notes && (
-                  <p className="text-sm text-gray-700 italic">{entry.notes}</p>
+                  <p className={`text-sm italic ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>{entry.notes}</p>
                 )}
               </div>
             ))}
@@ -154,7 +179,7 @@ const Dashboard: React.FC<DashboardProps> = ({ entries, onAddEntry }) => {
         ) : (
           <div className="text-center py-8">
             <div className="text-4xl mb-4">📔</div>
-            <p className="text-gray-600 mb-4">No entries yet. Start your journey!</p>
+            <p className={`mb-4 ${darkMode ? 'text-gray-300' : 'text-gray-600'}`}>No entries yet. Start your journey!</p>
             <button
               onClick={onAddEntry}
               className="bg-gradient-to-r from-blue-600 to-cyan-600 text-white px-6 py-3 rounded-lg hover:shadow-lg hover:shadow-blue-500/30 transition-all duration-200"

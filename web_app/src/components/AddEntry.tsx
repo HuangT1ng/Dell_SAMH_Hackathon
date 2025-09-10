@@ -11,9 +11,10 @@ interface AddEntryProps {
     notes: string;
   }) => void;
   onCancel: () => void;
+  darkMode: boolean;
 }
 
-const AddEntry: React.FC<AddEntryProps> = ({ onSave, onCancel }) => {
+const AddEntry: React.FC<AddEntryProps> = ({ onSave, onCancel, darkMode }) => {
   const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
   const [mood, setMood] = useState(3);
   const [triggers, setTriggers] = useState<string[]>([]);
@@ -69,9 +70,13 @@ const AddEntry: React.FC<AddEntryProps> = ({ onSave, onCancel }) => {
   };
 
   return (
-    <div className="bg-white/90 backdrop-blur-sm rounded-2xl p-8 shadow-lg border border-blue-100 max-w-2xl mx-auto">
+    <div className={`backdrop-blur-sm rounded-2xl p-8 shadow-lg border max-w-2xl mx-auto ${
+      darkMode 
+        ? 'bg-[#40414F] border-gray-700' 
+        : 'bg-white/90 border-blue-100'
+    }`}>
       <div className="flex items-center justify-between mb-6">
-        <h2 className="text-2xl font-bold text-blue-900">Add Journal Entry</h2>
+        <h2 className={`text-2xl font-bold ${darkMode ? 'text-white' : 'text-blue-900'}`}>Add Journal Entry</h2>
         <button
           onClick={onCancel}
           className="text-gray-500 hover:text-gray-700 transition-colors duration-200"
