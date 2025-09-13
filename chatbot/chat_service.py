@@ -63,6 +63,7 @@ class ChatService:
                 top_p=top_p,
                 max_tokens=max_tokens,
                 stream=stream,
+                timeout=30.0,  # Add 30 second timeout
                 **kwargs
             )
             return completion

@@ -138,8 +138,8 @@ const ScrapperOutput: React.FC<ScrapperOutputProps> = ({ darkMode }) => {
         setScrapingStatus(`Scraping completed! Scrolled ${result.scroll_count} times`);
         console.log('Scraping completed successfully:', result);
       } else {
-        setScrapingStatus(`Scraping failed: ${result.error}`);
-        console.error('Scraping failed:', result.error);
+        setScrapingStatus(`Scraping failed ${result.error}`);
+        console.error('Scraping failed', result.error);
       }
       
     } catch (error) {
