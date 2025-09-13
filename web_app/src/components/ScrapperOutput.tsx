@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Search, Filter, Download, RefreshCw, ExternalLink, Calendar, TrendingUp, Users, MessageSquare } from 'lucide-react';
+import { redditScraper, ScrapingResult } from '../utils/scraper';
 
 interface ScrapperData {
   id: string;
@@ -23,6 +24,7 @@ const ScrapperOutput: React.FC<ScrapperOutputProps> = ({ darkMode }) => {
   const [selectedSubreddit, setSelectedSubreddit] = useState('all');
   const [selectedSentiment, setSelectedSentiment] = useState('all');
   const [isLoading, setIsLoading] = useState(false);
+  const [scrapingStatus, setScrapingStatus] = useState<string>('');
 
   // Mock data for demonstration
   const mockData: ScrapperData[] = [
@@ -30,24 +32,24 @@ const ScrapperOutput: React.FC<ScrapperOutputProps> = ({ darkMode }) => {
       id: '1',
       title: 'Mental health awareness is crucial in today\'s society',
       content: 'I wanted to share my experience with mental health challenges and how seeking help changed my life...',
-      author: 'wellness_warrior',
+      author: 'Ok_Rabbit_1613',
       subreddit: 'MentalHealth',
       upvotes: 245,
       comments: 67,
       timestamp: '2 hours ago',
-      url: 'https://reddit.com/r/MentalHealth/post1',
+      url: 'https://www.reddit.com/user/Ok_Rabbit_1613/',
       sentiment: 'positive'
     },
     {
       id: '2',
       title: 'Struggling with anxiety and depression',
       content: 'Has anyone else felt like they\'re drowning in their own thoughts? I need some advice...',
-      author: 'seeking_help_123',
+      author: 'AcceptableBridge7667',
       subreddit: 'depression',
       upvotes: 89,
       comments: 34,
       timestamp: '4 hours ago',
-      url: 'https://reddit.com/r/depression/post2',
+      url: 'https://www.reddit.com/user/AcceptableBridge7667/',
       sentiment: 'negative'
     },
     {
@@ -121,13 +123,33 @@ const ScrapperOutput: React.FC<ScrapperOutputProps> = ({ darkMode }) => {
   const subreddits = ['all', 'MentalHealth', 'depression', 'Meditation', 'therapy', 'stress'];
   const sentiments = ['all', 'positive', 'negative', 'neutral'];
 
-  const handleRefresh = () => {
+  const handleRefresh = async () => {
     setIsLoading(true);
-    // Simulate API call
-    setTimeout(() => {
-      setData([...mockData].sort(() => Math.random() - 0.5));
+    setScrapingStatus('Starting Selenium scraper...');
+    
+    try {
+      console.log('Starting Reddit scraping...');
+      
+      // Start the Reddit scraper
+      setScrapingStatus('Scraping...');
+      const result = await redditScraper.openAndScrape();
+      
+      if (result.success) {
+        setScrapingStatus(`Scraping completed! Scrolled ${result.scroll_count} times`);
+        console.log('Scraping completed successfully:', result);
+      } else {
+        setScrapingStatus(`Scraping failed: ${result.error}`);
+        console.error('Scraping failed:', result.error);
+      }
+      
+    } catch (error) {
+      console.error('Error during scraping:', error);
+      setScrapingStatus('Error occurred during scraping...');
+    } finally {
       setIsLoading(false);
-    }, 1000);
+      // Clear status message after 5 seconds
+      setTimeout(() => setScrapingStatus(''), 5000);
+    }
   };
 
   const handleExport = () => {
@@ -180,6 +202,15 @@ const ScrapperOutput: React.FC<ScrapperOutputProps> = ({ darkMode }) => {
               <RefreshCw className={`w-4 h-4 ${isLoading ? 'animate-spin' : ''}`} />
               Refresh
             </button>
+            {scrapingStatus && (
+              <div className={`px-3 py-2 rounded-lg text-sm ${
+                darkMode 
+                  ? 'bg-blue-600/20 text-blue-300' 
+                  : 'bg-blue-100 text-blue-700'
+              }`}>
+                {scrapingStatus}
+              </div>
+            )}
             <button
               onClick={handleExport}
               className="bg-gradient-to-r from-blue-600 to-cyan-600 text-white px-4 py-2 rounded-lg font-medium hover:shadow-lg hover:shadow-blue-500/30 transition-all duration-200 flex items-center gap-2"

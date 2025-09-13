@@ -1,9 +1,10 @@
 import { useState, useEffect } from 'react';
-import { Home, Heart, Search, Moon, Sun, Brain, Gamepad2 } from 'lucide-react';
+import { Home, Heart, Search, Moon, Sun, Brain, Gamepad2, MessageCircle } from 'lucide-react';
 import HomePage from './components/HomePage';
 import MoodBar from './components/MoodBar';
 import ScrapperOutput from './components/ScrapperOutput';
 import Gaming from './components/Gaming';
+import Chat from './components/Chat';
 
 export interface MoodEntry {
   id: string;
@@ -19,7 +20,7 @@ export interface MoodEntry {
 
 
 function App() {
-  const [currentView, setCurrentView] = useState<'home' | 'mood' | 'scrapper' | 'gaming'>('home');
+  const [currentView, setCurrentView] = useState<'home' | 'mood' | 'scrapper' | 'gaming' | 'chat'>('home');
   const [entries, setEntries] = useState<MoodEntry[]>([]);
   const [darkMode, setDarkMode] = useState(false);
 
@@ -48,6 +49,7 @@ function App() {
     { id: 'mood', label: 'Mood Bar', icon: Heart, description: 'Mood Tracking & Analytics' },
     { id: 'scrapper', label: 'Scrapper', icon: Search, description: 'Reddit Data & Output' },
     { id: 'gaming', label: 'Gaming', icon: Gamepad2, description: 'Gaming Hub & Sessions' },
+    { id: 'chat', label: 'Chat', icon: MessageCircle, description: 'Chat Support' },
   ];
 
   return (
@@ -126,6 +128,7 @@ function App() {
           )}
           {currentView === 'scrapper' && <ScrapperOutput darkMode={darkMode} />}
           {currentView === 'gaming' && <Gaming darkMode={darkMode} />}
+          {currentView === 'chat' && <Chat darkMode={darkMode} />}
         </main>
       </div>
     </div>
