@@ -117,3 +117,6 @@ const MoodBar: React.FC<MoodBarProps> = ({ entries, onAddEntry, darkMode }) => {
 };
 
 export default MoodBar;
+
+
+
