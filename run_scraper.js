@@ -10,7 +10,6 @@ function runRedditScraper() {
         // Use the Python scraper from the web_app utils directory
         const pythonScript = path.join(__dirname, 'web_app', 'src', 'utils', 'scraper.py');
         
-        console.log('Starting Reddit scraper...');
         console.log('Python script path:', pythonScript);
         
         const python = spawn('python3', [pythonScript], {
