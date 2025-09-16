@@ -4,19 +4,7 @@ import HomePage from './components/HomePage';
 import MoodBar from './components/MoodBar';
 import Gaming from './components/Gaming';
 import Chat from './components/Chat';
-
-export interface MoodEntry {
-  id: string;
-  date: string;
-  mood: number;
-  moodLabel: string;
-  triggers: string[];
-  activities: string[];
-  notes: string;
-  timestamp: number;
-}
-
-
+import { sharedDatabase, type MoodEntry } from './utils/sharedDatabase';
 
 function App() {
   const [currentView, setCurrentView] = useState<'home' | 'mood' | 'gaming' | 'chat'>('home');
@@ -24,22 +12,49 @@ function App() {
   const [darkMode, setDarkMode] = useState(false);
 
   useEffect(() => {
-    const savedEntries = localStorage.getItem('moodEntries');
-    if (savedEntries) {
-      setEntries(JSON.parse(savedEntries));
-    }
+    const loadMoodEntries = async () => {
+      try {
+        // Try to load from shared database first
+        await sharedDatabase.initialize();
+        const dbEntries = await sharedDatabase.getAllMoodEntries();
+        setEntries(dbEntries);
+        console.log('✅ Loaded mood entries from shared database');
+      } catch (error) {
+        console.warn('⚠️ Shared database not available, falling back to localStorage');
+        // Fallback to localStorage if shared database is not available
+        const savedEntries = localStorage.getItem('moodEntries');
+        if (savedEntries) {
+          setEntries(JSON.parse(savedEntries));
+        }
+      }
+    };
+
+    loadMoodEntries();
   }, []);
 
-  const saveEntry = (entry: Omit<MoodEntry, 'id' | 'timestamp'>) => {
+  const saveEntry = async (entry: Omit<MoodEntry, 'id' | 'timestamp'>) => {
     const newEntry: MoodEntry = {
       ...entry,
       id: Date.now().toString(),
       timestamp: Date.now(),
     };
 
-    const updatedEntries = [newEntry, ...entries];
-    setEntries(updatedEntries);
-    localStorage.setItem('moodEntries', JSON.stringify(updatedEntries));
+    try {
+      // Try to save to shared database first
+      await sharedDatabase.addMoodEntry(newEntry);
+      console.log('✅ Saved mood entry to shared database');
+      
+      // Update local state
+      const updatedEntries = [newEntry, ...entries];
+      setEntries(updatedEntries);
+    } catch (error) {
+      console.warn('⚠️ Shared database not available, saving to localStorage');
+      // Fallback to localStorage
+      const updatedEntries = [newEntry, ...entries];
+      setEntries(updatedEntries);
+      localStorage.setItem('moodEntries', JSON.stringify(updatedEntries));
+    }
+
     setCurrentView('mood');
   };
 

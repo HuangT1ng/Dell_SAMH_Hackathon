@@ -7,8 +7,8 @@ const path = require('path');
  */
 function runRedditScraper() {
     return new Promise((resolve, reject) => {
-        // Use the Python scraper from the web_app utils directory
-        const pythonScript = path.join(__dirname, 'web_app', 'src', 'utils', 'scraper.py');
+        // Use the Python scraper from the reddit_scrapper_dashboard utils directory
+        const pythonScript = path.join(__dirname, 'reddit_scrapper_dashboard', 'src', 'utils', 'scraper.py');
         
         console.log('Python script path:', pythonScript);
         

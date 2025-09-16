@@ -1,19 +1,21 @@
 {
   "name": "dell-samh-hackathon",
   "version": "1.0.0",
-  "description": "SAMH Mental Health Dashboard with Reddit Scraper",
-  "main": "scraper_server.js",
+  "description": "Dell SAMH Mental Health Platform with Reddit Scraper",
+  "type": "module",
   "scripts": {
-    "scraper-server": "node scraper_server.js",
-    "scrape": "node run_scraper.js",
-    "install-python-deps": "pip install selenium webdriver-manager"
+    "start:backend": "node unified_backend_server.js",
+    "start:scraper-dashboard": "cd reddit_scrapper_dashboard && npm run dev",
+    "start:samh-platform": "cd web_app && npm run dev",
+    "start:all": "concurrently \"npm run start:backend\" \"npm run start:scraper-dashboard\" \"npm run start:samh-platform\"",
+    "install:all": "npm install && cd web_app && npm install && cd ../reddit_scrapper_dashboard && npm install"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2"
   },
   "dependencies": {
     "express": "^4.18.2",
+    "sqlite3": "^5.1.6",
     "cors": "^2.8.5"
-  },
-  "devDependencies": {},
-  "keywords": ["mental-health", "reddit", "scraper", "selenium"],
-  "author": "Dell SAMH Hackathon Team",
-  "license": "MIT"
+  }
 }

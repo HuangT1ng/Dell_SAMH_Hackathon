@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Moon, Sun, Activity } from 'lucide-react';
+import { Moon, Sun, Search } from 'lucide-react';
 import ScrapperOutput from './components/ScrapperOutput';
 
 function App() {
@@ -8,31 +8,41 @@ function App() {
   return (
     <div className={`min-h-screen transition-colors duration-300 ${
       darkMode 
-        ? 'bg-[#343541] text-white' 
-        : 'bg-gradient-to-br from-blue-50 via-cyan-50 to-slate-50 text-blue-900'
-    }`}>
-      {/* Header */}
-      <header className={`border-b transition-colors duration-300 ${
+        ? 'bg-gradient-to-br from-slate-900 via-slate-800 to-slate-700' 
+        : ''
+    }`} style={{ backgroundColor: darkMode ? undefined : '#f1efef' }}>
+      {/* Beautiful Header */}
+      <header className={`transition-colors duration-300 ${
         darkMode 
-          ? 'bg-[#40414F] border-gray-700' 
-          : 'bg-white/90 backdrop-blur-sm border-blue-100'
-      }`}>
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
-            <div className="flex items-center space-x-3">
-              <div className="w-8 h-8 bg-gradient-to-r from-blue-600 to-cyan-600 rounded-lg flex items-center justify-center">
-                <Activity className="w-5 h-5 text-white" />
+          ? 'bg-gradient-to-r from-slate-800 to-slate-700 border-b border-slate-600' 
+          : 'bg-gradient-to-r from-white to-gray-50 border-b border-gray-200'
+      } shadow-lg`}>
+        <div className="px-8 py-6">
+          <div className="flex justify-between items-center">
+            <div className="flex items-center gap-4">
+              <div className="w-12 h-12 rounded-xl flex items-center justify-center shadow-lg" style={{ backgroundColor: '#4a6cf7' }}>
+                <Search className="w-7 h-7 text-white" />
               </div>
-              <h1 className="text-xl font-bold bg-gradient-to-r from-blue-600 via-cyan-600 to-teal-600 bg-clip-text text-transparent">
-                Scraper Dashboard
-              </h1>
+              <div>
+                <h1 className={`text-2xl font-bold ${
+                  darkMode ? 'text-white' : 'text-slate-800'
+                }`}>
+                  Reddit Mental Health Scraper
+                </h1>
+                <p className={`text-sm ${
+                  darkMode ? 'text-slate-300' : 'text-slate-600'
+                }`}>
+                  Advanced Social Media Mental Health Analysis Dashboard
+                </p>
+              </div>
             </div>
+            
             <button
               onClick={() => setDarkMode(!darkMode)}
-              className={`p-2 rounded-lg transition-all duration-300 ${
+              className={`p-3 rounded-xl transition-all duration-300 shadow-md ${
                 darkMode 
-                  ? 'bg-gray-700 hover:bg-gray-600 text-yellow-400' 
-                  : 'bg-blue-50 hover:bg-blue-100 text-blue-600'
+                  ? 'bg-slate-700 hover:bg-slate-600 text-yellow-400 border border-slate-600' 
+                  : 'bg-white hover:bg-gray-100 text-slate-600 border border-gray-200'
               }`}
             >
               {darkMode ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
@@ -41,7 +51,8 @@ function App() {
         </div>
       </header>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      {/* Beautiful Dashboard */}
+      <div>
         <ScrapperOutput darkMode={darkMode} />
       </div>
     </div>

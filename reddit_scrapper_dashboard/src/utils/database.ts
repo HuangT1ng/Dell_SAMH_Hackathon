@@ -15,12 +15,12 @@ export interface ScrapperData {
 }
 
 class DatabaseManager {
-  private baseUrl: string = 'http://localhost:3002/api';
+  private baseUrl: string = 'http://localhost:3001/api';
 
   async getAllData(): Promise<ScrapperData[]> {
     try {
-      console.log('Fetching data from database...');
-      const response = await fetch(`${this.baseUrl}/data`);
+      console.log('Fetching data from shared database...');
+      const response = await fetch(`${this.baseUrl}/mental-health-posts`);
       
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
@@ -37,7 +37,7 @@ class DatabaseManager {
 
   async addData(item: Omit<ScrapperData, 'id'>): Promise<{ id: string; message: string }> {
     try {
-      const response = await fetch(`${this.baseUrl}/data`, {
+      const response = await fetch(`${this.baseUrl}/mental-health-posts`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

@@ -1,148 +1,203 @@
-# SAMH Platform - Frontend
+# Dell SAMH Mental Health Platform
 
-A unified frontend platform combining mental health tracking and user management interfaces.
+A comprehensive mental health platform consisting of two independent applications sharing a centralized database.
 
-## 🌟 Features
+## 🏗️ Architecture
 
-### 🧠 MindFlow - Mental Health Tracking
-- **Mood Journaling**: Track daily moods with emoji-based interface
-- **Trigger & Activity Tracking**: Identify stress triggers and positive activities
-- **Mood Analytics**: Visual charts showing mood trends over time
-- **Entry History**: Search and filter through past journal entries
-- **Dark Mode Support**: Toggle between light and dark themes
-
-### 👥 Reddit Dashboard - User Management
-- **User Profiles**: Manage users with different levels (L1-L4)
-- **Search & Filter**: Find users by name or level
-- **Verification System**: Verified user badges
-- **Level-based Styling**: Color-coded user levels
+```
+┌─────────────────────────────────────────────────────────────┐
+│                 Shared Database Server                      │
+│                 (Port 3003)                                │
+│   ┌─────────────────────┐  ┌─────────────────────────────┐  │
+│   │ Mental Health Posts │  │     Mood Entries           │  │
+│   │ (Scraper writes)    │  │  (SAMH Platform writes)    │  │
+│   └─────────────────────┘  └─────────────────────────────┘  │
+└─────────────────────────────────────────────────────────────┘
+            ▲                              ▲
+            │                              │
+┌───────────▼──────────┐        ┌──────────▼──────────────┐
+│ Reddit Scraper       │        │ SAMH Platform           │
+│ Dashboard            │        │ (Main App)              │
+│ (Port 5174)          │        │ (Port 5173)             │
+│                      │        │                         │
+│ • Scrapes Reddit     │        │ • Homepage              │
+│ • Mental health data │        │ • Mood tracking         │
+│ • Sentiment analysis │        │ • Gaming features       │
+│ • Data visualization │        │ • Chat support          │
+└──────────────────────┘        └─────────────────────────┘
+```
 
 ## 🚀 Quick Start
 
 ### Prerequisites
-- Node.js 16+
-- npm or yarn
+- Node.js (v16 or higher)
+- Python 3 (for Reddit scraper)
+- Chrome browser (for Selenium)
 
-### Installation & Running
-
-1. **Navigate to the web_app directory:**
-   ```bash
-   cd web_app
-   ```
-
-2. **Install dependencies:**
-   ```bash
-   npm install
-   ```
-
-3. **Start the development server:**
-   ```bash
-   npm run dev
-   ```
-
-4. **Access the application:**
-   - Open http://localhost:5173 in your browser
-
-## 🏗️ Architecture
-
-### Frontend (React + TypeScript)
-- **Base**: Vite + React + TypeScript
-- **Styling**: Tailwind CSS
-- **Icons**: Lucide React
-- **State Management**: React Hooks + LocalStorage
-
-### Key Components
-```
-web_app/src/
-├── App.tsx                 # Main application with navigation
-├── components/
-│   ├── Dashboard.tsx       # MindFlow dashboard
-│   ├── AddEntry.tsx        # Mood entry form
-│   ├── EntryHistory.tsx    # Journal history
-│   ├── MoodChart.tsx       # Mood visualization
-│   └── RedditDashboard.tsx # User management
+### Installation
+```bash
+# Install all dependencies
+npm run install:all
 ```
 
-## 🎨 Design Features
+### Start All Services
+```bash
+# Start everything at once
+npm run start:all
+```
 
-- **Unified Navigation**: Seamless switching between services
-- **Dark Mode**: Consistent theming across all components
-- **Responsive Design**: Works on desktop and mobile
-- **Modern UI**: Glassmorphism effects and smooth animations
-- **Accessibility**: Proper contrast and keyboard navigation
+This will start:
+- **Shared Database Server** on http://localhost:3003
+- **Reddit Scraper Backend** on http://localhost:3001  
+- **Reddit Scraper Dashboard** on http://localhost:5174
+- **SAMH Platform** on http://localhost:5173
 
-## 📱 Usage
+### Individual Services
 
-1. **MindFlow Dashboard**: Track your daily mood and mental health
-2. **Add Entry**: Create new journal entries with triggers and activities
-3. **History**: Review past entries with search and filtering
-4. **Reddit Dashboard**: Manage user profiles and levels
+#### 1. Shared Database Server
+```bash
+npm run start:db
+```
+- **Port**: 3003
+- **Purpose**: Centralized SQLite database for both applications
+- **Data**: Mental health posts, mood entries, analytics
 
-## 🛠️ Development
+#### 2. SAMH Platform (Main App)
+```bash
+npm run start:samh-platform
+```
+- **Port**: 5173
+- **Features**: Homepage, Mood tracking, Gaming, Chat
+- **Database**: Reads/writes mood entries to shared database
+
+#### 3. Reddit Scraper Dashboard
+```bash
+npm run start:scraper-dashboard
+```
+- **Port**: 5174
+- **Features**: Reddit scraping, Mental health post analysis
+- **Database**: Writes scraped data to shared database
+
+#### 4. Reddit Scraper Backend
+```bash
+npm run start:scraper-backend
+```
+- **Port**: 3001
+- **Purpose**: Handles Python Selenium scraper execution
+
+## 📊 API Endpoints
+
+### Shared Database Server (Port 3003)
+- `GET /api/mental-health-posts` - Get all scraped mental health posts
+- `POST /api/mental-health-posts` - Add new mental health post
+- `GET /api/mood-entries` - Get all mood entries
+- `POST /api/mood-entries` - Add new mood entry
+- `POST /api/analytics` - Record analytics event
+- `GET /api/stats` - Get database statistics
+- `GET /api/health` - Health check
+
+### Reddit Scraper Backend (Port 3001)
+- `POST /api/scrape` - Execute Reddit scraping
+- `GET /api/health` - Health check
+
+## 🎯 Applications
+
+### SAMH Platform
+**Professional mental health platform with:**
+- **Homepage**: Clean, professional landing page
+- **Mood Bar**: Track daily mood and mental health journey
+- **Gaming**: Gaming hub and wellness sessions
+- **Chat**: Mental health chat support
+- **Theme**: Custom blue (#4a6cf7) and neutral (#f1efef) colors
+
+### Reddit Scraper Dashboard
+**Mental health data analysis tool with:**
+- **Data Visualization**: View scraped mental health posts
+- **Sentiment Analysis**: Positive/negative sentiment indicators
+- **Platform Filtering**: Filter by Reddit, Facebook, X (Twitter)
+- **Real-time Scraping**: Execute new scraping sessions
+- **Search & Filter**: Find specific mental health discussions
+
+## 🗄️ Database Schema
+
+### Mental Health Posts
+```sql
+CREATE TABLE mental_health_posts (
+  id TEXT PRIMARY KEY,
+  title TEXT NOT NULL,
+  content TEXT NOT NULL,
+  author TEXT NOT NULL,
+  subreddit TEXT NOT NULL,
+  upvotes INTEGER NOT NULL,
+  comments INTEGER NOT NULL,
+  timestamp TEXT NOT NULL,
+  url TEXT NOT NULL,
+  sentiment TEXT NOT NULL,
+  platform TEXT NOT NULL,
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+```
+
+### Mood Entries
+```sql
+CREATE TABLE mood_entries (
+  id TEXT PRIMARY KEY,
+  date TEXT NOT NULL,
+  mood INTEGER NOT NULL,
+  mood_label TEXT NOT NULL,
+  triggers TEXT NOT NULL, -- JSON array
+  activities TEXT NOT NULL, -- JSON array
+  notes TEXT,
+  timestamp INTEGER NOT NULL,
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+```
+
+## 🔧 Development
 
 ### Project Structure
 ```
-web_app/
-├── src/
-│   ├── App.tsx                 # Main application
-│   ├── components/             # React components
-│   ├── index.css              # Global styles
-│   └── main.tsx               # Entry point
-├── package.json               # Dependencies
-├── tailwind.config.js         # Tailwind configuration
-├── vite.config.ts             # Vite configuration
-└── tsconfig.json              # TypeScript configuration
+Dell_SAMH_Hackathon/
+├── web_app/                    # SAMH Platform (Main App)
+├── reddit_scrapper_dashboard/  # Reddit Scraper Dashboard
+├── shared_database_server.js   # Centralized Database
+├── scraper_server.js          # Scraper Backend
+├── run_scraper.js             # Python Scraper Wrapper
+└── package.json               # Root package with scripts
 ```
 
-### Available Scripts
-- `npm run dev` - Start development server
-- `npm run build` - Build for production
-- `npm run preview` - Preview production build
-- `npm run lint` - Run ESLint
+### Data Flow
+1. **Reddit Scraper** scrapes mental health posts → **Shared Database**
+2. **SAMH Platform** tracks user mood entries → **Shared Database**
+3. Both apps read from shared database for analytics and insights
 
-### Adding New Features
-1. **Components**: Add new components in `src/components/`
-2. **Styling**: Use Tailwind classes with dark mode support
-3. **State**: Use React hooks for local state management
-4. **Navigation**: Update the navigation array in `App.tsx`
+## 🎨 Features
 
-## 🎨 Styling Guidelines
+### SAMH Platform Features
+- ✅ Professional homepage with custom branding
+- ✅ Mood tracking with visual charts
+- ✅ Gaming wellness features
+- ✅ Mental health chat support
+- ✅ Dark/light mode toggle
+- ✅ Responsive design
 
-### Dark Mode Support
-All components support dark mode through the `darkMode` prop:
-```tsx
-className={`base-classes ${
-  darkMode 
-    ? 'dark-mode-classes' 
-    : 'light-mode-classes'
-}`}
-```
+### Reddit Scraper Features
+- ✅ Selenium-based Reddit scraping
+- ✅ Mental health content detection
+- ✅ Sentiment analysis
+- ✅ Multi-platform data aggregation
+- ✅ Real-time data visualization
+- ✅ Search and filtering capabilities
 
-### Color Scheme
-- **Primary**: Blue to Cyan gradients
-- **Success**: Green tones
-- **Warning**: Orange/Yellow tones
-- **Error**: Red tones
-- **Neutral**: Gray tones
+## 🔒 Security & Privacy
+- All data stored locally in SQLite database
+- No external data transmission except for scraping
+- Mental health data handled with care
+- CORS configured for local development only
 
-## 🤝 Contributing
-
-1. Create a new branch: `git checkout -b feature-name`
-2. Make your changes
-3. Test thoroughly
-4. Submit a pull request
-
-## 📄 License
-
-This project is part of the Dell SAMH Hackathon.
-
-## 🆘 Support
-
-For issues or questions:
-1. Check the console for error messages
-2. Ensure all dependencies are installed
-3. Check browser developer tools for frontend issues
-
----
-
-**Built with ❤️ for mental health awareness and support**
+## 📈 Analytics
+The shared database tracks:
+- Mental health post engagement metrics
+- User mood patterns and trends
+- Platform usage analytics
+- Sentiment analysis over time
