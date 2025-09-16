@@ -1,171 +1,231 @@
 import React from 'react';
-import { Brain, TrendingUp, Users, Heart, ArrowRight, Star } from 'lucide-react';
+import { Brain, ArrowRight, Star, Mail, Phone, MapPin } from 'lucide-react';
 
 interface HomePageProps {
   darkMode: boolean;
 }
 
 const HomePage: React.FC<HomePageProps> = ({ darkMode }) => {
-  const features = [
+  const services = [
     {
-      icon: Heart,
-      title: 'Mood Tracking',
-      description: 'Track your daily mood and mental health journey with our intuitive interface.',
-      color: 'from-pink-500 to-rose-500'
+      title: 'Individual Therapy',
+      description: 'Personalized one-on-one sessions tailored to your specific needs and goals.',
     },
     {
-      icon: Users,
-      title: 'User Management',
-      description: 'Manage user profiles and levels with our comprehensive dashboard system.',
-      color: 'from-blue-500 to-cyan-500'
+      title: 'Group Therapy',
+      description: 'Connect with others facing similar challenges in a supportive group environment.',
     },
     {
-      icon: TrendingUp,
-      title: 'Analytics',
-      description: 'Visualize your mood trends and patterns with beautiful charts and insights.',
-      color: 'from-green-500 to-emerald-500'
+      title: 'Mood Analytics',
+      description: 'Track and analyze your emotional patterns with advanced data insights.',
+    },
+    {
+      title: 'Crisis Support',
+      description: '24/7 emergency mental health support when you need it most.',
     }
   ];
 
-  const stats = [
-    { label: 'Total Users', value: '1,234', icon: Users },
-    { label: 'Mood Entries', value: '5,678', icon: Heart },
-    { label: 'Active Sessions', value: '89', icon: TrendingUp }
+  const expertise = [
+    'Anxiety & Depression',
+    'Trauma & PTSD',
+    'Relationship Issues',
+    'Stress Management',
+    'Behavioral Therapy',
+    'Mindfulness & Meditation'
   ];
 
   return (
-    <div className="space-y-8">
-      {/* Hero Section */}
-      <div className={`text-center py-12 rounded-2xl ${
-        darkMode 
-          ? 'bg-[#40414F] border border-gray-700' 
-          : 'bg-white/90 backdrop-blur-sm border border-blue-100'
-      }`}>
-        <div className="max-w-4xl mx-auto px-6">
-          <div className="flex items-center justify-center mb-6">
-            <div className="w-16 h-16 bg-gradient-to-r from-blue-600 to-cyan-600 rounded-2xl flex items-center justify-center">
-              <Brain className="w-8 h-8 text-white" />
-            </div>
-          </div>
-          <h1 className={`text-4xl md:text-6xl font-bold mb-6 ${
-            darkMode ? 'text-white' : 'text-blue-900'
-          }`}>
-            Welcome to{' '}
-            <span className="bg-gradient-to-r from-blue-600 via-cyan-600 to-teal-600 bg-clip-text text-transparent">
-              SAMH Platform
-            </span>
-          </h1>
-          <p className={`text-xl mb-8 ${
-            darkMode ? 'text-gray-300' : 'text-gray-600'
-          }`}>
-            Your comprehensive mental health and user management platform. 
-            Track moods, manage users, and gain insights into your wellness journey.
-          </p>
-          <div className="flex flex-wrap justify-center gap-4">
-            <button className="bg-gradient-to-r from-blue-600 to-cyan-600 text-white px-8 py-3 rounded-xl font-semibold hover:shadow-lg hover:shadow-blue-500/30 transition-all duration-200 flex items-center gap-2">
-              Get Started
-              <ArrowRight className="w-5 h-5" />
-            </button>
-            <button className={`px-8 py-3 rounded-xl font-semibold border-2 transition-all duration-200 ${
+    <div className={`${
+      darkMode 
+        ? 'bg-gradient-to-br from-slate-900 via-slate-800 to-slate-700' 
+        : 'bg-white'
+    } rounded-2xl p-8 shadow-lg border ${
+      darkMode ? 'border-slate-700' : 'border-gray-200'
+    }`}>
+      {/* Main Content */}
+      <div className="max-w-7xl mx-auto">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
+          {/* Left Side - Hero Image */}
+          <div className="relative">
+            <div className={`w-full h-[600px] rounded-3xl overflow-hidden shadow-2xl ${
               darkMode 
-                ? 'border-gray-600 text-gray-300 hover:bg-gray-700' 
-                : 'border-blue-200 text-blue-700 hover:bg-blue-50'
+                ? 'bg-gradient-to-br from-slate-700 to-slate-600' 
+                : 'bg-gradient-to-br from-gray-100 to-gray-200'
             }`}>
-              Learn More
-            </button>
-          </div>
-        </div>
-      </div>
-
-      {/* Stats Section */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        {stats.map((stat, index) => (
-          <div key={index} className={`p-6 rounded-xl transition-all duration-300 ${
-            darkMode 
-              ? 'bg-[#40414F] border border-gray-700' 
-              : 'bg-white/90 backdrop-blur-sm border border-blue-100'
-          }`}>
-            <div className="flex items-center gap-4">
-              <div className="w-12 h-12 bg-gradient-to-r from-blue-600 to-cyan-600 rounded-xl flex items-center justify-center">
-                <stat.icon className="w-6 h-6 text-white" />
-              </div>
-              <div>
-                <p className={`text-2xl font-bold ${
-                  darkMode ? 'text-white' : 'text-blue-900'
-                }`}>
-                  {stat.value}
-                </p>
-                <p className={`text-sm ${
-                  darkMode ? 'text-gray-400' : 'text-gray-600'
-                }`}>
-                  {stat.label}
-                </p>
+              {/* Professional Image Placeholder */}
+              <div className="w-full h-full flex items-center justify-center">
+                <div className={`w-48 h-48 rounded-full flex items-center justify-center shadow-xl ${
+                  darkMode 
+                    ? 'bg-gradient-to-br from-slate-600 to-slate-700' 
+                    : ''
+                }`} style={{ backgroundColor: darkMode ? undefined : '#4a6cf7' }}>
+                  <Brain className="w-24 h-24 text-white" />
+                </div>
               </div>
             </div>
           </div>
-        ))}
-      </div>
 
-      {/* Features Section */}
-      <div className={`p-8 rounded-2xl ${
-        darkMode 
-          ? 'bg-[#40414F] border border-gray-700' 
-          : 'bg-white/90 backdrop-blur-sm border border-blue-100'
-      }`}>
-        <h2 className={`text-3xl font-bold text-center mb-8 ${
-          darkMode ? 'text-white' : 'text-blue-900'
-        }`}>
-          Platform Features
-        </h2>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-          {features.map((feature, index) => (
-            <div key={index} className="text-center group">
-              <div className={`w-16 h-16 bg-gradient-to-r ${feature.color} rounded-2xl flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform duration-200`}>
-                <feature.icon className="w-8 h-8 text-white" />
-              </div>
-              <h3 className={`text-xl font-semibold mb-3 ${
-                darkMode ? 'text-white' : 'text-blue-900'
+          {/* Right Side - Content */}
+          <div className="space-y-8">
+            <div>
+              <h1 className={`text-5xl lg:text-7xl font-light mb-4 ${
+                darkMode ? 'text-white' : 'text-slate-800'
               }`}>
-                {feature.title}
-              </h3>
-              <p className={`${
-                darkMode ? 'text-gray-300' : 'text-gray-600'
+                SAMH
+              </h1>
+              <h2 className={`text-5xl lg:text-7xl font-light mb-8 ${
+                darkMode ? 'text-slate-300' : 'text-slate-600'
               }`}>
-                {feature.description}
+                Platform
+              </h2>
+              <div className={`w-24 h-px ${
+                darkMode ? 'bg-slate-400' : 'bg-slate-500'
+              } mb-8`}></div>
+              <p className={`text-xl font-light ${
+                darkMode ? 'text-slate-300' : 'text-slate-600'
+              }`}>
+                Ph.D. Clinical Mental Health Specialist
               </p>
             </div>
-          ))}
-        </div>
-      </div>
 
-      {/* Call to Action */}
-      <div className={`p-8 rounded-2xl text-center ${
-        darkMode 
-          ? 'bg-gradient-to-r from-blue-900/50 to-cyan-900/50 border border-gray-700' 
-          : 'bg-gradient-to-r from-blue-50 to-cyan-50 border border-blue-100'
-      }`}>
-        <h2 className={`text-2xl font-bold mb-4 ${
-          darkMode ? 'text-white' : 'text-blue-900'
-        }`}>
-          Ready to Start Your Journey?
-        </h2>
-        <p className={`mb-6 ${
-          darkMode ? 'text-gray-300' : 'text-gray-600'
-        }`}>
-          Join thousands of users who are already tracking their mental health and managing their wellness journey.
-        </p>
-        <div className="flex flex-wrap justify-center gap-4">
-          <button className="bg-gradient-to-r from-blue-600 to-cyan-600 text-white px-6 py-3 rounded-xl font-semibold hover:shadow-lg hover:shadow-blue-500/30 transition-all duration-200 flex items-center gap-2">
-            <Star className="w-5 h-5" />
-            Start Tracking
-          </button>
-          <button className={`px-6 py-3 rounded-xl font-semibold border-2 transition-all duration-200 ${
-            darkMode 
-              ? 'border-gray-600 text-gray-300 hover:bg-gray-700' 
-              : 'border-blue-200 text-blue-700 hover:bg-blue-50'
+            <div className="space-y-6">
+              <p className={`text-lg leading-relaxed ${
+                darkMode ? 'text-slate-300' : 'text-slate-600'
+              }`}>
+                I'm a dedicated mental health professional committed to helping you navigate life's challenges. 
+                With years of experience in clinical psychology and a passion for holistic wellness, 
+                I provide personalized care that honors your unique journey.
+              </p>
+              <p className={`text-lg leading-relaxed ${
+                darkMode ? 'text-slate-300' : 'text-slate-600'
+              }`}>
+                My approach combines evidence-based therapeutic techniques with compassionate understanding, 
+                creating a safe space where healing and growth can flourish. Together, we'll work towards 
+                your mental wellness goals with dignity and respect.
+              </p>
+            </div>
+
+            <div className="flex flex-wrap gap-4">
+              <button className="text-white px-8 py-4 rounded-xl font-medium hover:shadow-lg transition-all duration-300 flex items-center gap-2" style={{ backgroundColor: '#4a6cf7' }}>
+                Schedule Consultation
+                <ArrowRight className="w-5 h-5" />
+              </button>
+              <button className={`px-8 py-4 rounded-xl font-medium border-2 transition-all duration-300 ${
+                darkMode 
+                  ? 'border-slate-600 text-slate-300 hover:bg-slate-800' 
+                  : 'border-gray-300 text-slate-700 hover:bg-gray-50'
+              }`}>
+                Learn More
+              </button>
+            </div>
+          </div>
+        </div>
+
+        {/* Services Section */}
+        <div className="mt-24">
+          <h2 className={`text-4xl font-light text-center mb-16 ${
+            darkMode ? 'text-white' : 'text-slate-800'
           }`}>
-            View Dashboard
-          </button>
+            Services
+          </h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            {services.map((service, index) => (
+              <div key={index} className={`p-8 rounded-2xl transition-all duration-300 hover:shadow-xl ${
+                darkMode 
+                  ? 'bg-slate-800/50 border border-slate-700 hover:bg-slate-800' 
+                  : 'bg-gray-50 border border-gray-200 hover:bg-white'
+              }`}>
+                <h3 className={`text-2xl font-medium mb-4 ${
+                  darkMode ? 'text-white' : 'text-slate-800'
+                }`}>
+                  {service.title}
+                </h3>
+                <p className={`leading-relaxed ${
+                  darkMode ? 'text-slate-300' : 'text-slate-600'
+                }`}>
+                  {service.description}
+                </p>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Areas of Expertise */}
+        <div className="mt-24">
+          <h2 className={`text-4xl font-light text-center mb-16 ${
+            darkMode ? 'text-white' : 'text-slate-800'
+          }`}>
+            Areas of Expertise
+          </h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {expertise.map((area, index) => (
+              <div key={index} className={`p-6 rounded-xl text-center transition-all duration-300 ${
+                darkMode 
+                  ? 'bg-slate-800/30 border border-slate-700 hover:bg-slate-800/50' 
+                  : 'bg-gray-50 border border-gray-200 hover:bg-white'
+              }`}>
+                <p className={`text-lg font-medium ${
+                  darkMode ? 'text-slate-300' : 'text-slate-700'
+                }`}>
+                  {area}
+                </p>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Contact Section */}
+        <div className={`mt-24 p-12 rounded-3xl text-center ${
+          darkMode 
+            ? 'bg-gradient-to-r from-slate-800/50 to-slate-700/50 border border-slate-700' 
+            : 'bg-gradient-to-r from-gray-50 to-gray-100 border border-gray-200'
+        }`}>
+          <h2 className={`text-4xl font-light mb-8 ${
+            darkMode ? 'text-white' : 'text-slate-800'
+          }`}>
+            Ready to Begin Your Journey?
+          </h2>
+          <p className={`text-xl mb-12 max-w-3xl mx-auto ${
+            darkMode ? 'text-slate-300' : 'text-slate-600'
+          }`}>
+            Take the first step towards better mental health. I'm here to support you with 
+            compassionate, professional care tailored to your unique needs.
+          </p>
+          <div className="flex flex-wrap justify-center gap-6 mb-12">
+            <button className="text-white px-10 py-4 rounded-xl font-medium hover:shadow-lg transition-all duration-300 flex items-center gap-3" style={{ backgroundColor: '#4a6cf7' }}>
+              <Star className="w-5 h-5" />
+              Start Your Journey
+            </button>
+            <button className={`px-10 py-4 rounded-xl font-medium border-2 transition-all duration-300 ${
+              darkMode 
+                ? 'border-slate-600 text-slate-300 hover:bg-slate-800' 
+                : 'border-gray-300 text-slate-700 hover:bg-gray-50'
+            }`}>
+              View Resources
+            </button>
+          </div>
+          
+          {/* Contact Info */}
+          <div className="flex flex-wrap justify-center gap-8">
+            <div className="flex items-center gap-3">
+              <Mail className={`w-5 h-5 ${darkMode ? 'text-slate-300' : 'text-slate-600'}`} />
+              <span className={`${darkMode ? 'text-slate-300' : 'text-slate-600'}`}>
+                contact@samhplatform.com
+              </span>
+            </div>
+            <div className="flex items-center gap-3">
+              <Phone className={`w-5 h-5 ${darkMode ? 'text-slate-300' : 'text-slate-600'}`} />
+              <span className={`${darkMode ? 'text-slate-300' : 'text-slate-600'}`}>
+                (555) 123-4567
+              </span>
+            </div>
+            <div className="flex items-center gap-3">
+              <MapPin className={`w-5 h-5 ${darkMode ? 'text-slate-300' : 'text-slate-600'}`} />
+              <span className={`${darkMode ? 'text-slate-300' : 'text-slate-600'}`}>
+                Virtual & In-Person Sessions
+              </span>
+            </div>
+          </div>
         </div>
       </div>
     </div>

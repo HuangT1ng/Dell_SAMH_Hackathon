@@ -56,66 +56,66 @@ function App() {
     <div className={`min-h-screen transition-colors duration-300 ${
       darkMode 
         ? 'bg-[#343541] text-white' 
-        : 'bg-gradient-to-br from-blue-50 via-cyan-50 to-slate-50 text-blue-900'
-    }`}>
+        : 'text-slate-800'
+    }`} style={{ backgroundColor: darkMode ? undefined : '#f1efef' }}>
       {/* Header */}
       <header className={`border-b transition-colors duration-300 ${
         darkMode 
           ? 'bg-[#40414F] border-gray-700' 
-          : 'bg-white/90 backdrop-blur-sm border-blue-100'
+          : 'bg-white border-gray-200'
       }`}>
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
-            <div className="flex items-center space-x-3">
-              <div className="w-8 h-8 bg-gradient-to-r from-blue-600 to-cyan-600 rounded-lg flex items-center justify-center">
-                <Brain className="w-5 h-5 text-white" />
+        <div className="max-w-7xl mx-auto px-8 py-4">
+          <div className="flex justify-between items-center">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-lg flex items-center justify-center" style={{ backgroundColor: '#4a6cf7' }}>
+                <Brain className="w-6 h-6 text-white" />
               </div>
-              <h1 className="text-xl font-bold bg-gradient-to-r from-blue-600 via-cyan-600 to-teal-600 bg-clip-text text-transparent">
+              <span className={`text-xl font-bold ${
+                darkMode ? 'text-white' : 'text-slate-800'
+              }`}>
                 SAMH Platform
-              </h1>
+              </span>
             </div>
-            <button
-              onClick={() => setDarkMode(!darkMode)}
-              className={`p-2 rounded-lg transition-all duration-300 ${
-                darkMode 
-                  ? 'bg-gray-700 hover:bg-gray-600 text-yellow-400' 
-                  : 'bg-blue-50 hover:bg-blue-100 text-blue-600'
-              }`}
-            >
-              {darkMode ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
-            </button>
+            
+            {/* Main Navigation */}
+            <nav className="flex items-center gap-1">
+              {navigation.map(({ id, label, icon: Icon, description }) => (
+                <button
+                  key={id}
+                  onClick={() => setCurrentView(id as any)}
+                  className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-all duration-200 ${
+                    currentView === id
+                      ? 'text-white shadow-lg'
+                      : darkMode 
+                        ? 'text-gray-300 hover:bg-gray-700 hover:text-white' 
+                        : 'text-slate-600 hover:bg-white hover:text-slate-800'
+                  }`}
+                  style={{
+                    backgroundColor: currentView === id ? '#4a6cf7' : undefined
+                  }}
+                  title={description}
+                >
+                  <Icon size={18} />
+                  <span className="hidden sm:inline text-sm">{label}</span>
+                </button>
+              ))}
+              
+              <button
+                onClick={() => setDarkMode(!darkMode)}
+                className={`ml-4 p-2 rounded-lg transition-all duration-300 ${
+                  darkMode 
+                    ? 'bg-gray-700 hover:bg-gray-600 text-yellow-400' 
+                    : 'bg-white hover:bg-gray-100 text-slate-600'
+                }`}
+              >
+                {darkMode ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
+              </button>
+            </nav>
           </div>
         </div>
       </header>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Navigation */}
-        <nav className={`mb-8 rounded-2xl p-2 shadow-lg border transition-all duration-300 ${
-          darkMode 
-            ? 'bg-[#40414F] border-gray-700' 
-            : 'bg-white/90 backdrop-blur-sm border-blue-100'
-        }`}>
-          <div className="flex flex-wrap justify-center gap-1">
-            {navigation.map(({ id, label, icon: Icon, description }) => (
-              <button
-                key={id}
-                onClick={() => setCurrentView(id as any)}
-                className={`flex items-center gap-2 px-4 py-3 rounded-xl font-medium transition-all duration-200 ${
-                  currentView === id
-                    ? 'bg-gradient-to-r from-blue-600 to-cyan-600 text-white shadow-lg shadow-blue-500/30'
-                    : darkMode 
-                      ? 'text-gray-300 hover:bg-gray-700 hover:text-white' 
-                      : 'text-blue-700 hover:bg-blue-50 hover:text-blue-800'
-                }`}
-                title={description}
-              >
-                <Icon size={20} />
-                <span className="hidden sm:inline">{label}</span>
-              </button>
-            ))}
-          </div>
-        </nav>
-
         {/* Main Content */}
         <main>
           {currentView === 'home' && <HomePage darkMode={darkMode} />}
