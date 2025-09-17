@@ -13,7 +13,7 @@ class RedditScraper:
     def __init__(self):
         self.is_scraping = False
         self.last_result = None
-        self.target_url = 'https://www.reddit.com/r/SGExams/comments/jn7qll/a_levels_too_stressed_during_the_paper/ '
+        self.target_url = 'https://www.reddit.com/r/SGExams/comments/1nc9gat/jc_burnout/'
 
     def open_and_scrape(self):
         """Scraping in Progress"""
@@ -132,10 +132,11 @@ class RedditScraper:
             highlight_script = """
             // Target phrases to highlight
             const targetPhrases = [
-                'i was actually feeling the same this morning, at ard 7am i was having dizzy and vomiting spells',
-                'i was just panicking really hard and its not like i didnt know how to do the questions but it was just.... the pressure was too much i dunno.',
-                'bruh finally someone that’s actually going thru the same shit as me',
-                'i totally understand what you mean cause this is similar to what happened to me during one of my mid year papers'
+                'I js dk how to pick myself up anymore.',
+                'I feel you because I have definitely felt this way in j1 too.',
+                'everyone in this sch is pissed at the lecture system.',
+                'if you want to drop out.',
+                'not much you can do to change your position this instant'
             ];
             
             // Function to highlight entire paragraph containing target phrases

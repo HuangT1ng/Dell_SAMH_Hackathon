@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Search, Download, RefreshCw, ExternalLink, Calendar, TrendingUp, Users, MessageSquare, X } from 'lucide-react';
+import { Search, Download, RefreshCw, ExternalLink, Calendar, TrendingUp, Users, MessageSquare, X, Eye } from 'lucide-react';
 import { redditScraper, ScrapingResult } from '../utils/scraper';
 import { databaseManager, ScrapperData } from '../utils/database';
 
@@ -11,6 +11,10 @@ const ScrapperOutput: React.FC<ScrapperOutputProps> = ({ darkMode }) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [scrapingStatus, setScrapingStatus] = useState<string>('');
+  const [activeFilter, setActiveFilter] = useState<'ALL' | 'FACEBOOK' | 'REDDIT' | 'X'>('ALL');
+  const [showSidePanel, setShowSidePanel] = useState(false);
+  const [visibleCards, setVisibleCards] = useState(0);
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
 
   const [data, setData] = useState<ScrapperData[]>([]);
   const [isLoadingData, setIsLoadingData] = useState(true);
@@ -39,8 +43,49 @@ const ScrapperOutput: React.FC<ScrapperOutputProps> = ({ darkMode }) => {
                          item.content.toLowerCase().includes(searchQuery.toLowerCase()) ||
                          item.author.toLowerCase().includes(searchQuery.toLowerCase());
     
-    return matchesSearch;
+    // Platform filtering logic using actual platform field
+    let matchesPlatform = true;
+    if (activeFilter !== 'ALL') {
+      matchesPlatform = item.platform === activeFilter;
+    }
+    
+    return matchesSearch && matchesPlatform;
   });
+
+  // Handle sequential card appearance
+  useEffect(() => {
+    if (showSidePanel && filteredData.length > 0) {
+      setVisibleCards(0); // Reset visible cards
+      const interval = setInterval(() => {
+        setVisibleCards(prev => {
+          if (prev < filteredData.length) {
+            return prev + 1;
+          } else {
+            clearInterval(interval);
+            return prev;
+          }
+        });
+      }, 1500); // 3 second interval
+
+      return () => clearInterval(interval);
+    } else {
+      setVisibleCards(0);
+    }
+  }, [showSidePanel, filteredData.length]);
+
+  // Auto-scroll to bottom when new card appears
+  useEffect(() => {
+    if (scrollContainerRef.current && visibleCards > 0) {
+      const scrollContainer = scrollContainerRef.current;
+      // Small delay to ensure the card is rendered before scrolling
+      setTimeout(() => {
+        scrollContainer.scrollTo({
+          top: scrollContainer.scrollHeight,
+          behavior: 'smooth'
+        });
+      }, 100);
+    }
+  }, [visibleCards]);
 
   const getSentimentColor = (sentiment: string) => {
     switch (sentiment) {
@@ -120,8 +165,11 @@ const ScrapperOutput: React.FC<ScrapperOutputProps> = ({ darkMode }) => {
     document.body.removeChild(link);
   };
 
+
   return (
-    <div className="px-8 py-8">
+    <div className="px-8 py-8 relative">
+      {/* Main Content */}
+      <div className="w-full">
       {/* Simple Header */}
       <div className={`p-6 rounded-lg border mb-6 ${
         darkMode 
@@ -183,13 +231,15 @@ const ScrapperOutput: React.FC<ScrapperOutputProps> = ({ darkMode }) => {
         )}
       </div>
 
-      {/* Search Filter */}
+      {/* Search Filter and Platform Buttons */}
       <div className={`p-4 rounded-lg border mb-6 ${
         darkMode 
           ? 'bg-slate-800 border-slate-600' 
           : 'bg-white border-gray-200'
       }`}>
-        <div className="relative max-w-md">
+        <div className="flex items-center gap-6">
+          {/* Search Bar */}
+          <div className="relative flex-1 max-w-2xl">
           <Search className="w-4 h-4 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
           <input
             type="text"
@@ -202,6 +252,45 @@ const ScrapperOutput: React.FC<ScrapperOutputProps> = ({ darkMode }) => {
                 : 'bg-white border-gray-300 text-slate-900 focus:ring-blue-500'
             }`}
           />
+          </div>
+
+          {/* Filter Buttons */}
+          <div className="flex items-center gap-2 flex-shrink-0">
+            {(['ALL', 'FACEBOOK', 'REDDIT', 'X'] as const).map((filter) => (
+              <button
+                key={filter}
+                onClick={() => setActiveFilter(filter)}
+                className={`px-4 py-2 rounded-lg font-medium transition-all duration-200 ${
+                  activeFilter === filter
+                    ? darkMode
+                      ? 'bg-blue-600 text-white border border-blue-500'
+                      : 'bg-blue-500 text-white border border-blue-500'
+                    : darkMode
+                      ? 'bg-slate-700 text-slate-300 border border-slate-600 hover:bg-slate-600'
+                      : 'bg-gray-100 text-gray-700 border border-gray-300 hover:bg-gray-200'
+                }`}
+              >
+                {filter}
+              </button>
+            ))}
+            
+            {/* View Result Button */}
+            <button
+              onClick={() => setShowSidePanel(!showSidePanel)}
+              className={`px-4 py-2 rounded-lg font-medium flex items-center gap-2 transition-all duration-200 ${
+                showSidePanel
+                  ? darkMode
+                    ? 'bg-green-600 text-white border border-green-500'
+                    : 'bg-green-500 text-white border border-green-500'
+                  : darkMode
+                    ? 'bg-slate-700 text-slate-300 border border-slate-600 hover:bg-slate-600'
+                    : 'bg-gray-100 text-gray-700 border border-gray-300 hover:bg-gray-200'
+              }`}
+            >
+              <Eye className="w-4 h-4" />
+              View Result
+            </button>
+          </div>
         </div>
       </div>
 
@@ -361,7 +450,88 @@ const ScrapperOutput: React.FC<ScrapperOutputProps> = ({ darkMode }) => {
           <p>No posts found. Try adjusting your search or filter criteria.</p>
         </div>
       )}
+      </div>
 
+      {/* Popup Side Panel */}
+      {showSidePanel && (
+        <>
+          {/* Backdrop */}
+          <div 
+            className="fixed inset-0 bg-black bg-opacity-50 z-40"
+            onClick={() => setShowSidePanel(false)}
+          />
+          
+          {/* Side Panel */}
+          <div className={`fixed top-0 right-0 h-screen w-1/3 min-w-[350px] z-50 transform transition-transform duration-300 ${
+            showSidePanel ? 'translate-x-0' : 'translate-x-full'
+          } ${
+            darkMode ? 'bg-slate-800 border-slate-600' : 'bg-white border-gray-200'
+          } border-l shadow-2xl flex flex-col`}>
+          {/* Side Panel Header */}
+          <div className={`p-4 border-b ${
+            darkMode ? 'border-slate-600' : 'border-gray-200'
+          }`}>
+            <div className="flex justify-between items-center">
+              <h3 className={`text-lg font-semibold ${
+                darkMode ? 'text-white' : 'text-slate-800'
+              }`}>
+                Retrieved Result
+              </h3>
+              <button
+                onClick={() => setShowSidePanel(false)}
+                className={`p-1 rounded-lg transition-colors ${
+                  darkMode 
+                    ? 'hover:bg-slate-700 text-slate-400 hover:text-white' 
+                    : 'hover:bg-gray-100 text-gray-500 hover:text-gray-700'
+                }`}
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+          </div>
+
+          {/* Side Panel Content */}
+          <div ref={scrollContainerRef} className="flex-1 p-4 overflow-y-auto">
+            <div className="space-y-4 min-h-full">
+              {filteredData.length > 0 ? (
+                filteredData.slice(0, visibleCards).map((item, index) => (
+                  <div
+                    key={item.id}
+                    className={`p-4 rounded-lg border transition-all duration-500 hover:shadow-md transform animate-in slide-in-from-right-4 fade-in ${
+                      darkMode 
+                        ? 'bg-slate-700 border-slate-600 hover:bg-slate-600' 
+                        : 'bg-gray-50 border-gray-200 hover:bg-gray-100'
+                    }`}
+                  >
+                    <div className="mb-2">
+                      <h4 className={`font-medium text-sm leading-tight ${
+                        darkMode ? 'text-white' : 'text-slate-800'
+                      }`}>
+                        @{item.author}
+                      </h4>
+                    </div>
+                    
+                    <p className={`text-xs leading-relaxed mb-3 ${
+                      darkMode ? 'text-gray-300' : 'text-gray-600'
+                    }`}>
+                      {item.content.length > 120 ? `${item.content.substring(0, 120)}...` : item.content}
+                    </p>
+                    
+                  </div>
+                ))
+              ) : (
+                <div className={`text-center py-8 ${
+                  darkMode ? 'text-slate-400' : 'text-gray-500'
+                }`}>
+                  <p className="text-sm">No results match your current filters.</p>
+                  <p className="text-xs mt-1">Try adjusting your search or filter criteria.</p>
+                </div>
+              )}
+            </div>
+          </div>
+          </div>
+        </>
+      )}
     </div>
   );
 };

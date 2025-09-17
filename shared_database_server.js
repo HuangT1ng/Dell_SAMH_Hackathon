@@ -83,8 +83,8 @@ const initializeDatabase = () => {
         const mockPosts = [
           {
             id: '1',
-            title: 'Mental health awareness is crucial in today\'s society',
-            content: 'I wanted to share my experience with mental health challenges and how seeking help changed my life. It took me years to realize that asking for help is not a sign of weakness but a sign of strength.',
+            title: 'jc burnout',
+            content: 'I feel isolated in JC—the JAE-IP divide, CCA rejections, and constant comparisons have crushed my confidence and fed my imposter syndrome. Watching others win awards while my grades slipped (from 67.5 to 52.5 RP) makes me dread school; online lectures don’t stick, I’m far behind, and I’ve even skipped classes to cope. My dream of medicine feels further away, and I’m torn between staying or pursuing vet science, but I worry about being “older” and judged. I just want to be recognised once and don’t know how to pick myself up.',
             author: 'Ok_Rabbit_1613',
             subreddit: 'MentalHealth',
             upvotes: 245,
@@ -110,8 +110,8 @@ const initializeDatabase = () => {
           {
             id: '3',
             title: 'Meditation and mindfulness techniques that work',
-            content: 'After years of trying different approaches, here are the techniques that actually helped me manage my anxiety and find inner peace.',
-            author: 'mindful_living',
+            content: 'I feel you because I have definitely felt this way in j1 too. ',
+            author: 'Lazy_Taste_5054',
             subreddit: 'Meditation',
             upvotes: 156,
             comments: 23,
@@ -123,8 +123,8 @@ const initializeDatabase = () => {
           {
             id: '4',
             title: 'Therapy session went well today',
-            content: 'Just had my third therapy session and I\'m starting to see some progress. It\'s not easy but it\'s worth it. For anyone hesitating to start therapy, please give it a try.',
-            author: 'therapy_journey',
+            content: 'everyone in this sch is pissed at the lecture system.',
+            author: 'krispy_krmemes',
             subreddit: 'therapy',
             upvotes: 78,
             comments: 19,
@@ -132,19 +132,6 @@ const initializeDatabase = () => {
             url: 'https://reddit.com/r/therapy/post4',
             sentiment: 'positive',
             platform: 'REDDIT'
-          },
-          {
-            id: '5',
-            title: 'Feeling overwhelmed with work stress',
-            content: 'My job has been incredibly stressful lately and it\'s affecting my mental health. Any tips for managing work-related stress and anxiety?',
-            author: 'stressed_worker',
-            subreddit: 'stress',
-            upvotes: 45,
-            comments: 28,
-            timestamp: '12 hours ago',
-            url: 'https://reddit.com/r/stress/post5',
-            sentiment: 'negative',
-            platform: 'FACEBOOK'
           }
         ];
 

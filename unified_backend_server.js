@@ -66,36 +66,35 @@ const initializeDatabase = () => {
       )
     `);
 
-    // Check if mental health posts data exists
-    db.get("SELECT COUNT(*) as count FROM mental_health_posts", (err, row) => {
+    // Always clear and replace database with mock data
+    console.log('Clearing existing data and inserting mock mental health data...');
+    
+    // Clear existing data
+    db.run("DELETE FROM mental_health_posts", (err) => {
       if (err) {
-        console.error('Error checking mental health posts data:', err);
+        console.error('Error clearing existing data:', err);
         return;
       }
-
-      // If no data exists, insert mock data
-      if (row.count === 0) {
-        console.log('Inserting mock mental health data...');
         
         const mockPosts = [
           {
             id: '1',
-            title: 'Mental health awareness is crucial in today\'s society',
-            content: 'I wanted to share my experience with mental health challenges and how seeking help changed my life. It took me years to realize that asking for help is not a sign of weakness but a sign of strength.',
-            author: 'Ok_Rabbit_1613',
+            title: 'jc burnout',
+            content: 'I feel isolated in JC—the JAE-IP divide, CCA rejections, and constant comparisons have crushed my confidence and fed my imposter syndrome. Watching others win awards while my grades slipped (from 67.5 to 52.5 RP) makes me dread school; online lectures don’t stick, I’m far behind, and I’ve even skipped classes to cope. My dream of medicine feels further away, and I’m torn between staying or pursuing vet science, but I worry about being “older” and judged. I just want to be recognised once and don’t know how to pick myself up.',
+            author: 'shellybeanxx',
             subreddit: 'MentalHealth',
             upvotes: 245,
             comments: 67,
             timestamp: '2 hours ago',
             url: 'https://www.reddit.com/user/Ok_Rabbit_1613/',
-            sentiment: 'positive',
+            sentiment: 'negative',
             platform: 'REDDIT'
           },
           {
             id: '2',
             title: 'Struggling with anxiety and depression',
             content: 'Has anyone else felt like they\'re drowning in their own thoughts? I need some advice on coping mechanisms that actually work.',
-            author: 'AcceptableBridge7667',
+            author: 'dancing_cascade',
             subreddit: 'depression',
             upvotes: 89,
             comments: 34,
@@ -106,9 +105,22 @@ const initializeDatabase = () => {
           },
           {
             id: '3',
+            title: 'Meditation and mindfulness techniques that work',
+            content: 'I feel you because I have definitely felt this way in j1 too. ',
+            author: 'JaiKay28',
+            subreddit: 'Meditation',
+            upvotes: 156,
+            comments: 23,
+            timestamp: '6 hours ago',
+            url: 'https://reddit.com/r/Meditation/post3',
+            sentiment: 'positive',
+            platform: 'REDDIT'
+          },
+          {
+            id: '4',
             title: 'Therapy session went well today',
-            content: 'Just had my third therapy session and I\'m starting to see some progress. It\'s not easy but it\'s worth it. For anyone hesitating to start therapy, please give it a try.',
-            author: 'therapy_journey',
+            content: 'everyone in this sch is pissed at the lecture system.',
+            author: 'Lazy_Taste_5054',
             subreddit: 'therapy',
             upvotes: 78,
             comments: 19,
@@ -133,10 +145,7 @@ const initializeDatabase = () => {
         });
 
         insertStmt.finalize();
-        console.log('Mock mental health posts inserted!');
-      } else {
-        console.log(`Database contains ${row.count} mental health posts`);
-      }
+        console.log('Mock mental health posts replaced successfully!');
     });
   });
 };
