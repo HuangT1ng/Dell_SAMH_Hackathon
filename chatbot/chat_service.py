@@ -2,6 +2,7 @@
 Chat service module for handling NVIDIA NIM chat completions.
 """
 
+import sys
 from typing import List, Dict, Any, Optional
 from client import NIMClient
 from config import (
@@ -56,6 +57,9 @@ class ChatService:
         stream = stream if stream is not None else DEFAULT_STREAM
         
         try:
+            print(f"🚀 [NVIDIA API] Calling NVIDIA NIMs API with model: {model}", file=sys.stderr)
+            print(f"📊 [NVIDIA API] Parameters: temp={temperature}, top_p={top_p}, max_tokens={max_tokens}", file=sys.stderr)
+            
             completion = self.openai_client.chat.completions.create(
                 model=model,
                 messages=messages,
@@ -66,8 +70,11 @@ class ChatService:
                 timeout=30.0,  # Add 30 second timeout
                 **kwargs
             )
+            
+            print(f"✅ [NVIDIA API] Successfully received response from NVIDIA NIMs", file=sys.stderr)
             return completion
         except Exception as e:
+            print(f"❌ [NVIDIA API] Error calling NVIDIA NIMs: {str(e)}", file=sys.stderr)
             raise Exception(f"Error creating chat completion: {str(e)}")
     
     def get_response_content(self, completion) -> str:
@@ -80,7 +87,7 @@ class ChatService:
         Returns:
             str: The response content
         """
-        return completion.choices[0].message.content
+        return completion.choices[0].message.content or ""
     
     def get_reasoning_content(self, completion) -> Optional[str]:
         """

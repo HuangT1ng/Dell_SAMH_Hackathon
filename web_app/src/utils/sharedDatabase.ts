@@ -23,11 +23,32 @@ export interface MentalHealthPost {
   url: string;
   sentiment: 'positive' | 'negative' | 'neutral';
   platform: 'REDDIT' | 'FACEBOOK' | 'X';
+  samh_username?: string;
 }
 
 export interface AnalyticsEvent {
   eventType: string;
   eventData: any;
+}
+
+export interface UserJourneyEvent {
+  id: string;
+  userId: string;
+  eventType: 'mood_entry' | 'chat_session' | 'gaming_session' | 'community_event' | 'achievement' | 'login' | 'logout';
+  eventTitle: string;
+  eventDescription: string;
+  timestamp: number;
+  metadata?: any;
+}
+
+export interface UserAchievement {
+  id: string;
+  userId: string;
+  achievementType: string;
+  achievementTitle: string;
+  achievementDescription: string;
+  unlockedAt: number;
+  metadata?: any;
 }
 
 class SharedDatabaseManager {
@@ -145,6 +166,90 @@ class SharedDatabaseManager {
       return await response.json();
     } catch (error) {
       console.error('Error fetching database stats:', error);
+      throw error;
+    }
+  }
+
+  // User Journey Events Management
+  async addJourneyEvent(event: UserJourneyEvent): Promise<{ id: string; message: string }> {
+    try {
+      const response = await fetch(`${this.baseUrl}/journey-events`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(event),
+      });
+      
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      
+      const result = await response.json();
+      console.log('Journey event added to shared database:', result);
+      return result;
+    } catch (error) {
+      console.error('Error adding journey event to shared database:', error);
+      throw error;
+    }
+  }
+
+  async getJourneyEvents(userId: string): Promise<UserJourneyEvent[]> {
+    try {
+      console.log('Fetching journey events from shared database...');
+      const response = await fetch(`${this.baseUrl}/journey-events/${userId}`);
+      
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      
+      const data = await response.json();
+      console.log(`Loaded ${data.length} journey events from shared database`);
+      return data;
+    } catch (error) {
+      console.error('Error fetching journey events from shared database:', error);
+      throw error;
+    }
+  }
+
+  // User Achievements Management
+  async addAchievement(achievement: UserAchievement): Promise<{ id: string; message: string }> {
+    try {
+      const response = await fetch(`${this.baseUrl}/achievements`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(achievement),
+      });
+      
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      
+      const result = await response.json();
+      console.log('Achievement added to shared database:', result);
+      return result;
+    } catch (error) {
+      console.error('Error adding achievement to shared database:', error);
+      throw error;
+    }
+  }
+
+  async getAchievements(userId: string): Promise<UserAchievement[]> {
+    try {
+      console.log('Fetching achievements from shared database...');
+      const response = await fetch(`${this.baseUrl}/achievements/${userId}`);
+      
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      
+      const data = await response.json();
+      console.log(`Loaded ${data.length} achievements from shared database`);
+      return data;
+    } catch (error) {
+      console.error('Error fetching achievements from shared database:', error);
       throw error;
     }
   }

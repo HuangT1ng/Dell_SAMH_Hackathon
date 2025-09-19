@@ -12,6 +12,7 @@ export interface ScrapperData {
   url: string;
   sentiment: 'positive' | 'negative' | 'neutral';
   platform: 'REDDIT' | 'FACEBOOK' | 'X';
+  samh_username?: string;
 }
 
 class DatabaseManager {

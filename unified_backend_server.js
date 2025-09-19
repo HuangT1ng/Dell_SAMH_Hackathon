@@ -10,6 +10,7 @@ const { Database } = pkg.verbose();
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
+
 const app = express();
 const PORT = 3001; // Single backend port
 
@@ -33,6 +34,10 @@ if (!fs.existsSync(sharedDataDir)) {
 // Initialize database with comprehensive schema
 const initializeDatabase = () => {
   db.serialize(() => {
+    // Drop existing chat tables to recreate with new schema
+    db.run(`DROP TABLE IF EXISTS chat_messages`);
+    db.run(`DROP TABLE IF EXISTS user_conversation_views`);
+    db.run(`DROP TABLE IF EXISTS chat_conversations`);
     // Mental health posts table (for scraper data)
     db.run(`
       CREATE TABLE IF NOT EXISTS mental_health_posts (
@@ -47,9 +52,17 @@ const initializeDatabase = () => {
         url TEXT NOT NULL,
         sentiment TEXT NOT NULL,
         platform TEXT NOT NULL,
+        samh_username TEXT,
         created_at DATETIME DEFAULT CURRENT_TIMESTAMP
       )
     `);
+
+    // Add SAMH_USERNAME column if it doesn't exist (for existing databases)
+    db.run(`ALTER TABLE mental_health_posts ADD COLUMN samh_username TEXT`, (err) => {
+      if (err && !err.message.includes('duplicate column name')) {
+        console.error('Error adding samh_username column:', err);
+      }
+    });
 
     // Mood entries table (for SAMH platform data)
     db.run(`
@@ -66,8 +79,79 @@ const initializeDatabase = () => {
       )
     `);
 
-    // Always clear and replace database with mock data
-    console.log('Clearing existing data and inserting mock mental health data...');
+    // Chat conversations table (for shared chat history)
+    db.run(`
+      CREATE TABLE chat_conversations (
+        id TEXT PRIMARY KEY,
+        user1 TEXT NOT NULL,
+        user2 TEXT NOT NULL,
+        last_message TEXT,
+        last_message_time INTEGER,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        UNIQUE(user1, user2)
+      )
+    `);
+
+    // User conversation views (for per-user settings like unread count, deleted status)
+    db.run(`
+      CREATE TABLE user_conversation_views (
+        id TEXT PRIMARY KEY,
+        conversation_id TEXT NOT NULL,
+        user_id TEXT NOT NULL,
+        unread_count INTEGER DEFAULT 0,
+        is_deleted BOOLEAN DEFAULT 0,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (conversation_id) REFERENCES chat_conversations (id) ON DELETE CASCADE,
+        UNIQUE(conversation_id, user_id)
+      )
+    `);
+
+    // Chat messages table (for shared messages)
+    db.run(`
+      CREATE TABLE chat_messages (
+        id TEXT PRIMARY KEY,
+        conversation_id TEXT NOT NULL,
+        sender_username TEXT NOT NULL,
+        text TEXT NOT NULL,
+        timestamp INTEGER NOT NULL,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (conversation_id) REFERENCES chat_conversations (id) ON DELETE CASCADE
+      )
+    `);
+
+    // Community events table (for community events)
+    db.run(`
+      CREATE TABLE IF NOT EXISTS community_events (
+        id TEXT PRIMARY KEY,
+        organization_name TEXT NOT NULL,
+        description TEXT NOT NULL,
+        location TEXT NOT NULL,
+        image_url TEXT NOT NULL,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+      )
+    `);
+
+    // User accounts table (for tracking user logins)
+    db.run(`
+      CREATE TABLE IF NOT EXISTS user_accounts (
+        id TEXT PRIMARY KEY,
+        username TEXT UNIQUE NOT NULL,
+        account_type TEXT NOT NULL CHECK (account_type IN ('admin', 'user')),
+        first_login DATETIME DEFAULT CURRENT_TIMESTAMP,
+        last_login DATETIME DEFAULT CURRENT_TIMESTAMP,
+        login_count INTEGER DEFAULT 1,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+      )
+    `, (err) => {
+      if (err) {
+        console.error('Error creating user_accounts table:', err);
+      } else {
+        console.log('✅ user_accounts table created successfully');
+      }
+    });
     
     // Clear existing data
     db.run("DELETE FROM mental_health_posts", (err) => {
@@ -76,11 +160,11 @@ const initializeDatabase = () => {
         return;
       }
         
-        const mockPosts = [
+        const posts = [
           {
             id: '1',
             title: 'jc burnout',
-            content: 'I feel isolated in JC—the JAE-IP divide, CCA rejections, and constant comparisons have crushed my confidence and fed my imposter syndrome. Watching others win awards while my grades slipped (from 67.5 to 52.5 RP) makes me dread school; online lectures don’t stick, I’m far behind, and I’ve even skipped classes to cope. My dream of medicine feels further away, and I’m torn between staying or pursuing vet science, but I worry about being “older” and judged. I just want to be recognised once and don’t know how to pick myself up.',
+            content: "I feel isolated in JC—the JAE-IP divide, CCA rejections, and constant comparisons have crushed my confidence and fed my imposter syndrome. Watching others win awards while my grades slipped (from 67.5 to 52.5 RP) makes me dread school; online lectures don't stick, I'm far behind, and I've even skipped classes to cope. My dream of medicine feels further away, and I'm torn between staying or pursuing vet science, but I worry about being older and judged. I just want to be recognised once and don't know how to pick myself up.",
             author: 'shellybeanxx',
             subreddit: 'MentalHealth',
             upvotes: 245,
@@ -88,7 +172,8 @@ const initializeDatabase = () => {
             timestamp: '2 hours ago',
             url: 'https://www.reddit.com/user/Ok_Rabbit_1613/',
             sentiment: 'negative',
-            platform: 'REDDIT'
+            platform: 'REDDIT',
+            samh_username: 'ht'
           },
           {
             id: '2',
@@ -101,7 +186,8 @@ const initializeDatabase = () => {
             timestamp: '4 hours ago',
             url: 'https://www.reddit.com/user/AcceptableBridge7667/',
             sentiment: 'negative',
-            platform: 'REDDIT'
+            platform: 'REDDIT',
+            samh_username: 'grace'
           },
           {
             id: '3',
@@ -113,8 +199,9 @@ const initializeDatabase = () => {
             comments: 23,
             timestamp: '6 hours ago',
             url: 'https://reddit.com/r/Meditation/post3',
-            sentiment: 'positive',
-            platform: 'REDDIT'
+            sentiment: 'neutral',
+            platform: 'REDDIT',
+            samh_username: null
           },
           {
             id: '4',
@@ -126,27 +213,251 @@ const initializeDatabase = () => {
             comments: 19,
             timestamp: '8 hours ago',
             url: 'https://reddit.com/r/therapy/post4',
-            sentiment: 'positive',
-            platform: 'REDDIT'
+            sentiment: 'negative',
+            platform: 'REDDIT',
+            samh_username: null
+          },
+          {
+            id: '5',
+            title: 'No energy to focus',
+            content: 'just no energy to focus on those cuz all my energy is just on studying',
+            author: 'Ok-Accountant-5177',
+            subreddit: 'StudentLife',
+            upvotes: 42,
+            comments: 18,
+            timestamp: '1 hour ago',
+            url: 'https://reddit.com/r/StudentLife/post5',
+            sentiment: 'negative',
+            platform: 'REDDIT',
+            samh_username: null
+          },
+          {
+            id: '6',
+            title: 'Feeling like a failure',
+            content: 'how much of a failure I am.',
+            author: 'Vast_Resident_2289',
+            subreddit: 'depression',
+            upvotes: 67,
+            comments: 25,
+            timestamp: '3 hours ago',
+            url: 'https://reddit.com/r/depression/post6',
+            sentiment: 'negative',
+            platform: 'REDDIT',
+            samh_username: null
+          },
+          {
+            id: '7',
+            title: 'Personal insecurities',
+            content: 'they\'re just projecting their personal insecurities.',
+            author: 'Haunting_Tea_8207',
+            subreddit: 'MentalHealth',
+            upvotes: 89,
+            comments: 31,
+            timestamp: '5 hours ago',
+            url: 'https://reddit.com/r/MentalHealth/post7',
+            sentiment: 'neutral',
+            platform: 'REDDIT',
+            samh_username: null
+          },
+          {
+            id: '8',
+            title: 'Too much to do, too little time',
+            content: 'Why does it always feel like there\'s so much to do and so little time',
+            author: 'Thekabablord',
+            subreddit: 'Stress',
+            upvotes: 134,
+            comments: 45,
+            timestamp: '7 hours ago',
+            url: 'https://reddit.com/r/Stress/post8',
+            sentiment: 'negative',
+            platform: 'REDDIT',
+            samh_username: null
+          },
+          {
+            id: '9',
+            title: 'Always isolated',
+            content: 'I am (almost) always isolated.',
+            author: 'No_Debate4294',
+            subreddit: 'lonely',
+            upvotes: 78,
+            comments: 22,
+            timestamp: '9 hours ago',
+            url: 'https://reddit.com/r/lonely/post9',
+            sentiment: 'negative',
+            platform: 'REDDIT',
+            samh_username: null
+          },
+          {
+            id: '10',
+            title: 'Looking back at awkward moments',
+            content: 'Sometimes I just look back at all the awkward things I\'ve done and feel so useless, like I\'m never going to fit in or get past my mistakes. It\'s exhausting to keep up a front and try to laugh things off when all I want to do is scream about how hard life feels right now.',
+            author: 'nonfriedjml',
+            subreddit: 'socialanxiety',
+            upvotes: 156,
+            comments: 38,
+            timestamp: '11 hours ago',
+            url: 'https://reddit.com/r/socialanxiety/post10',
+            sentiment: 'negative',
+            platform: 'REDDIT',
+            samh_username: null
+          },
+          {
+            id: '11',
+            title: 'Something wrong with me',
+            content: 'It feels like there\'s something wrong with me that no one else can see. I keep struggling to understand why everything feels overwhelming, and it\'s discouraging when people just brush it off like I\'m overreacting.',
+            author: 'NecessaryFish8132',
+            subreddit: 'MentalHealth',
+            upvotes: 203,
+            comments: 67,
+            timestamp: '13 hours ago',
+            url: 'https://reddit.com/r/MentalHealth/post11',
+            sentiment: 'negative',
+            platform: 'REDDIT',
+            samh_username: null
+          },
+          {
+            id: '12',
+            title: 'Tired of hearing "see a therapist"',
+            content: 'Honestly, I don\'t want to hear \'just see a therapist\' one more time. It feels like nobody actually wants to hear about my struggles—they just want me to bottle it up and stop bothering them with my problems.',
+            author: 'BangMyPussy',
+            subreddit: 'TrueOffMyChest',
+            upvotes: 289,
+            comments: 84,
+            timestamp: '15 hours ago',
+            url: 'https://reddit.com/r/TrueOffMyChest/post12',
+            sentiment: 'negative',
+            platform: 'REDDIT',
+            samh_username: null
+          },
+          {
+            id: '13',
+            title: 'Overwhelmed by anxiety',
+            content: 'I\'m so overwhelmed by anxiety and stress that even leaving my room feels impossible.',
+            author: 'OkReserve7647',
+            subreddit: 'Anxiety',
+            upvotes: 167,
+            comments: 42,
+            timestamp: '17 hours ago',
+            url: 'https://reddit.com/r/Anxiety/post13',
+            sentiment: 'negative',
+            platform: 'REDDIT',
+            samh_username: null
+          },
+          {
+            id: '14',
+            title: 'Suffocating pressure about grades',
+            content: 'The constant pressure about grades is suffocating, and it never seems to end.',
+            author: 'sunnyislandacross',
+            subreddit: 'StudentLife',
+            upvotes: 145,
+            comments: 56,
+            timestamp: '19 hours ago',
+            url: 'https://reddit.com/r/StudentLife/post14',
+            sentiment: 'negative',
+            platform: 'REDDIT',
+            samh_username: null
+          },
+          {
+            id: '15',
+            title: 'Nothing is helping',
+            content: 'It feels like nobody and nothing is really helping, no matter how tough things get.',
+            author: 'scams-are-everywhere',
+            subreddit: 'depression',
+            upvotes: 98,
+            comments: 29,
+            timestamp: '21 hours ago',
+            url: 'https://reddit.com/r/depression/post15',
+            sentiment: 'negative',
+            platform: 'REDDIT',
+            samh_username: null
+          },
+          {
+            id: '16',
+            title: 'Watching everyone cope while I struggle',
+            content: 'Watching everyone cope while I struggle just makes me feel even more alone.',
+            author: 'Learn222',
+            subreddit: 'lonely',
+            upvotes: 112,
+            comments: 34,
+            timestamp: '23 hours ago',
+            url: 'https://reddit.com/r/lonely/post16',
+            sentiment: 'negative',
+            platform: 'REDDIT',
+            samh_username: null
           }
         ];
 
         const insertStmt = db.prepare(`
           INSERT INTO mental_health_posts 
-          (id, title, content, author, subreddit, upvotes, comments, timestamp, url, sentiment, platform)
-          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+          (id, title, content, author, subreddit, upvotes, comments, timestamp, url, sentiment, platform, samh_username)
+          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         `);
 
-        mockPosts.forEach(post => {
+        posts.forEach(post => {
           insertStmt.run([
             post.id, post.title, post.content, post.author, post.subreddit,
-            post.upvotes, post.comments, post.timestamp, post.url, post.sentiment, post.platform
+            post.upvotes, post.comments, post.timestamp, post.url, post.sentiment, post.platform, post.samh_username
           ]);
         });
 
         insertStmt.finalize();
-        console.log('Mock mental health posts replaced successfully!');
     });
+  });
+
+  // Check if community events data already exists
+  db.get("SELECT COUNT(*) as count FROM community_events", (err, row) => {
+    if (err) {
+      console.error('Error checking community events data:', err);
+      return;
+    }
+
+    if (row.count === 0) {
+      
+      const events = [
+        {
+          id: '1',
+          organization_name: 'Mental Health Foundation',
+          description: 'Join us for a peaceful walk in the park to raise awareness about mental health.',
+          location: 'Central Park, New York',
+          image_url: 'https://images.unsplash.com/photo-1559027615-cd4628902d4a?w=400&h=300&fit=crop'
+        },
+        {
+          id: '2',
+          organization_name: 'Mindful Living Center',
+          description: 'A guided meditation session focused on stress relief and emotional well-being.',
+          location: 'Community Center',
+          image_url: 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=400&h=300&fit=crop'
+        },
+        {
+          id: '3',
+          organization_name: 'Creative Wellness Studio',
+          description: 'Express yourself through art in this therapeutic workshop.',
+          location: 'Art Studio Downtown',
+          image_url: 'https://images.unsplash.com/photo-1513475382585-d06e58bcb0e0?w=400&h=300&fit=crop'
+        },
+        {
+          id: '4',
+          organization_name: 'Peer Support Network',
+          description: 'A safe space to share experiences with others who understand.',
+          location: 'Online (Zoom)',
+          image_url: 'https://images.unsplash.com/photo-1521737711867-e3b97375f902?w=400&h=300&fit=crop'
+        }
+      ];
+
+      const insertEventStmt = db.prepare(`
+        INSERT INTO community_events 
+        (id, organization_name, description, location, image_url)
+        VALUES (?, ?, ?, ?, ?)
+      `);
+
+      events.forEach(event => {
+        insertEventStmt.run([
+          event.id, event.organization_name, event.description, event.location, event.image_url
+        ]);
+      });
+
+      insertEventStmt.finalize();
+    }
   });
 };
 
@@ -217,14 +528,14 @@ app.get('/api/mental-health-posts', (req, res) => {
       res.status(500).json({ error: 'Failed to fetch mental health posts' });
       return;
     }
-    console.log(`📊 Returning ${rows.length} mental health posts`);
+    // console.log(`📊 Returning ${rows.length} mental health posts`);
     res.json(rows);
   });
 });
 
 // Add new mental health post
 app.post('/api/mental-health-posts', (req, res) => {
-  const { title, content, author, subreddit, upvotes, comments, timestamp, url, sentiment, platform } = req.body;
+  const { title, content, author, subreddit, upvotes, comments, timestamp, url, sentiment, platform, samh_username } = req.body;
   
   if (!title || !content || !author) {
     return res.status(400).json({ error: 'Missing required fields' });
@@ -234,9 +545,9 @@ app.post('/api/mental-health-posts', (req, res) => {
   
   db.run(`
     INSERT INTO mental_health_posts 
-    (id, title, content, author, subreddit, upvotes, comments, timestamp, url, sentiment, platform)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-  `, [id, title, content, author, subreddit, upvotes || 0, comments || 0, timestamp, url, sentiment || 'neutral', platform], function(err) {
+    (id, title, content, author, subreddit, upvotes, comments, timestamp, url, sentiment, platform, samh_username)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+  `, [id, title, content, author, subreddit, upvotes || 0, comments || 0, timestamp, url, sentiment || 'neutral', platform, samh_username || null], function(err) {
     if (err) {
       console.error('Error inserting mental health post:', err);
       res.status(500).json({ error: 'Failed to insert mental health post' });
@@ -244,6 +555,44 @@ app.post('/api/mental-health-posts', (req, res) => {
     }
     console.log('✅ New mental health post added:', title);
     res.json({ id, message: 'Mental health post inserted successfully' });
+  });
+});
+
+// Get all community events
+app.get('/api/community-events', (req, res) => {
+  db.all("SELECT * FROM community_events ORDER BY created_at DESC", (err, rows) => {
+    if (err) {
+      console.error('Error fetching community events:', err);
+      res.status(500).json({ error: 'Failed to fetch community events' });
+      return;
+    }
+    console.log(`📊 Returning ${rows.length} community events`);
+    res.json(rows);
+  });
+});
+
+// Add new community event
+app.post('/api/community-events', (req, res) => {
+  const { organization_name, description, location, image_url } = req.body;
+  
+  if (!organization_name || !description || !location || !image_url) {
+    return res.status(400).json({ error: 'Missing required fields' });
+  }
+  
+  const id = Date.now().toString();
+  
+  db.run(`
+    INSERT INTO community_events 
+    (id, organization_name, description, location, image_url)
+    VALUES (?, ?, ?, ?, ?)
+  `, [id, organization_name, description, location, image_url], function(err) {
+    if (err) {
+      console.error('Error inserting community event:', err);
+      res.status(500).json({ error: 'Failed to insert community event' });
+      return;
+    }
+    console.log('✅ New community event added:', organization_name);
+    res.json({ id, message: 'Community event inserted successfully' });
   });
 });
 
@@ -295,7 +644,7 @@ app.get('/api/mood-entries', (req, res) => {
       activities: JSON.parse(row.activities || '[]')
     }));
     
-    console.log(`📊 Returning ${parsedRows.length} mood entries`);
+    // console.log(`📊 Returning ${parsedRows.length} mood entries`);
     res.json(parsedRows);
   });
 });
@@ -323,6 +672,617 @@ app.post('/api/mood-entries', (req, res) => {
   });
 });
 
+// Chat API endpoints
+
+// Get all conversations for a user
+app.get('/api/chat/conversations/:userId', (req, res) => {
+  const { userId } = req.params;
+  
+  db.all(`
+    SELECT 
+      c.*,
+      ucv.unread_count,
+      ucv.is_deleted,
+      CASE 
+        WHEN c.user1 = ? THEN c.user2 
+        ELSE c.user1 
+      END as contact_name,
+      CASE 
+        WHEN c.user1 = ? THEN u2.account_type 
+        ELSE u1.account_type 
+      END as contact_account_type
+    FROM chat_conversations c
+    LEFT JOIN user_conversation_views ucv ON c.id = ucv.conversation_id AND ucv.user_id = ?
+    LEFT JOIN user_accounts u1 ON c.user1 = u1.username
+    LEFT JOIN user_accounts u2 ON c.user2 = u2.username
+    WHERE (c.user1 = ? OR c.user2 = ?) 
+    AND (ucv.is_deleted = 0 OR ucv.is_deleted IS NULL)
+    ORDER BY c.last_message_time DESC
+  `, [userId, userId, userId, userId, userId], (err, rows) => {
+    if (err) {
+      console.error('Error fetching conversations:', err);
+      res.status(500).json({ error: 'Failed to fetch conversations' });
+      return;
+    }
+    
+    // console.log(`📊 Returning ${rows.length} conversations for user ${userId}`);
+    res.json(rows);
+  });
+});
+
+// Get messages for a specific conversation
+app.get('/api/chat/conversations/:conversationId/messages', (req, res) => {
+  const { conversationId } = req.params;
+  
+  db.all(`
+    SELECT 
+      id,
+      conversation_id,
+      sender_username,
+      text,
+      timestamp,
+      CASE 
+        WHEN sender_username = ? THEN 'user'
+        ELSE 'bot'
+      END as sender
+    FROM chat_messages 
+    WHERE conversation_id = ?
+    ORDER BY timestamp ASC
+  `, [req.query.currentUser || '', conversationId], (err, rows) => {
+    if (err) {
+      console.error('Error fetching messages:', err);
+      res.status(500).json({ error: 'Failed to fetch messages' });
+      return;
+    }
+    
+    // console.log(`📊 Returning ${rows.length} messages for conversation ${conversationId}`);
+    res.json(rows);
+  });
+});
+
+// Create a new conversation
+app.post('/api/chat/conversations', (req, res) => {
+  const { user1, user2 } = req.body;
+  
+  if (!user1 || !user2) {
+    return res.status(400).json({ error: 'Missing required fields: user1 and user2' });
+  }
+  
+  if (user1 === user2) {
+    return res.status(400).json({ error: 'Cannot create conversation with yourself' });
+  }
+  
+  // Ensure consistent ordering (alphabetically) to avoid duplicates
+  const [firstUser, secondUser] = [user1, user2].sort();
+  
+  // First check if conversation already exists
+  db.get(`
+    SELECT id FROM chat_conversations 
+    WHERE user1 = ? AND user2 = ?
+  `, [firstUser, secondUser], function(err, existingConv) {
+    if (err) {
+      console.error('Error checking existing conversation:', err);
+      res.status(500).json({ error: 'Failed to check existing conversation' });
+      return;
+    }
+    
+    if (existingConv) {
+      // Conversation already exists, use existing ID
+      const conversationId = existingConv.id;
+      console.log('✅ Using existing conversation:', conversationId);
+      
+      // Create user conversation views for both users (if they don't exist)
+      const viewId1 = `${conversationId}_${firstUser}`;
+      const viewId2 = `${conversationId}_${secondUser}`;
+      
+      db.run(`
+        INSERT OR IGNORE INTO user_conversation_views 
+        (id, conversation_id, user_id, unread_count, is_deleted)
+        VALUES (?, ?, ?, 0, 0)
+      `, [viewId1, conversationId, firstUser], (err1) => {
+        if (err1) console.error('Error creating user view 1:', err1);
+      });
+      
+      db.run(`
+        INSERT OR IGNORE INTO user_conversation_views 
+        (id, conversation_id, user_id, unread_count, is_deleted)
+        VALUES (?, ?, ?, 0, 0)
+      `, [viewId2, conversationId, secondUser], (err2) => {
+        if (err2) console.error('Error creating user view 2:', err2);
+      });
+      
+      console.log('✅ Conversation ready between:', firstUser, 'and', secondUser, 'ID:', conversationId);
+      res.json({ id: conversationId, message: 'Conversation ready' });
+      return;
+    }
+    
+    // Create new conversation
+    const conversationId = Date.now().toString();
+    db.run(`
+      INSERT INTO chat_conversations 
+      (id, user1, user2, last_message_time)
+      VALUES (?, ?, ?, ?)
+    `, [conversationId, firstUser, secondUser, Date.now()], function(insertErr) {
+      if (insertErr) {
+        console.error('Error creating conversation:', insertErr);
+        res.status(500).json({ error: 'Failed to create conversation' });
+        return;
+      }
+      console.log('✅ New conversation created:', conversationId);
+      
+      // Create user conversation views for both users (if they don't exist)
+      const viewId1 = `${conversationId}_${firstUser}`;
+      const viewId2 = `${conversationId}_${secondUser}`;
+      
+      db.run(`
+        INSERT OR IGNORE INTO user_conversation_views 
+        (id, conversation_id, user_id, unread_count, is_deleted)
+        VALUES (?, ?, ?, 0, 0)
+      `, [viewId1, conversationId, firstUser], (err1) => {
+        if (err1) console.error('Error creating user view 1:', err1);
+      });
+      
+      db.run(`
+        INSERT OR IGNORE INTO user_conversation_views 
+        (id, conversation_id, user_id, unread_count, is_deleted)
+        VALUES (?, ?, ?, 0, 0)
+      `, [viewId2, conversationId, secondUser], (err2) => {
+        if (err2) console.error('Error creating user view 2:', err2);
+      });
+      
+      console.log('✅ Conversation ready between:', firstUser, 'and', secondUser, 'ID:', conversationId);
+      res.json({ id: conversationId, message: 'Conversation ready' });
+    });
+  });
+});
+
+// Send a message
+app.post('/api/chat/messages', (req, res) => {
+  const { conversationId, senderUsername, text } = req.body;
+  
+  if (!conversationId || !senderUsername || !text) {
+    return res.status(400).json({ error: 'Missing required fields' });
+  }
+  
+  const messageId = Date.now().toString();
+  const timestamp = Date.now();
+  
+  // Insert the message
+  db.run(`
+    INSERT INTO chat_messages 
+    (id, conversation_id, sender_username, text, timestamp)
+    VALUES (?, ?, ?, ?, ?)
+  `, [messageId, conversationId, senderUsername, text, timestamp], function(err) {
+    if (err) {
+      console.error('Error sending message:', err);
+      res.status(500).json({ error: 'Failed to send message' });
+      return;
+    }
+    
+    // Update conversation's last message and timestamp
+    db.run(`
+      UPDATE chat_conversations 
+      SET last_message = ?, last_message_time = ?, updated_at = CURRENT_TIMESTAMP
+      WHERE id = ?
+    `, [text, timestamp, conversationId], function(updateErr) {
+      if (updateErr) {
+        console.error('Error updating conversation:', updateErr);
+      }
+    });
+    
+    // Increment unread count for the other user
+    db.run(`
+      UPDATE user_conversation_views 
+      SET unread_count = unread_count + 1, updated_at = CURRENT_TIMESTAMP
+      WHERE conversation_id = ? AND user_id != ?
+    `, [conversationId, senderUsername], function(unreadErr) {
+      if (unreadErr) {
+        console.error('Error updating unread count:', unreadErr);
+      }
+    });
+    
+    console.log('✅ New message sent by:', senderUsername);
+    res.json({ id: messageId, message: 'Message sent successfully' });
+  });
+});
+
+// Mark conversation as read (reset unread count)
+app.put('/api/chat/conversations/:conversationId/read', (req, res) => {
+  const { conversationId } = req.params;
+  const { userId } = req.body;
+  
+  if (!userId) {
+    return res.status(400).json({ error: 'Missing userId in request body' });
+  }
+  
+  db.run(`
+    UPDATE user_conversation_views 
+    SET unread_count = 0, updated_at = CURRENT_TIMESTAMP
+    WHERE conversation_id = ? AND user_id = ?
+  `, [conversationId, userId], function(err) {
+    if (err) {
+      console.error('Error marking conversation as read:', err);
+      res.status(500).json({ error: 'Failed to mark conversation as read' });
+      return;
+    }
+    
+    console.log('✅ Conversation marked as read for user:', userId);
+    res.json({ message: 'Conversation marked as read' });
+  });
+});
+
+// Delete/restore conversation
+app.put('/api/chat/conversations/:conversationId', (req, res) => {
+  const { conversationId } = req.params;
+  const { isDeleted, userId } = req.body;
+  
+  if (typeof isDeleted !== 'boolean') {
+    return res.status(400).json({ error: 'isDeleted must be a boolean' });
+  }
+  
+  if (!userId) {
+    return res.status(400).json({ error: 'Missing userId in request body' });
+  }
+  
+  db.run(`
+    UPDATE user_conversation_views 
+    SET is_deleted = ?, updated_at = CURRENT_TIMESTAMP
+    WHERE conversation_id = ? AND user_id = ?
+  `, [isDeleted ? 1 : 0, conversationId, userId], function(err) {
+    if (err) {
+      console.error('Error updating conversation:', err);
+      res.status(500).json({ error: 'Failed to update conversation' });
+      return;
+    }
+    
+    console.log(`✅ Conversation ${isDeleted ? 'deleted' : 'restored'} for user:`, userId);
+    res.json({ message: `Conversation ${isDeleted ? 'deleted' : 'restored'} successfully` });
+  });
+});
+
+// Global cache to prevent duplicate API calls
+const quickMessageCache = new Map();
+const CACHE_DURATION = 10000; // 10 seconds
+
+// Generate quick messages using LLM
+app.post('/api/chat/generate-quick-messages', async (req, res) => {
+  const { conversationId, messages, forceRefresh } = req.body;
+  
+  if (!conversationId || !messages || !Array.isArray(messages)) {
+    return res.status(400).json({ error: 'Missing required fields: conversationId and messages' });
+  }
+  
+  // Check cache first - use last message ID for better uniqueness
+  const lastMessage = messages[messages.length - 1];
+  const cacheKey = `${conversationId}_${messages.length}_${lastMessage?.id || 'empty'}`;
+  const cached = quickMessageCache.get(cacheKey);
+  const now = Date.now();
+  
+  // Skip cache if forceRefresh is true
+  if (!forceRefresh && cached && (now - cached.timestamp) < CACHE_DURATION) {
+    console.log(`💾 [NVIDIA NIMs] Using cached suggestions for conversation ${conversationId}`);
+    return res.json({ suggestions: cached.suggestions });
+  }
+  
+  if (forceRefresh) {
+    console.log(`🔄 [NVIDIA NIMs] Force refresh requested for conversation ${conversationId} - bypassing cache`);
+  }
+  
+  console.log(`🤖 [NVIDIA NIMs] Starting quick message generation for conversation ${conversationId}`);
+  console.log(`📊 [NVIDIA NIMs] Message count: ${messages.length}`);
+  
+  try {
+    // Import the chat service
+    const { spawn } = await import('child_process');
+    const path = await import('path');
+    
+    // Create a prompt for generating quick message suggestions
+    const conversationHistory = messages.map(msg => 
+      `${msg.role}: ${msg.content}`
+    ).join('\n');
+    
+    const prompt = `You are a mental health support assistant. Based on the conversation history below, provide exactly 3 short, empathetic response suggestions for an admin to use. Each suggestion should be under 15 words and be supportive and appropriate.
+
+Conversation History:
+${conversationHistory}
+
+Respond with ONLY 3 lines, each containing one suggestion. No explanations, no reasoning, just the 3 suggestions.`;
+
+  // Add randomness for force refresh to get different responses
+  const randomTemp = forceRefresh ? (0.7 + Math.random() * 0.3).toFixed(2) : '0.5'; // 0.7-1.0 for force refresh
+  const randomTopP = forceRefresh ? (0.8 + Math.random() * 0.2).toFixed(2) : '0.7'; // 0.8-1.0 for force refresh
+  
+  if (forceRefresh) {
+    console.log(`🎲 [NVIDIA NIMs] Using randomized parameters: temp=${randomTemp}, top_p=${randomTopP}`);
+  }
+  
+  // Call the Python chatbot service
+  console.log(`🐍 [NVIDIA NIMs] Spawning Python process for conversation ${conversationId}`);
+  const pythonProcess = spawn('python3', [
+    path.join(__dirname, 'chatbot', 'main.py'),
+    '--prompt', prompt,
+    '--max-tokens', '100',
+    '--temperature', randomTemp,
+    '--top-p', randomTopP
+  ]);
+    
+    let output = '';
+    let errorOutput = '';
+    
+    pythonProcess.stdout.on('data', (data) => {
+      output += data.toString();
+      console.log(`📤 [NVIDIA NIMs] Python stdout: ${data.toString().trim()}`);
+    });
+    
+    pythonProcess.stderr.on('data', (data) => {
+      errorOutput += data.toString();
+      console.log(`⚠️ [NVIDIA NIMs] Python stderr: ${data.toString().trim()}`);
+    });
+    
+    pythonProcess.on('close', (code) => {
+      console.log(`🏁 [NVIDIA NIMs] Python process completed with code ${code} for conversation ${conversationId}`);
+      
+      if (code === 0) {
+        console.log(`✅ [NVIDIA NIMs] Successfully received response from NVIDIA API`);
+        console.log(`📝 [NVIDIA NIMs] Raw output: ${output.trim()}`);
+        
+        // Parse the output to extract 3 suggestions
+        let suggestions = [];
+        
+        // Try to extract suggestions from the output
+        const lines = output.trim().split('\n').filter(line => line.trim());
+        
+        // Look for numbered suggestions (1., 2., 3.) or quoted suggestions
+        for (const line of lines) {
+          const trimmed = line.trim();
+          // Look for numbered items or quoted text
+          if (trimmed.match(/^\d+\.\s*["']?/) || trimmed.match(/^["']/)) {
+            // Remove numbering and quotes
+            let suggestion = trimmed.replace(/^\d+\.\s*/, '').replace(/^["']|["']$/g, '');
+            if (suggestion.length > 5 && suggestion.length < 100) {
+              suggestions.push(suggestion);
+            }
+          }
+        }
+        
+        // If we don't have enough suggestions, try to extract from the end of the output
+        if (suggestions.length < 3) {
+          const lastLines = lines.slice(-3);
+          suggestions = lastLines.filter(line => {
+            const trimmed = line.trim();
+            return trimmed.length > 5 && trimmed.length < 100 && !trimmed.match(/^(Here are|Certainly|I'm here)/i);
+          }).slice(0, 3);
+        }
+        
+        // Ensure we have exactly 3 suggestions
+        while (suggestions.length < 3) {
+          suggestions.push('How can I help you today?');
+        }
+        
+        console.log(`🎯 [NVIDIA NIMs] Final suggestions for conversation ${conversationId}:`, suggestions);
+        
+        // Cache the results
+        quickMessageCache.set(cacheKey, {
+          suggestions,
+          timestamp: now
+        });
+        
+        res.json({ suggestions });
+      } else {
+        console.error(`❌ [NVIDIA NIMs] Python process failed with code ${code}:`, errorOutput);
+        // Fallback to default suggestions
+        res.json({ 
+          suggestions: [
+            'How are you feeling today?',
+            'I\'m here to listen and support you.',
+            'Would you like to talk about what\'s on your mind?'
+          ]
+        });
+      }
+    });
+    
+    // Set timeout for the Python process
+    setTimeout(() => {
+      pythonProcess.kill();
+      if (!res.headersSent) {
+        res.json({ 
+          suggestions: [
+            'How are you feeling today?',
+            'I\'m here to listen and support you.',
+            'Would you like to talk about what\'s on your mind?'
+          ]
+        });
+      }
+    }, 10000); // 10 second timeout
+    
+  } catch (error) {
+    console.error('Error generating quick messages:', error);
+    res.status(500).json({ 
+      error: 'Failed to generate quick messages',
+      suggestions: [
+        'How are you feeling today?',
+        'I\'m here to listen and support you.',
+        'Would you like to talk about what\'s on your mind?'
+      ]
+    });
+  }
+});
+
+// User accounts API endpoints
+
+// Record user login
+app.post('/api/users/login', (req, res) => {
+  const { username, accountType } = req.body;
+  
+  if (!username || !accountType) {
+    return res.status(400).json({ error: 'Missing required fields: username and accountType' });
+  }
+  
+  if (!['admin', 'user'].includes(accountType)) {
+    return res.status(400).json({ error: 'Invalid account type. Must be admin or user' });
+  }
+  
+  const userId = Date.now().toString();
+  const currentTime = new Date().toISOString();
+  
+  // Check if user already exists
+  db.get("SELECT * FROM user_accounts WHERE username = ?", [username], (err, existingUser) => {
+    if (err) {
+      console.error('Error checking existing user:', err);
+      res.status(500).json({ error: 'Failed to check user' });
+      return;
+    }
+    
+    if (existingUser) {
+      // Update existing user's last login and increment login count
+      db.run(`
+        UPDATE user_accounts 
+        SET last_login = ?, login_count = login_count + 1, updated_at = ?
+        WHERE username = ?
+      `, [currentTime, currentTime, username], function(updateErr) {
+        if (updateErr) {
+          console.error('Error updating user login:', updateErr);
+          res.status(500).json({ error: 'Failed to update user login' });
+          return;
+        }
+        
+        console.log(`✅ User login updated: ${username} (${accountType}) - Login #${existingUser.login_count + 1}`);
+        res.json({ 
+          id: existingUser.id,
+          username: existingUser.username,
+          accountType: existingUser.account_type,
+          loginCount: existingUser.login_count + 1,
+          lastLogin: currentTime,
+          message: 'User login updated successfully'
+        });
+      });
+    } else {
+      // Create new user
+      db.run(`
+        INSERT INTO user_accounts 
+        (id, username, account_type, first_login, last_login, login_count)
+        VALUES (?, ?, ?, ?, ?, ?)
+      `, [userId, username, accountType, currentTime, currentTime, 1], function(insertErr) {
+        if (insertErr) {
+          console.error('Error creating user:', insertErr);
+          res.status(500).json({ error: 'Failed to create user' });
+          return;
+        }
+        
+        console.log(`✅ New user created: ${username} (${accountType})`);
+        res.json({ 
+          id: userId,
+          username: username,
+          accountType: accountType,
+          loginCount: 1,
+          lastLogin: currentTime,
+          message: 'User created successfully'
+        });
+      });
+    }
+  });
+});
+
+// Get user information
+app.get('/api/users/:username', (req, res) => {
+  const { username } = req.params;
+  
+  db.get("SELECT * FROM user_accounts WHERE username = ?", [username], (err, user) => {
+    if (err) {
+      console.error('Error fetching user:', err);
+      res.status(500).json({ error: 'Failed to fetch user' });
+      return;
+    }
+    
+    if (!user) {
+      res.status(404).json({ error: 'User not found' });
+      return;
+    }
+    
+    res.json({
+      id: user.id,
+      username: user.username,
+      accountType: user.account_type,
+      firstLogin: user.first_login,
+      lastLogin: user.last_login,
+      loginCount: user.login_count,
+      createdAt: user.created_at
+    });
+  });
+});
+
+// Get all users (for admin purposes)
+app.get('/api/users', (req, res) => {
+  db.all("SELECT * FROM user_accounts ORDER BY last_login DESC", (err, users) => {
+    if (err) {
+      console.error('Error fetching users:', err);
+      res.status(500).json({ error: 'Failed to fetch users' });
+      return;
+    }
+    
+    const formattedUsers = users.map(user => ({
+      id: user.id,
+      username: user.username,
+      accountType: user.account_type,
+      firstLogin: user.first_login,
+      lastLogin: user.last_login,
+      loginCount: user.login_count,
+      createdAt: user.created_at
+    }));
+    
+    // console.log(`📊 Returning ${formattedUsers.length} users`);
+    res.json(formattedUsers);
+  });
+});
+
+// Search users by username (for chat contacts)
+app.get('/api/users/search/:query', (req, res) => {
+  const { query } = req.params;
+  const { exclude } = req.query; // Optional: exclude current user from results
+  
+  if (!query || query.trim().length < 2) {
+    return res.status(400).json({ error: 'Search query must be at least 2 characters long' });
+  }
+  
+  let sql = "SELECT username, account_type, last_login FROM user_accounts WHERE username LIKE ?";
+  let params = [`%${query}%`];
+  
+  // Exclude current user if specified
+  if (exclude) {
+    sql += " AND username != ?";
+    params.push(exclude);
+  }
+  
+  sql += " ORDER BY last_login DESC LIMIT 10";
+  
+  db.all(sql, params, (err, users) => {
+    if (err) {
+      console.error('Error searching users:', err);
+      res.status(500).json({ error: 'Failed to search users' });
+      return;
+    }
+    
+    const searchResults = users.map(user => ({
+      username: user.username,
+      accountType: user.account_type,
+      lastLogin: user.last_login,
+      isOnline: isUserOnline(user.last_login)
+    }));
+    
+    console.log(`🔍 Found ${searchResults.length} users matching "${query}"`);
+    res.json(searchResults);
+  });
+});
+
+// Helper function to determine if user is online (last login within 5 minutes)
+function isUserOnline(lastLogin) {
+  if (!lastLogin) return false;
+  const lastLoginTime = new Date(lastLogin).getTime();
+  const now = Date.now();
+  const fiveMinutesAgo = now - (5 * 60 * 1000);
+  return lastLoginTime > fiveMinutesAgo;
+}
+
 // Health check
 app.get('/api/health', (req, res) => {
   res.json({ 
@@ -347,7 +1307,25 @@ app.get('/api/stats', (req, res) => {
       if (err) return res.status(500).json({ error: 'Failed to get stats' });
       
       stats.mood_entries = moodRow.count;
-      res.json(stats);
+      
+      db.get("SELECT COUNT(*) as count FROM chat_conversations", (err, conversationsRow) => {
+        if (err) return res.status(500).json({ error: 'Failed to get stats' });
+        
+        stats.chat_conversations = conversationsRow.count;
+        
+        db.get("SELECT COUNT(*) as count FROM chat_messages", (err, messagesRow) => {
+          if (err) return res.status(500).json({ error: 'Failed to get stats' });
+          
+          stats.chat_messages = messagesRow.count;
+          
+          db.get("SELECT COUNT(*) as count FROM user_accounts", (err, usersRow) => {
+            if (err) return res.status(500).json({ error: 'Failed to get stats' });
+            
+            stats.user_accounts = usersRow.count;
+            res.json(stats);
+          });
+        });
+      });
     });
   });
 });
@@ -364,6 +1342,16 @@ app.listen(PORT, () => {
   console.log(`   POST http://localhost:${PORT}/api/scrape`);
   console.log(`   GET  http://localhost:${PORT}/api/mood-entries`);
   console.log(`   POST http://localhost:${PORT}/api/mood-entries`);
+  console.log(`   GET  http://localhost:${PORT}/api/chat/conversations/:userId`);
+  console.log(`   GET  http://localhost:${PORT}/api/chat/conversations/:conversationId/messages`);
+  console.log(`   POST http://localhost:${PORT}/api/chat/conversations`);
+  console.log(`   POST http://localhost:${PORT}/api/chat/messages`);
+  console.log(`   PUT  http://localhost:${PORT}/api/chat/conversations/:conversationId/read`);
+  console.log(`   PUT  http://localhost:${PORT}/api/chat/conversations/:conversationId`);
+  console.log(`   POST http://localhost:${PORT}/api/users/login`);
+  console.log(`   GET  http://localhost:${PORT}/api/users/:username`);
+  console.log(`   GET  http://localhost:${PORT}/api/users`);
+  console.log(`   GET  http://localhost:${PORT}/api/users/search/:query`);
   console.log(`   GET  http://localhost:${PORT}/api/health`);
   console.log(`   GET  http://localhost:${PORT}/api/stats`);
   console.log('🌐 Serves both Reddit Scraper Dashboard and SAMH Platform');

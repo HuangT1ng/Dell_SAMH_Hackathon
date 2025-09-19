@@ -134,6 +134,7 @@ CREATE TABLE mental_health_posts (
   url TEXT NOT NULL,
   sentiment TEXT NOT NULL,
   platform TEXT NOT NULL,
+  samh_username TEXT,
   created_at DATETIME DEFAULT CURRENT_TIMESTAMP
 );
 ```

@@ -1,15 +1,27 @@
 import { useState, useEffect } from 'react';
-import { Home, Heart, Moon, Sun, Brain, Gamepad2, MessageCircle } from 'lucide-react';
+import { Home, Heart, Moon, Sun, Brain, Gamepad2, MessageCircle, LogOut, BarChart3, Calendar, User } from 'lucide-react';
 import HomePage from './components/HomePage';
 import MoodBar from './components/MoodBar';
 import Gaming from './components/Gaming';
 import Chat from './components/Chat';
+import RedditDashboard from './components/RedditDashboard';
+import CommunityEvent from './components/CommunityEvent';
+import MyJourney from './components/MyJourney';
+import UserJourneyModal from './components/UserJourneyModal';
+import Login from './components/Login';
 import { sharedDatabase, type MoodEntry } from './utils/sharedDatabase';
+import { SessionProvider, useSession } from './utils/sessionContext';
 
-function App() {
-  const [currentView, setCurrentView] = useState<'home' | 'mood' | 'gaming' | 'chat'>('home');
+function AppContent() {
+  const { user, logout, isLoggedIn } = useSession();
+  const [currentView, setCurrentView] = useState<'home' | 'mood' | 'gaming' | 'chat' | 'community' | 'dashboard' | 'journey'>('home');
   const [entries, setEntries] = useState<MoodEntry[]>([]);
   const [darkMode, setDarkMode] = useState(false);
+  const [chatInitialization, setChatInitialization] = useState<{samhUsername: string} | null>(null);
+  const [userJourneyModal, setUserJourneyModal] = useState<{isOpen: boolean, targetUsername: string}>({
+    isOpen: false,
+    targetUsername: ''
+  });
 
   useEffect(() => {
     const loadMoodEntries = async () => {
@@ -58,12 +70,45 @@ function App() {
     setCurrentView('mood');
   };
 
+  const handleNavigateToChat = (samhUsername: string) => {
+    console.log('Navigating to chat with SAMH username:', samhUsername);
+    setChatInitialization({ samhUsername });
+    setCurrentView('chat');
+  };
+
+  const handleNavigateToUserJourney = (samhUsername: string) => {
+    console.log('Opening user journey modal for SAMH username:', samhUsername);
+    setUserJourneyModal({
+      isOpen: true,
+      targetUsername: samhUsername
+    });
+  };
+
+  const closeUserJourneyModal = () => {
+    setUserJourneyModal({
+      isOpen: false,
+      targetUsername: ''
+    });
+  };
+
+  const clearChatInitialization = () => {
+    setChatInitialization(null);
+  };
+
   const navigation = [
     { id: 'home', label: 'Home', icon: Home, description: 'Platform Overview' },
+    ...(user?.accountType === 'user' ? [{ id: 'journey', label: 'My Journey', icon: User, description: 'Personal Journey & Progress' }] : []),
     { id: 'mood', label: 'Mood Bar', icon: Heart, description: 'Mood Tracking & Analytics' },
     { id: 'gaming', label: 'Gaming', icon: Gamepad2, description: 'Gaming Hub & Sessions' },
     { id: 'chat', label: 'Chat', icon: MessageCircle, description: 'Chat Support' },
+    ...(user?.accountType === 'user' ? [{ id: 'community', label: 'Community Event', icon: Calendar, description: 'Community Events & Activities' }] : []),
+    ...(user?.accountType === 'admin' ? [{ id: 'dashboard', label: 'Dashboard', icon: BarChart3, description: 'Reddit Data Dashboard' }] : []),
   ];
+
+  // Show login screen if not logged in (after all hooks)
+  if (!isLoggedIn) {
+    return <Login darkMode={darkMode} />;
+  }
 
   return (
     <div className={`min-h-screen transition-colors duration-300 ${
@@ -83,11 +128,18 @@ function App() {
               <div className="w-10 h-10 rounded-lg flex items-center justify-center" style={{ backgroundColor: '#4a6cf7' }}>
                 <Brain className="w-6 h-6 text-white" />
               </div>
-              <span className={`text-xl font-bold ${
-                darkMode ? 'text-white' : 'text-slate-800'
-              }`}>
-                SAMH Platform
-              </span>
+              <div className="flex flex-col">
+                <span className={`text-xl font-bold ${
+                  darkMode ? 'text-white' : 'text-slate-800'
+                }`}>
+                  SAMH Platform
+                </span>
+                <span className={`text-xs ${
+                  darkMode ? 'text-gray-400' : 'text-slate-500'
+                }`}>
+                  Welcome, {user?.username} ({user?.accountType}) • Tab Session
+                </span>
+              </div>
             </div>
             
             {/* Main Navigation */}
@@ -123,6 +175,18 @@ function App() {
               >
                 {darkMode ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
               </button>
+              
+              <button
+                onClick={logout}
+                className={`ml-2 p-2 rounded-lg transition-all duration-300 ${
+                  darkMode 
+                    ? 'bg-gray-700 hover:bg-gray-600 text-red-400' 
+                    : 'bg-white hover:bg-gray-100 text-red-600'
+                }`}
+                title="Logout"
+              >
+                <LogOut className="w-5 h-5" />
+              </button>
             </nav>
           </div>
         </div>
@@ -132,6 +196,7 @@ function App() {
         {/* Main Content */}
         <main>
           {currentView === 'home' && <HomePage darkMode={darkMode} />}
+          {currentView === 'journey' && <MyJourney darkMode={darkMode} />}
           {currentView === 'mood' && (
             <MoodBar 
               entries={entries} 
@@ -140,10 +205,28 @@ function App() {
             />
           )}
           {currentView === 'gaming' && <Gaming darkMode={darkMode} />}
-          {currentView === 'chat' && <Chat darkMode={darkMode} />}
+          {currentView === 'chat' && <Chat darkMode={darkMode} initializationData={chatInitialization || undefined} onInitializationComplete={clearChatInitialization} />}
+          {currentView === 'community' && <CommunityEvent darkMode={darkMode} />}
+          {currentView === 'dashboard' && <RedditDashboard darkMode={darkMode} onNavigateToChat={handleNavigateToChat} onNavigateToUserJourney={handleNavigateToUserJourney} />}
         </main>
       </div>
+
+      {/* User Journey Modal */}
+      <UserJourneyModal
+        isOpen={userJourneyModal.isOpen}
+        onClose={closeUserJourneyModal}
+        targetUsername={userJourneyModal.targetUsername}
+        darkMode={darkMode}
+      />
     </div>
+  );
+}
+
+function App() {
+  return (
+    <SessionProvider>
+      <AppContent />
+    </SessionProvider>
   );
 }
 

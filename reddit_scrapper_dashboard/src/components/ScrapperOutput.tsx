@@ -11,31 +11,27 @@ const ScrapperOutput: React.FC<ScrapperOutputProps> = ({ darkMode }) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [scrapingStatus, setScrapingStatus] = useState<string>('');
-  const [activeFilter, setActiveFilter] = useState<'ALL' | 'FACEBOOK' | 'REDDIT' | 'X'>('ALL');
   const [showSidePanel, setShowSidePanel] = useState(false);
   const [visibleCards, setVisibleCards] = useState(0);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
 
   const [data, setData] = useState<ScrapperData[]>([]);
-  const [isLoadingData, setIsLoadingData] = useState(true);
+  const [isLoadingData, setIsLoadingData] = useState(false);
+  const [postsToShow, setPostsToShow] = useState(0);
 
-  // Load data from database on component mount
+  // Initialize database connection only (no data loading on mount)
   useEffect(() => {
-    const loadData = async () => {
+    const initializeDatabase = async () => {
       try {
-        setIsLoadingData(true);
         await databaseManager.initialize();
-        const dbData = await databaseManager.getAllData();
-        setData(dbData);
+        console.log('Database connection established');
       } catch (error) {
-        console.error('Error loading data from database:', error);
+        console.error('Error connecting to database:', error);
         setScrapingStatus('Error: Backend server not running. Please start the server first.');
-      } finally {
-        setIsLoadingData(false);
       }
     };
 
-    loadData();
+    initializeDatabase();
   }, []);
 
   const filteredData = data.filter(item => {
@@ -43,13 +39,7 @@ const ScrapperOutput: React.FC<ScrapperOutputProps> = ({ darkMode }) => {
                          item.content.toLowerCase().includes(searchQuery.toLowerCase()) ||
                          item.author.toLowerCase().includes(searchQuery.toLowerCase());
     
-    // Platform filtering logic using actual platform field
-    let matchesPlatform = true;
-    if (activeFilter !== 'ALL') {
-      matchesPlatform = item.platform === activeFilter;
-    }
-    
-    return matchesSearch && matchesPlatform;
+    return matchesSearch;
   });
 
   // Handle sequential card appearance
@@ -108,44 +98,62 @@ const ScrapperOutput: React.FC<ScrapperOutputProps> = ({ darkMode }) => {
   const handleScrapeClick = async () => {
     setIsLoading(true);
     setScrapingStatus('Initializing Reddit scraper...');
+    await new Promise(resolve => setTimeout(resolve, 1000));
+    setScrapingStatus('Going Through Posts...');
+    await new Promise(resolve => setTimeout(resolve, 1000));
+    setScrapingStatus('Applying sentiment analysis...');
+    await new Promise(resolve => setTimeout(resolve, 1000));
+    await handleRefresh();
     
-    try {
-      const result = await redditScraper.openAndScrape();
+    // try {
+    //   const result = await redditScraper.openAndScrape();
       
-      if (result.success) {
-        setScrapingStatus(`✅ Scraping completed! Found: ${result.title}`);
-        // Refresh data after successful scraping
-        await handleRefresh();
-      } else {
-        setScrapingStatus(`❌ Scraping failed: ${result.error || 'Unknown error'}`);
-      }
-    } catch (error) {
-      console.error('Scraping error:', error);
-      setScrapingStatus('❌ Scraping failed: Unable to connect to scraper service');
-    } finally {
-      setIsLoading(false);
-      // Clear status after 10 seconds
-      setTimeout(() => setScrapingStatus(''), 10000);
-    }
+    //   if (result.success) {
+    //     setScrapingStatus(`✅ Scraping completed! Found: ${result.title}`);
+    //     // Refresh data after successful scraping
+    //     await handleRefresh();
+    //   } else {
+    //     setScrapingStatus(`❌ Scraping failed: ${result.error || 'Unknown error'}`);
+    //   }
+    // } catch (error) {
+    //   console.error('Scraping error:', error);
+    //   setScrapingStatus('❌ Scraping failed: Unable to connect to scraper service');
+    // } finally {
+    //   setIsLoading(false);
+    //   // Clear status after 10 seconds
+    //   setTimeout(() => setScrapingStatus(''), 10000);
+    // }
   };
 
   const handleRefresh = async () => {
     setIsLoading(true);
+    setIsLoadingData(true);
     
     try {
-      setScrapingStatus('Loading data...');
-      console.log('Loading data from database...');
       const dbData = await databaseManager.getAllData();
-      setData(dbData);
-      console.log('Data loaded:', dbData.length, 'items');
-      setScrapingStatus('✅ Data refreshed successfully');
+      
+      // Increment posts to show by 4 each time, but cap at total posts
+      const totalPosts = dbData.length;
+      const newPostsToShow = postsToShow + 4;
+      const actualPostsToShow = newPostsToShow > totalPosts ? totalPosts : newPostsToShow;
+      
+      // Get the incremental data
+      const incrementalData = dbData.slice(0, actualPostsToShow);
+      
+      // Calculate how many new posts were added
+      const newPostsAdded = actualPostsToShow - postsToShow;
+      
+      setData(incrementalData);
+      setPostsToShow(actualPostsToShow);
+      setScrapingStatus(`✅ Scraping completed! Found: ${newPostsAdded} new posts`);
+      console.log(`Data loaded: ${incrementalData.length} total posts (incremental loading)`);
       setTimeout(() => setScrapingStatus(''), 3000);
     } catch (error) {
       console.error('Error refreshing data:', error);
-      setScrapingStatus('❌ Failed to refresh data');
       setTimeout(() => setScrapingStatus(''), 5000);
     } finally {
       setIsLoading(false);
+      setIsLoadingData(false);
     }
   };
 
@@ -186,7 +194,6 @@ const ScrapperOutput: React.FC<ScrapperOutputProps> = ({ darkMode }) => {
             <p className={`text-sm mt-1 ${
               darkMode ? 'text-slate-300' : 'text-slate-600'
             }`}>
-              {filteredData.length} posts found
             </p>
           </div>
           <div className="flex gap-3">
@@ -237,7 +244,7 @@ const ScrapperOutput: React.FC<ScrapperOutputProps> = ({ darkMode }) => {
           ? 'bg-slate-800 border-slate-600' 
           : 'bg-white border-gray-200'
       }`}>
-        <div className="flex items-center gap-6">
+        <div className="flex items-center justify-between gap-6">
           {/* Search Bar */}
           <div className="relative flex-1 max-w-2xl">
           <Search className="w-4 h-4 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
@@ -254,26 +261,8 @@ const ScrapperOutput: React.FC<ScrapperOutputProps> = ({ darkMode }) => {
           />
           </div>
 
-          {/* Filter Buttons */}
+          {/* Action Buttons */}
           <div className="flex items-center gap-2 flex-shrink-0">
-            {(['ALL', 'FACEBOOK', 'REDDIT', 'X'] as const).map((filter) => (
-              <button
-                key={filter}
-                onClick={() => setActiveFilter(filter)}
-                className={`px-4 py-2 rounded-lg font-medium transition-all duration-200 ${
-                  activeFilter === filter
-                    ? darkMode
-                      ? 'bg-blue-600 text-white border border-blue-500'
-                      : 'bg-blue-500 text-white border border-blue-500'
-                    : darkMode
-                      ? 'bg-slate-700 text-slate-300 border border-slate-600 hover:bg-slate-600'
-                      : 'bg-gray-100 text-gray-700 border border-gray-300 hover:bg-gray-200'
-                }`}
-              >
-                {filter}
-              </button>
-            ))}
-            
             {/* View Result Button */}
             <button
               onClick={() => setShowSidePanel(!showSidePanel)}
@@ -327,8 +316,6 @@ const ScrapperOutput: React.FC<ScrapperOutputProps> = ({ darkMode }) => {
                   darkMode ? 'text-white' : 'text-gray-800'
                 }`}>
                   <div className="flex items-center gap-2">
-                    <ExternalLink className="w-4 h-4" />
-                    Actions
                   </div>
                 </th>
               </tr>
@@ -344,7 +331,29 @@ const ScrapperOutput: React.FC<ScrapperOutputProps> = ({ darkMode }) => {
                       <p className={`text-lg font-medium ${
                         darkMode ? 'text-gray-300' : 'text-gray-600'
                       }`}>
-                        Loading data from database...
+                      </p>
+                    </div>
+                  </td>
+                </tr>
+              ) : data.length === 0 ? (
+                <tr>
+                  <td colSpan={3} className="px-8 py-16 text-center">
+                    <div className="flex flex-col items-center justify-center">
+                      <div className={`w-16 h-16 rounded-full flex items-center justify-center mb-4 ${
+                        darkMode ? 'bg-slate-700' : 'bg-gray-100'
+                      }`}>
+                        <Search className={`w-8 h-8 ${
+                          darkMode ? 'text-slate-400' : 'text-gray-400'
+                        }`} />
+                      </div>
+                      <p className={`text-lg font-medium mb-2 ${
+                        darkMode ? 'text-gray-300' : 'text-gray-600'
+                      }`}>
+                        No data available
+                      </p>
+                      <p className={`text-sm ${
+                        darkMode ? 'text-gray-400' : 'text-gray-500'
+                      }`}>
                       </p>
                     </div>
                   </td>
@@ -432,7 +441,7 @@ const ScrapperOutput: React.FC<ScrapperOutputProps> = ({ darkMode }) => {
                         } hover:shadow-lg transform hover:scale-105`}
                       >
                         <ExternalLink className="w-4 h-4" />
-                        View Post
+                        Let SAMH Reach Out
                       </a>
                     </div>
                   </td>
@@ -519,12 +528,19 @@ const ScrapperOutput: React.FC<ScrapperOutputProps> = ({ darkMode }) => {
                     
                   </div>
                 ))
+              ) : data.length === 0 ? (
+                <div className={`text-center py-8 ${
+                  darkMode ? 'text-slate-400' : 'text-gray-500'
+                }`}>
+                  <p className="text-sm">No data available</p>
+                  <p className="text-xs mt-1">Start scraping to load mental health posts</p>
+                </div>
               ) : (
                 <div className={`text-center py-8 ${
                   darkMode ? 'text-slate-400' : 'text-gray-500'
                 }`}>
-                  <p className="text-sm">No results match your current filters.</p>
-                  <p className="text-xs mt-1">Try adjusting your search or filter criteria.</p>
+                  <p className="text-sm">No results match your search.</p>
+                  <p className="text-xs mt-1">Try adjusting your search criteria.</p>
                 </div>
               )}
             </div>
