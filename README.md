@@ -42,64 +42,38 @@ npm run install:all
 
 ### Start All Services
 ```bash
-# Start everything at once
 npm run start:all
 ```
 
 This will start:
-- **Shared Database Server** on http://localhost:3003
 - **Reddit Scraper Backend** on http://localhost:3001  
 - **Reddit Scraper Dashboard** on http://localhost:5174
 - **SAMH Platform** on http://localhost:5173
 
-### Individual Services
 
-#### 1. Shared Database Server
-```bash
-npm run start:db
-```
-- **Port**: 3003
-- **Purpose**: Centralized SQLite database for both applications
-- **Data**: Mental health posts, mood entries, analytics
 
-#### 2. SAMH Platform (Main App)
-```bash
-npm run start:samh-platform
-```
-- **Port**: 5173
-- **Features**: Homepage, Mood tracking, Gaming, Chat
-- **Database**: Reads/writes mood entries to shared database
 
-#### 3. Reddit Scraper Dashboard
-```bash
-npm run start:scraper-dashboard
-```
-- **Port**: 5174
-- **Features**: Reddit scraping, Mental health post analysis
-- **Database**: Writes scraped data to shared database
 
-#### 4. Reddit Scraper Backend
-```bash
-npm run start:scraper-backend
-```
-- **Port**: 3001
-- **Purpose**: Handles Python Selenium scraper execution
 
-## 📊 API Endpoints
-
-### Shared Database Server (Port 3003)
-- `GET /api/mental-health-posts` - Get all scraped mental health posts
-- `POST /api/mental-health-posts` - Add new mental health post
-- `GET /api/mood-entries` - Get all mood entries
-- `POST /api/mood-entries` - Add new mood entry
-- `POST /api/analytics` - Record analytics event
-- `GET /api/stats` - Get database statistics
-- `GET /api/health` - Health check
-
-### Reddit Scraper Backend (Port 3001)
-- `POST /api/scrape` - Execute Reddit scraping
-- `GET /api/health` - Health check
-
+### Unified Backend (Port 3001)
+ 🔗 Available endpoints:
+    GET  http://localhost:3001/api/mental-health-posts
+    POST http://localhost:3001/api/mental-health-posts
+    POST http://localhost:3001/api/scrape
+    GET  http://localhost:3001/api/mood-entries
+    POST http://localhost:3001/api/mood-entries
+    GET  http://localhost:3001/api/chat/conversations/:userId
+    GET  http://localhost:3001/api/chat/conversations/:conversationId/messages
+    POST http://localhost:3001/api/chat/conversations
+    POST http://localhost:3001/api/chat/messages
+    PUT  http://localhost:3001/api/chat/conversations/:conversationId/read
+    PUT  http://localhost:3001/api/chat/conversations/:conversationId
+    POST http://localhost:3001/api/users/login
+    GET  http://localhost:3001/api/users/:username
+    GET  http://localhost:3001/api/users
+    GET  http://localhost:3001/api/users/search/:query
+    GET  http://localhost:3001/api/health
+    GET  http://localhost:3001/api/stats
 ## 🎯 Applications
 
 ### SAMH Platform
@@ -108,7 +82,6 @@ npm run start:scraper-backend
 - **Mood Bar**: Track daily mood and mental health journey
 - **Gaming**: Gaming hub and wellness sessions
 - **Chat**: Mental health chat support
-- **Theme**: Custom blue (#4a6cf7) and neutral (#f1efef) colors
 
 ### Reddit Scraper Dashboard
 **Mental health data analysis tool with:**
@@ -118,42 +91,6 @@ npm run start:scraper-backend
 - **Real-time Scraping**: Execute new scraping sessions
 - **Search & Filter**: Find specific mental health discussions
 
-## 🗄️ Database Schema
-
-### Mental Health Posts
-```sql
-CREATE TABLE mental_health_posts (
-  id TEXT PRIMARY KEY,
-  title TEXT NOT NULL,
-  content TEXT NOT NULL,
-  author TEXT NOT NULL,
-  subreddit TEXT NOT NULL,
-  upvotes INTEGER NOT NULL,
-  comments INTEGER NOT NULL,
-  timestamp TEXT NOT NULL,
-  url TEXT NOT NULL,
-  sentiment TEXT NOT NULL,
-  platform TEXT NOT NULL,
-  samh_username TEXT,
-  created_at DATETIME DEFAULT CURRENT_TIMESTAMP
-);
-```
-
-### Mood Entries
-```sql
-CREATE TABLE mood_entries (
-  id TEXT PRIMARY KEY,
-  date TEXT NOT NULL,
-  mood INTEGER NOT NULL,
-  mood_label TEXT NOT NULL,
-  triggers TEXT NOT NULL, -- JSON array
-  activities TEXT NOT NULL, -- JSON array
-  notes TEXT,
-  timestamp INTEGER NOT NULL,
-  created_at DATETIME DEFAULT CURRENT_TIMESTAMP
-);
-```
-
 ## 🔧 Development
 
 ### Project Structure
@@ -161,16 +98,11 @@ CREATE TABLE mood_entries (
 Dell_SAMH_Hackathon/
 ├── web_app/                    # SAMH Platform (Main App)
 ├── reddit_scrapper_dashboard/  # Reddit Scraper Dashboard
-├── shared_database_server.js   # Centralized Database
+├── unified_backend_server.js   # Centralized Database
 ├── scraper_server.js          # Scraper Backend
 ├── run_scraper.js             # Python Scraper Wrapper
 └── package.json               # Root package with scripts
 ```
-
-### Data Flow
-1. **Reddit Scraper** scrapes mental health posts → **Shared Database**
-2. **SAMH Platform** tracks user mood entries → **Shared Database**
-3. Both apps read from shared database for analytics and insights
 
 ## 🎨 Features
 
