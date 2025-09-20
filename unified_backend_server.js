@@ -404,43 +404,282 @@ const initializeDatabase = () => {
     });
   });
 
-  // Check if community events data already exists
-  db.get("SELECT COUNT(*) as count FROM community_events", (err, row) => {
+  // Clear existing community events data and insert fresh data on server restart
+  db.run("DELETE FROM community_events", (err) => {
     if (err) {
-      console.error('Error checking community events data:', err);
+      console.error('Error clearing community events data:', err);
       return;
     }
-
-    if (row.count === 0) {
+    
       
-      const events = [
+      const events =[
         {
           id: '1',
-          organization_name: 'Mental Health Foundation',
-          description: 'Join us for a peaceful walk in the park to raise awareness about mental health.',
-          location: 'Central Park, New York',
-          image_url: 'https://images.unsplash.com/photo-1559027615-cd4628902d4a?w=400&h=300&fit=crop'
+          organization_name: 'Youth Brahm Centre',
+          description: 'Brahm Centre is a registered charity that promotes happier and healthier living through empowering people to stay well.',
+          location: '47, Scotts Road, #05-02, Goldbell Towers, Singapore 228233',
+          image_url: 'https://mindline.sg/_next/image?url=https%3A%2F%2Fmindline.sg%2Foriginal_images%2FBrahm_Centre_ggv2G60.png&w=3840&q=75'
         },
         {
           id: '2',
-          organization_name: 'Mindful Living Center',
-          description: 'A guided meditation session focused on stress relief and emotional well-being.',
-          location: 'Community Center',
-          image_url: 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=400&h=300&fit=crop'
+          organization_name: 'Care Corner Singapore',
+          description: 'Established in 1981, Care Corner Singapore is a non-profit organisation providing social and health care services for those in need.',
+          location: '6, Woodlands Square, #03-01, Woods Square Tower 2, Singapore 737737',
+          image_url: 'https://mindline.sg/_next/image?url=https%3A%2F%2Fmindline.sg%2Foriginal_images%2FCare_Corner_y1EnRXe.png&w=3840&q=75'
         },
         {
           id: '3',
-          organization_name: 'Creative Wellness Studio',
-          description: 'Express yourself through art in this therapeutic workshop.',
-          location: 'Art Studio Downtown',
-          image_url: 'https://images.unsplash.com/photo-1513475382585-d06e58bcb0e0?w=400&h=300&fit=crop'
+          organization_name: 'CARE Singapore',
+          description: 'CARE Singapore exists to help vulnerable young people find direction, hope and success.',
+          location: 'Blk 428, Pasir Ris Drive 6, #01-21, Singapore 510428',
+          image_url: 'https://care.sg/wp-content/uploads/2023/02/Untitled-design-1.png'
         },
         {
           id: '4',
-          organization_name: 'Peer Support Network',
-          description: 'A safe space to share experiences with others who understand.',
-          location: 'Online (Zoom)',
-          image_url: 'https://images.unsplash.com/photo-1521737711867-e3b97375f902?w=400&h=300&fit=crop'
+          organization_name: 'Fei Yue Community Services',
+          description: 'Since 1996, Fei Yue Community Services has been fostering life transformation and supporting individuals of all ages through purposeful service.',
+          location: 'Blk 145, Simei Street 2, #01-06, Singapore 520145',
+          image_url: 'https://mindline.sg/_next/image?url=https%3A%2F%2Fmindline.sg%2Foriginal_images%2FFei_Yue_Community_Services_6PmJ1cy.png&w=3840&q=75'
+        },
+        {
+          id: '5',
+          organization_name: 'Lakeside Family Services',
+          description: 'At Lakeside Family Services, we seek to change lives and transform communities, through a wide range of holistic services, so that people will find hope and healing.',
+          location: 'Blk 997, Jurong West Street 93, #01-369, Singapore 640977',
+          image_url: 'https://mindline.sg/_next/image?url=https%3A%2F%2Fmindline.sg%2Foriginal_images%2FLakeside_Family_Services.png&w=3840&q=75'
+        },
+        {
+          id: '6',
+          organization_name: 'Limitless (Ltd)',
+          description: 'Limitless is a youth mental health organisation that provides accessible services and treatment to youths who need support for their mental health.',
+          location: '176, Orchard Road, #05-05, JustCo, Singapore 238843',
+          image_url: 'https://mindline.sg/_next/image?url=https%3A%2F%2Fmindline.sg%2Foriginal_images%2FLimitless.png&w=3840&q=75'
+        },
+        {
+          id: '7',
+          organization_name: 'SHINE Children and Youth Services',
+          description: 'SHINE Children and Youth Services is a registered charity, empowering children, youth, and families in Singapore since 1976.',
+          location: 'Blk 329, Clementi Avenue 2, #01-248, Singapore 120329',
+          image_url: 'https://mindline.sg/_next/image?url=https%3A%2F%2Fmindline.sg%2Foriginal_images%2FSHINE_Children__Youth_Services.png&w=3840&q=75'
+        },
+        {
+          id: '8',
+          organization_name: 'Singapore Anglican Community Services',
+          description: 'Singapore Anglican Community Services is the community service arm of the Diocese of Singapore. It is a major psychiatric rehabilitation service provider in Singapore. It also offers care services for families-in-crisis',
+          location: 'Block 184C Rivervale Crescent, #01-199',
+          image_url: 'https://mindline.sg/_next/image?url=https%3A%2F%2Fmindline.sg%2Foriginal_images%2FSingapore_Anglican_Community_Services_tYyKNdO.png&w=3840&q=75'
+        },
+        {
+          id: '9',
+          organization_name: 'Singapore Association for Mental Health (SAMH) – Woodlands',
+          description: 'Since 1968, the Singapore Association for Mental Health (SAMH) uplifts lives, promoting mental wellness for all - youths, adults and seniors.',
+          location: '317, Woodlands Street 31, #01-196, Singapore 730317',
+          image_url: 'https://mindline.sg/_next/image?url=https%3A%2F%2Fmindline.sg%2Foriginal_images%2FSingapore_Association_for_Mental_Health_NeOq52u.png&w=3840&q=75'
+        },
+        {
+          id: '10',
+          organization_name: 'Singapore Association for Mental Health (SAMH) – Bedok',
+          description: 'Since 1968, the Singapore Association for Mental Health (SAMH) uplifts lives, promoting mental wellness for all - youths, adults and seniors.',
+          location: 'Blk 124, Bedok North Rd, #01-133, Singapore 460124',
+          image_url: 'https://mindline.sg/_next/image?url=https%3A%2F%2Fmindline.sg%2Foriginal_images%2FSingapore_Association_for_Mental_Health_XxCkAbn.png&w=3840&q=75'
+        },
+        {
+          id: '11',
+          organization_name: "ActiveSG Multi-Sport School Holiday Programme",
+          description: "Kids aged 5–12 can join hockey, football, basketball, table tennis, and athletics at various sport centres during school holidays, helping them build skills and make friends.",
+          location: "Delta Sport Centre, Jurong East Sport Centre, Heartbeat@Bedok, Bedok Stadium, Sengkang Sport Centre",
+          image_url: ""
+        },
+        {
+          id: '12',
+          organization_name: "GetActive! Singapore 2025",
+          description: "Singapore’s annual National Day celebration through sport, featuring community runs, cycling, aquatics, inclusive sports, and even record-setting gatherings for pet lovers.",
+          location: "Singapore Sports Hub and selected ActiveSG Sport Centres, heartland venues",
+          image_url: ""
+        },
+        {
+          id: '13',
+          organization_name: "Play Inclusive 2025",
+          description: "Singapore’s largest inclusive sports movement, enabling those with and without disabilities to enjoy team sports like football, basketball, and floorball together.",
+          location: "Singapore Sports Hub and heartland ActiveSG centres",
+          image_url: ""
+        },
+        {
+          id: '14',
+          organization_name: "Majulah Fiesta Fitness Party",
+          description: "A public fitness celebration as part of SG60 featuring dance workouts, concerts, and local markets.",
+          location: "Singapore Sports Hub",
+          image_url: ""
+        },
+        {
+          id: '15',
+          organization_name: "Singapore Urban Sports + Fitness Festival 2025",
+          description: "Three weekends of urban sports like climbing, parkour, dance battles, skateboarding, and more.",
+          location: "Singapore city & hub venues",
+          image_url: ""
+        },
+
+        {
+          id: '17',
+          organization_name: "KpopX Fitness (September 2025 Edition)",
+          description: "Free energetic workout events inspired by K-pop music, involving dance routines and mass workouts.",
+          location: "Singapore EXPO",
+          image_url: ""
+        },
+        {
+          id: '18',
+          organization_name: "Pesta Sukan",
+          description: "Singapore’s oldest multi-sport festival with 37 sports and new mind sports like Chess/Weiqi.",
+          location: "Multiple sport centres, Singapore",
+          image_url: ""
+        },
+        {
+          id: '19',
+          organization_name: "Healthy Living Festival @ North West",
+          description: "Mega family event featuring fun runs, sports clinics, and healthy living activities.",
+          location: "Venues across North West District",
+          image_url: ""
+        },
+        {
+          id: '20',
+          organization_name: "Lion City Dance Convention",
+          description: "Open dance competition, movement workshops, and fitness dance-offs.",
+          location: "Singapore Sports Hub",
+          image_url: ""
+        },
+        {
+          id: '21',
+          organization_name: "ActiveSG Basketball Open Play",
+          description: "Join walk-in basketball games for all skill levels, with coaching available on select dates.",
+          location: "ActiveSG Basketball Centres, islandwide",
+          image_url: ""
+        },
+        {
+          id: '22',
+          organization_name: "Family Aqua Fun Fiesta",
+          description: "Inclusive pool day for families, with friendly swim races, water games, and float parades.",
+          location: "ActiveSG Swimming Complexes, Singapore",
+          image_url: ""
+        },
+        {
+          id: '23',
+          organization_name: "Pet Lovers’ Record Run",
+          description: "Join the nation’s largest pet walk event and set a Singapore record for most humans and pets in a single walk!",
+          location: "Kallang Riverside Park",
+          image_url: ""
+        },
+        {
+          id: '24',
+          organization_name: "Cycle Safe! Community Cycling Clinic",
+          description: "Free education clinic and ride-along for safe urban cycling with skills tips for all ages.",
+          location: "Various PCN (Park Connector Network) nodes, Singapore",
+          image_url: ""
+        },
+        {
+          id: '25',
+          organization_name: "Inclusive Wheelchair Sports Try-out",
+          description: "Experience wheelchair basketball, boccia, and para-archery in this monthly inclusive event.",
+          location: "ActiveSG Heartbeat@Bedok",
+          image_url: ""
+        },
+        {
+          id: '26',
+          organization_name: "Yoga for Everyone",
+          description: "Free public yoga sessions with professional instructors, suitable for all levels and abilities.",
+          location: "East Coast Park (Area F)",
+          image_url: ""
+        },
+        {
+          id: '27',
+          organization_name: "Family Badminton Day",
+          description: "Open play sessions and family matches, with racquets and shuttles provided on site.",
+          location: "Toa Payoh Sports Hall and other selected stadiums",
+          image_url: ""
+        },
+        {
+          id: '28',
+          organization_name: "Urban Adventure Kids Bootcamp",
+          description: "Obstacle zones and fun fitness challenges for energetic children ages 7–12.",
+          location: "Yishun Sports Complex",
+          image_url: ""
+        },
+        {
+          id: '29',
+          organization_name: "Kayak & Clean!",
+          description: "Paddle together with ActiveSG volunteers to clean up Singapore’s waters.",
+          location: "Bedok Reservoir Park",
+          image_url: ""
+        },
+
+        {
+          id: '32',
+          organization_name: "Car-Free Wellness Walk",
+          description: "Guided evening walk and wellness circuit with the city’s streets closed to traffic.",
+          location: "Civic District / City Hall area",
+          image_url: ""
+        },
+        {
+          id: '33',
+          organization_name: "Learn-To-Swim Together",
+          description: "Small-group beginner swimming classes for adults and youth, with safety coaching.",
+          location: "ActiveSG Swimming Complexes",
+          image_url: ""
+        },
+        {
+          id: '34',
+          organization_name: "Run for Inclusion 2025",
+          description: "Annual mass run celebrating disability inclusion, with runners supporting visually- and mobility-impaired peers.",
+          location: "F1 Pit Building, Singapore",
+          image_url: ""
+        },
+        {
+          id: '35',
+          organization_name: "Mall Walk Challenge",
+          description: "Challenge yourself and friends to a fun, competitive, and accessible mall walk.",
+          location: "Ion Orchard, VivoCity, other participating malls",
+          image_url: ""
+        },
+        {
+          id: '36',
+          organization_name: "Park Fitness Pop-up",
+          description: "Mobile fitness trainer sessions in Singapore’s parks, with circuit workouts for all.",
+          location: "MacRitchie Reservoir, West Coast Park, and more",
+          image_url: ""
+        },
+        {
+          id: '37',
+          organization_name: "ActiveSG Junior Football League",
+          description: "Join or cheer in youth football leagues with teams from across Singapore.",
+          location: "ActiveSG Football Centres",
+          image_url: ""
+        },
+        {
+          id: '38',
+          organization_name: "Community Dragon Boat Day",
+          description: "Team up for dragon boating workshops and friendly races on open water.",
+          location: "Kallang Basin",
+          image_url: ""
+        },
+        {
+          id: '39',
+          organization_name: "Ping Pong Social Hour",
+          description: "Friendly open table-tennis sessions for players of all experience levels.",
+          location: "Pasir Ris Sports Hall and multiple venues",
+          image_url: ""
+        },
+        {
+          id: '40',
+          organization_name: "Climb For All",
+          description: "Free wall climbing day for youth and families. All gear and safety guidance provided.",
+          location: "Our Tampines Hub",
+          image_url: ""
+        },
+        {
+          id: '41',
+          organization_name: "Weekend Sports with Friends",
+          description: "Group sports meetups (volleyball, basketball, floorball, dodgeball) open for all sign-ups, every Saturday.",
+          location: "Community Clubs and Sport Centres",
+          image_url: ""
         }
       ];
 
@@ -457,7 +696,6 @@ const initializeDatabase = () => {
       });
 
       insertEventStmt.finalize();
-    }
   });
 };
 

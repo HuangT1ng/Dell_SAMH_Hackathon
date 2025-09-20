@@ -197,10 +197,9 @@ const RedditDashboard: React.FC<RedditDashboardProps> = ({ darkMode, onNavigateT
       // Set to pending immediately
       setPostStatuses(prev => ({ ...prev, [postId]: 'pending' }));
       
-      // After 5 seconds, change to ready
       setTimeout(() => {
         setPostStatuses(prev => ({ ...prev, [postId]: 'ready' }));
-      }, 5000);
+      }, 2000);
     }
   };
 

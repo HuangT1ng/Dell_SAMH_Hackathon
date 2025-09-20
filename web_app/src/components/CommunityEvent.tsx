@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { MapPin, Loader2 } from 'lucide-react';
+import { MapPin, Loader2, Search } from 'lucide-react';
 
 interface CommunityEventProps {
   darkMode: boolean;
@@ -20,6 +20,10 @@ const CommunityEvent: React.FC<CommunityEventProps> = ({ darkMode }) => {
   const [events, setEvents] = useState<EventCard[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [isMatching, setIsMatching] = useState(false);
+  const [filteredEvents, setFilteredEvents] = useState<EventCard[]>([]);
+  const [showFilteredEvents, setShowFilteredEvents] = useState(false);
+  const [showPopup, setShowPopup] = useState(false);
 
   // Fetch community events from database
   const fetchEvents = async () => {
@@ -48,21 +52,120 @@ const CommunityEvent: React.FC<CommunityEventProps> = ({ darkMode }) => {
   }, []);
 
 
+  const recommendedKeywords = ['sport', 'dance', 'music', 'yoga'];
+
+  const handleMatch = async () => {
+    setIsMatching(true);
+    
+    // Simulate matching process with a short delay
+    setTimeout(() => {
+      // Filter events based on recommended keywords using OR logic
+      const matchedEvents = events.filter(event => {
+        // Check if any of the recommended keywords match the event description or organization name
+        return recommendedKeywords.some(keyword => {
+          const keywordLower = keyword.toLowerCase();
+          const descriptionLower = event.description.toLowerCase();
+          const organizationLower = event.organization_name.toLowerCase();
+          
+          // Check if keyword appears in description or organization name
+          return descriptionLower.includes(keywordLower) || organizationLower.includes(keywordLower);
+        });
+      });
+      
+      setFilteredEvents(matchedEvents);
+      setShowFilteredEvents(true);
+      setIsMatching(false);
+      
+      // Show popup after matching is complete
+      setShowPopup(true);
+      setTimeout(() => setShowPopup(false), 4000); // Auto-hide after 4 seconds
+    }, 1500);
+  };
+
+  const showAllEvents = () => {
+    setShowFilteredEvents(false);
+    setFilteredEvents([]);
+  };
+
+
+
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="text-center">
-        <h1 className={`text-3xl font-bold mb-2 ${
-          darkMode ? 'text-white' : 'text-gray-900'
-        }`}>
-          Community Events
-        </h1>
-        <p className={`text-lg ${
-          darkMode ? 'text-gray-400' : 'text-gray-600'
-        }`}>
-          Join supportive community events and connect with others
-        </p>
+      <div className="flex items-center justify-between">
+        <div className="text-center flex-1">
+          <h1 className={`text-3xl font-bold mb-2 ${
+            darkMode ? 'text-white' : 'text-gray-900'
+          }`}>
+            Community Events
+          </h1>
+          <p className={`text-lg ${
+            darkMode ? 'text-gray-400' : 'text-gray-600'
+          }`}>
+            Join supportive community events and connect with others
+          </p>
+        </div>
+        
+        {/* Magnifying Glass Button */}
+        <div className="flex flex-col items-center gap-2 mr-8">
+          <button
+            onClick={handleMatch}
+            disabled={isMatching}
+            className={`flex items-center justify-center w-16 h-16 rounded-full transition-all duration-200 ${
+              isMatching
+                ? 'bg-gray-400 text-gray-600 cursor-not-allowed'
+                : 'bg-gradient-to-r from-blue-600 to-cyan-600 text-white hover:shadow-lg hover:shadow-blue-500/30 transform hover:scale-105 active:scale-95'
+            }`}
+          >
+            {isMatching ? (
+              <Loader2 className="w-6 h-6 animate-spin" />
+            ) : (
+              <Search className="w-6 h-6" />
+            )}
+          </button>
+          <span className={`text-xs font-medium ${
+            isMatching
+              ? darkMode ? 'text-gray-500' : 'text-gray-400'
+              : darkMode ? 'text-gray-300' : 'text-gray-600'
+          }`}>
+            {isMatching ? 'Matching...' : 'Match Me!'}
+          </span>
+        </div>
       </div>
+
+
+      {/* Filtered Events Header */}
+      {showFilteredEvents && (
+        <div className={`rounded-xl p-4 shadow-lg border ${
+          darkMode 
+            ? 'bg-[#40414F] border-gray-700' 
+            : 'bg-white/90 border-blue-100'
+        }`}>
+          <div className="flex items-center justify-between">
+            <div>
+              <h3 className={`text-lg font-semibold ${
+                darkMode ? 'text-white' : 'text-gray-900'
+              }`}>
+                🎯 Matched Events ({filteredEvents.length})
+              </h3>
+              <p className={`text-sm ${
+                darkMode ? 'text-gray-400' : 'text-gray-600'
+              }`}>
+              </p>
+            </div>
+            <button
+              onClick={showAllEvents}
+              className={`px-4 py-2 rounded-lg font-medium transition-all duration-200 ${
+                darkMode
+                  ? 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+                  : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+              }`}
+            >
+              Show All Events
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* Loading State */}
       {isLoading && (
@@ -113,7 +216,7 @@ const CommunityEvent: React.FC<CommunityEventProps> = ({ darkMode }) => {
       {/* Events Grid */}
       {!isLoading && !error && (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {events.map((event) => (
+          {(showFilteredEvents ? filteredEvents : events).map((event) => (
             <div
               key={event.id}
               className={`rounded-xl border transition-all duration-300 hover:shadow-lg overflow-hidden ${
@@ -165,7 +268,7 @@ const CommunityEvent: React.FC<CommunityEventProps> = ({ darkMode }) => {
       )}
 
       {/* Empty State (if no events) */}
-      {!isLoading && !error && events.length === 0 && (
+      {!isLoading && !error && (showFilteredEvents ? filteredEvents.length === 0 : events.length === 0) && (
         <div className={`rounded-xl border transition-all duration-300 ${
           darkMode 
             ? 'bg-[#40414F] border-gray-700' 
@@ -179,17 +282,69 @@ const CommunityEvent: React.FC<CommunityEventProps> = ({ darkMode }) => {
               <h3 className={`text-lg font-semibold mb-2 ${
                 darkMode ? 'text-white' : 'text-gray-900'
               }`}>
-                No events scheduled
+                {showFilteredEvents ? 'No matching events found' : 'No events scheduled'}
               </h3>
               <p className={`text-sm ${
                 darkMode ? 'text-gray-400' : 'text-gray-600'
               }`}>
-                Check back later for upcoming community events
+                {showFilteredEvents 
+                  ? 'Try adding more interests or check back later for new events'
+                  : 'Check back later for upcoming community events'
+                }
               </p>
             </div>
           </div>
         </div>
       )}
+
+      {/* Popup Window */}
+      {showPopup && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center">
+          {/* Backdrop */}
+          <div 
+            className="absolute inset-0 bg-black bg-opacity-30 transition-opacity duration-300"
+            onClick={() => setShowPopup(false)}
+          />
+          
+          {/* Popup */}
+          <div className={`relative w-full max-w-sm mx-4 rounded-2xl shadow-2xl transform transition-all duration-300 ${
+            darkMode 
+              ? 'bg-[#343541] border border-gray-700' 
+              : 'bg-white border border-gray-200'
+          }`}>
+            {/* Popup Content */}
+            <div className="p-6 text-center">
+              <div className={`w-12 h-12 mx-auto mb-4 rounded-full flex items-center justify-center ${
+                darkMode ? 'bg-blue-600/20' : 'bg-blue-100'
+              }`}>
+                <Search className={`w-6 h-6 ${
+                  darkMode ? 'text-blue-400' : 'text-blue-600'
+                }`} />
+              </div>
+              <h3 className={`text-lg font-semibold mb-2 ${
+                darkMode ? 'text-white' : 'text-gray-900'
+              }`}>
+              </h3>
+              <p className={`text-sm leading-relaxed ${
+                darkMode ? 'text-gray-300' : 'text-gray-600'
+              }`}>
+                Here are sports-related events we found and filtered for you, tailored to your interests.
+              </p>
+              <button
+                onClick={() => setShowPopup(false)}
+                className={`mt-4 px-4 py-2 rounded-lg font-medium transition-all duration-200 ${
+                  darkMode
+                    ? 'bg-blue-600 hover:bg-blue-700 text-white'
+                    : 'bg-blue-500 hover:bg-blue-600 text-white'
+                }`}
+              >
+                Got it!
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
     </div>
   );
 };
