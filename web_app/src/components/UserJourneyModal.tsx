@@ -47,6 +47,19 @@ const UserJourneyModal: React.FC<UserJourneyModalProps> = ({
   const [journeyStats, setJourneyStats] = useState<JourneyStats | null>(null);
   const [, setMoodEntries] = useState<MoodEntry[]>([]);
   const [loading, setLoading] = useState(true);
+  const [isMobile, setIsMobile] = useState(false);
+
+  // Detect mobile screen size
+  useEffect(() => {
+    const checkMobile = () => {
+      const mobile = window.innerWidth < 768;
+      setIsMobile(mobile);
+    };
+
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
 
   useEffect(() => {
     if (isOpen && targetUsername) {
@@ -189,7 +202,7 @@ const UserJourneyModal: React.FC<UserJourneyModalProps> = ({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+    <div className={`fixed inset-0 z-50 flex items-center justify-center ${isMobile ? 'p-2' : 'p-4'}`}>
       {/* Backdrop */}
       <div 
         className="absolute inset-0 bg-black bg-opacity-50 transition-opacity duration-300"
@@ -197,46 +210,46 @@ const UserJourneyModal: React.FC<UserJourneyModalProps> = ({
       />
       
       {/* Modal */}
-      <div className={`relative w-full max-w-7xl max-h-[90vh] rounded-2xl shadow-2xl transform transition-all duration-300 ${
+      <div className={`relative w-full ${isMobile ? 'max-w-full max-h-[95vh] rounded-lg' : 'max-w-7xl max-h-[90vh] rounded-2xl'} shadow-2xl transform transition-all duration-300 ${
         darkMode 
           ? 'bg-[#343541] border border-gray-700' 
           : 'bg-white border border-gray-200'
       }`}>
         {/* Modal Header */}
-        <div className={`flex items-center justify-between p-6 border-b ${
+        <div className={`flex items-center justify-between ${isMobile ? 'p-4' : 'p-6'} border-b ${
           darkMode ? 'border-gray-700' : 'border-gray-200'
         }`}>
-          <div className="flex items-center gap-4">
-            <div className="w-12 h-12 rounded-full flex items-center justify-center" style={{ backgroundColor: '#4a6cf7' }}>
-              <User className="w-6 h-6 text-white" />
+          <div className={`flex items-center ${isMobile ? 'gap-3' : 'gap-4'}`}>
+            <div className={`${isMobile ? 'w-10 h-10' : 'w-12 h-12'} rounded-full flex items-center justify-center`} style={{ backgroundColor: '#4a6cf7' }}>
+              <User className={`${isMobile ? 'w-5 h-5' : 'w-6 h-6'} text-white`} />
             </div>
             <div>
-              <h2 className={`text-2xl font-bold ${
+              <h2 className={`${isMobile ? 'text-xl' : 'text-2xl'} font-bold ${
                 darkMode ? 'text-white' : 'text-gray-900'
               }`}>
                 User Journey
               </h2>
-              <p className={`${
+              <p className={`${isMobile ? 'text-sm' : 'text-base'} ${
                 darkMode ? 'text-gray-400' : 'text-gray-600'
               }`}>
-                Journey overview for {targetUsername}
+                {isMobile ? targetUsername : `Journey overview for ${targetUsername}`}
               </p>
             </div>
           </div>
           <button
             onClick={onClose}
-            className={`p-2 rounded-lg transition-all duration-200 ${
+            className={`${isMobile ? 'p-1.5' : 'p-2'} rounded-lg transition-all duration-200 ${
               darkMode 
                 ? 'hover:bg-gray-700 text-gray-400 hover:text-white' 
                 : 'hover:bg-gray-100 text-gray-500 hover:text-gray-700'
             }`}
           >
-            <X className="w-6 h-6" />
+            <X className={`${isMobile ? 'w-5 h-5' : 'w-6 h-6'}`} />
           </button>
         </div>
 
         {/* Modal Content */}
-        <div className="px-4 sm:px-6 lg:px-8 py-6 overflow-y-auto max-h-[calc(90vh-120px)] space-y-6">
+        <div className={`${isMobile ? 'px-3 py-4' : 'px-4 sm:px-6 lg:px-8 py-6'} overflow-y-auto ${isMobile ? 'max-h-[calc(95vh-100px)]' : 'max-h-[calc(90vh-120px)]'} space-y-6`}>
           {loading ? (
             <div className={`flex items-center justify-center min-h-[400px] ${
               darkMode ? 'text-white' : 'text-slate-800'
@@ -259,76 +272,76 @@ const UserJourneyModal: React.FC<UserJourneyModalProps> = ({
           ) : (
             <div className="space-y-6">
               {/* Journey Overview Stats */}
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+              <div className={`grid ${isMobile ? 'grid-cols-1 gap-4' : 'grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6'}`}>
                 {/* Total Days */}
-                <div className={`backdrop-blur-sm rounded-2xl p-6 shadow-lg border hover:shadow-xl ${
+                <div className={`backdrop-blur-sm ${isMobile ? 'rounded-lg p-4' : 'rounded-2xl p-6'} shadow-lg border hover:shadow-xl ${
                   darkMode 
                     ? 'bg-[#40414F] border-gray-700' 
                     : 'bg-white/90 border-blue-100'
                 }`}>
-                  <div className="flex items-center gap-3 mb-4">
-                    <Calendar className="text-blue-600" size={24} />
-                    <h3 className={`text-lg font-semibold ${darkMode ? 'text-white' : 'text-blue-900'}`}>Days Active</h3>
+                  <div className={`flex items-center ${isMobile ? 'gap-2 mb-3' : 'gap-3 mb-4'}`}>
+                    <Calendar className="text-blue-600" size={isMobile ? 20 : 24} />
+                    <h3 className={`${isMobile ? 'text-base' : 'text-lg'} font-semibold ${darkMode ? 'text-white' : 'text-blue-900'}`}>Days Active</h3>
                   </div>
                   <div className="text-center">
-                    <div className="text-3xl font-bold text-blue-600 mb-1">{journeyStats.totalDays}</div>
-                    <p className={`${darkMode ? 'text-gray-300' : 'text-gray-600'}`}>Days on platform</p>
+                    <div className={`${isMobile ? 'text-2xl' : 'text-3xl'} font-bold text-blue-600 mb-1`}>{journeyStats.totalDays}</div>
+                    <p className={`${isMobile ? 'text-sm' : 'text-base'} ${darkMode ? 'text-gray-300' : 'text-gray-600'}`}>Days on platform</p>
                   </div>
                 </div>
 
                 {/* Mood Entries */}
-                <div className={`backdrop-blur-sm rounded-2xl p-6 shadow-lg border hover:shadow-xl transition-all duration-300 ${
+                <div className={`backdrop-blur-sm ${isMobile ? 'rounded-lg p-4' : 'rounded-2xl p-6'} shadow-lg border hover:shadow-xl transition-all duration-300 ${
                   darkMode 
                     ? 'bg-[#40414F] border-gray-700' 
                     : 'bg-white/90 border-blue-100'
                 }`}>
-                  <div className="flex items-center gap-3 mb-4">
-                    <Heart className="text-pink-600" size={24} />
-                    <h3 className={`text-lg font-semibold ${darkMode ? 'text-white' : 'text-blue-900'}`}>Mood Entries</h3>
+                  <div className={`flex items-center ${isMobile ? 'gap-2 mb-3' : 'gap-3 mb-4'}`}>
+                    <Heart className="text-pink-600" size={isMobile ? 20 : 24} />
+                    <h3 className={`${isMobile ? 'text-base' : 'text-lg'} font-semibold ${darkMode ? 'text-white' : 'text-blue-900'}`}>Mood Entries</h3>
                   </div>
                   <div className="text-center">
-                    <div className="text-3xl font-bold text-pink-600 mb-1">{journeyStats.totalMoodEntries}</div>
-                    <p className={`${darkMode ? 'text-gray-300' : 'text-gray-600'}`}>Journal entries</p>
+                    <div className={`${isMobile ? 'text-2xl' : 'text-3xl'} font-bold text-pink-600 mb-1`}>{journeyStats.totalMoodEntries}</div>
+                    <p className={`${isMobile ? 'text-sm' : 'text-base'} ${darkMode ? 'text-gray-300' : 'text-gray-600'}`}>Journal entries</p>
                   </div>
                 </div>
 
                 {/* Average Mood */}
-                <div className={`backdrop-blur-sm rounded-2xl p-6 shadow-lg border hover:shadow-xl transition-all duration-300 ${
+                <div className={`backdrop-blur-sm ${isMobile ? 'rounded-lg p-4' : 'rounded-2xl p-6'} shadow-lg border hover:shadow-xl transition-all duration-300 ${
                   darkMode 
                     ? 'bg-[#40414F] border-gray-700' 
                     : 'bg-white/90 border-blue-100'
                 }`}>
-                  <div className="flex items-center gap-3 mb-4">
-                    <TrendingUp className="text-green-600" size={24} />
-                    <h3 className={`text-lg font-semibold ${darkMode ? 'text-white' : 'text-blue-900'}`}>Avg Mood</h3>
+                  <div className={`flex items-center ${isMobile ? 'gap-2 mb-3' : 'gap-3 mb-4'}`}>
+                    <TrendingUp className="text-green-600" size={isMobile ? 20 : 24} />
+                    <h3 className={`${isMobile ? 'text-base' : 'text-lg'} font-semibold ${darkMode ? 'text-white' : 'text-blue-900'}`}>Avg Mood</h3>
                   </div>
                   <div className="text-center">
-                    <div className="text-3xl font-bold text-green-600 mb-1">
+                    <div className={`${isMobile ? 'text-2xl' : 'text-3xl'} font-bold text-green-600 mb-1`}>
                       {journeyStats.averageMood.toFixed(1)}/5
                     </div>
-                    <p className={`${darkMode ? 'text-gray-300' : 'text-gray-600'}`}>Overall mood</p>
+                    <p className={`${isMobile ? 'text-sm' : 'text-base'} ${darkMode ? 'text-gray-300' : 'text-gray-600'}`}>Overall mood</p>
                   </div>
                 </div>
 
                 {/* Current Streak */}
-                <div className={`backdrop-blur-sm rounded-2xl p-6 shadow-lg border hover:shadow-xl transition-all duration-300 ${
+                <div className={`backdrop-blur-sm ${isMobile ? 'rounded-lg p-4' : 'rounded-2xl p-6'} shadow-lg border hover:shadow-xl transition-all duration-300 ${
                   darkMode 
                     ? 'bg-[#40414F] border-gray-700' 
                     : 'bg-white/90 border-blue-100'
                 }`}>
-                  <div className="flex items-center gap-3 mb-4">
-                    <Zap className="text-yellow-600" size={24} />
-                    <h3 className={`text-lg font-semibold ${darkMode ? 'text-white' : 'text-blue-900'}`}>Current Streak</h3>
+                  <div className={`flex items-center ${isMobile ? 'gap-2 mb-3' : 'gap-3 mb-4'}`}>
+                    <Zap className="text-yellow-600" size={isMobile ? 20 : 24} />
+                    <h3 className={`${isMobile ? 'text-base' : 'text-lg'} font-semibold ${darkMode ? 'text-white' : 'text-blue-900'}`}>Current Streak</h3>
                   </div>
                   <div className="text-center">
-                    <div className="text-3xl font-bold text-yellow-600 mb-1">{journeyStats.streakDays}</div>
-                    <p className={`${darkMode ? 'text-gray-300' : 'text-gray-600'}`}>Days in a row</p>
+                    <div className={`${isMobile ? 'text-2xl' : 'text-3xl'} font-bold text-yellow-600 mb-1`}>{journeyStats.streakDays}</div>
+                    <p className={`${isMobile ? 'text-sm' : 'text-base'} ${darkMode ? 'text-gray-300' : 'text-gray-600'}`}>Days in a row</p>
                   </div>
                 </div>
               </div>
 
               {/* Progress and Achievements */}
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <div className={`grid ${isMobile ? 'grid-cols-1 gap-4' : 'grid-cols-1 lg:grid-cols-2 gap-6'}`}>
                 {/* Mood Improvement */}
                 <div className={`backdrop-blur-sm rounded-2xl p-6 shadow-lg border ${
                   darkMode 
@@ -404,14 +417,14 @@ const UserJourneyModal: React.FC<UserJourneyModalProps> = ({
               </div>
 
               {/* Recent Activity */}
-              <div className={`backdrop-blur-sm rounded-2xl p-6 shadow-lg border ${
+              <div className={`backdrop-blur-sm ${isMobile ? 'rounded-lg p-4' : 'rounded-2xl p-6'} shadow-lg border ${
                 darkMode 
                   ? 'bg-[#40414F] border-gray-700' 
                   : 'bg-white/90 border-blue-100'
               }`}>
-                <div className="flex items-center gap-3 mb-6">
-                  <Activity className="text-cyan-600" size={24} />
-                  <h3 className={`text-lg font-semibold ${darkMode ? 'text-white' : 'text-blue-900'}`}>Recent Activity</h3>
+                <div className={`flex items-center ${isMobile ? 'gap-2 mb-4' : 'gap-3 mb-6'}`}>
+                  <Activity className="text-cyan-600" size={isMobile ? 20 : 24} />
+                  <h3 className={`${isMobile ? 'text-base' : 'text-lg'} font-semibold ${darkMode ? 'text-white' : 'text-blue-900'}`}>Recent Activity</h3>
                 </div>
                 
                 <div className="space-y-4">
@@ -422,25 +435,25 @@ const UserJourneyModal: React.FC<UserJourneyModalProps> = ({
                       return (
                         <div
                           key={activity.id}
-                          className={`border rounded-xl p-4 transition-colors duration-200 ${
+                          className={`border ${isMobile ? 'rounded-lg p-3' : 'rounded-xl p-4'} transition-colors duration-200 ${
                             darkMode 
                               ? 'border-gray-700 hover:bg-gray-700/50' 
                               : 'border-blue-100 hover:bg-blue-50/50'
                           }`}
                         >
-                          <div className="flex items-center justify-between">
-                            <div className="flex items-center gap-3">
-                              <IconComponent className={`w-5 h-5 ${color}`} />
+                          <div className={`flex items-center ${isMobile ? 'flex-col gap-2' : 'justify-between'}`}>
+                            <div className={`flex items-center ${isMobile ? 'gap-2' : 'gap-3'}`}>
+                              <IconComponent className={`${isMobile ? 'w-4 h-4' : 'w-5 h-5'} ${color}`} />
                               <div>
-                                <h4 className={`font-medium ${darkMode ? 'text-white' : 'text-gray-900'}`}>
+                                <h4 className={`${isMobile ? 'text-sm' : 'text-base'} font-medium ${darkMode ? 'text-white' : 'text-gray-900'}`}>
                                   {activity.eventTitle}
                                 </h4>
-                                <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+                                <p className={`${isMobile ? 'text-xs' : 'text-sm'} ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
                                   {activity.eventDescription}
                                 </p>
                               </div>
                             </div>
-                            <span className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
+                            <span className={`${isMobile ? 'text-xs' : 'text-sm'} ${darkMode ? 'text-gray-400' : 'text-gray-500'} ${isMobile ? 'self-end' : ''}`}>
                               {formatTimeAgo(activity.timestamp)}
                             </span>
                           </div>

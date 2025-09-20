@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Home, Heart, Moon, Sun, Brain, Gamepad2, MessageCircle, LogOut, BarChart3, Calendar, User } from 'lucide-react';
+import { Home, Heart, Brain, Gamepad2, MessageCircle, LogOut, BarChart3, Calendar, User, Menu } from 'lucide-react';
 import HomePage from './components/HomePage';
 import MoodBar from './components/MoodBar';
 import Gaming from './components/Gaming';
@@ -22,6 +22,20 @@ function AppContent() {
     isOpen: false,
     targetUsername: ''
   });
+  const [isMobile, setIsMobile] = useState(false);
+  const [showNav, setShowNav] = useState(true);
+
+  // Detect screen size for responsive navigation
+  useEffect(() => {
+    const checkScreenSize = () => {
+      const mobile = window.innerWidth < 768;
+      setIsMobile(mobile);
+    };
+
+    checkScreenSize();
+    window.addEventListener('resize', checkScreenSize);
+    return () => window.removeEventListener('resize', checkScreenSize);
+  }, []);
 
   useEffect(() => {
     const loadMoodEntries = async () => {
@@ -122,33 +136,103 @@ function AppContent() {
           ? 'bg-[#40414F] border-gray-700' 
           : 'bg-white border-gray-200'
       }`}>
-        <div className="max-w-7xl mx-auto px-8 py-4">
+        <div className="px-4 py-3">
           <div className="flex justify-between items-center">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-lg flex items-center justify-center" style={{ backgroundColor: '#4a6cf7' }}>
-                <Brain className="w-6 h-6 text-white" />
-              </div>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => setDarkMode(!darkMode)}
+                className="w-8 h-8 rounded-lg flex items-center justify-center transition-all duration-200 hover:opacity-80"
+                style={{ backgroundColor: '#4a6cf7' }}
+                title={darkMode ? "Switch to Light Mode" : "Switch to Dark Mode"}
+              >
+                <Brain className="w-5 h-5 text-white" />
+              </button>
               <div className="flex flex-col">
-                <span className={`text-xl font-bold ${
+                <span className={`text-lg font-bold ${
                   darkMode ? 'text-white' : 'text-slate-800'
                 }`}>
-                  SAMH Platform
+                  SAMH
                 </span>
                 <span className={`text-xs ${
                   darkMode ? 'text-gray-400' : 'text-slate-500'
                 }`}>
-                  Welcome, {user?.username} ({user?.accountType}) • Tab Session
+                  {user?.username} ({user?.accountType})
                 </span>
               </div>
             </div>
             
-            {/* Main Navigation */}
-            <nav className="flex items-center gap-1">
+            {/* Desktop Navigation */}
+            {!isMobile && showNav && (
+              <nav className="flex items-center gap-1">
+                {navigation.map(({ id, label, icon: Icon, description }) => (
+                  <button
+                    key={id}
+                    onClick={() => setCurrentView(id as any)}
+                    className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-all duration-200 ${
+                      currentView === id
+                        ? 'text-white shadow-lg'
+                        : darkMode 
+                          ? 'text-gray-300 hover:bg-gray-700 hover:text-white' 
+                          : 'text-slate-600 hover:bg-white hover:text-slate-800'
+                    }`}
+                    style={{
+                      backgroundColor: currentView === id ? '#4a6cf7' : undefined
+                    }}
+                    title={description}
+                  >
+                    <Icon size={18} />
+                    <span className="text-sm">{label}</span>
+                  </button>
+                ))}
+              </nav>
+            )}
+            
+            {/* Right side buttons */}
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => setShowNav(!showNav)}
+                className={`p-2 rounded-lg transition-all duration-300 ${
+                  showNav
+                    ? darkMode 
+                      ? 'bg-gray-700 hover:bg-gray-600 text-white' 
+                      : 'bg-gray-200 hover:bg-gray-300 text-slate-600'
+                    : darkMode
+                      ? 'hover:bg-gray-700 text-white'
+                      : 'hover:bg-gray-100 text-slate-600'
+                }`}
+                title={showNav ? "Hide Navigation" : "Show Navigation"}
+              >
+                <Menu className="w-4 h-4" />
+              </button>
+              
+              <button
+                onClick={logout}
+                className={`p-2 rounded-lg transition-all duration-300 ${
+                  darkMode 
+                    ? 'bg-gray-700 hover:bg-gray-600 text-red-400' 
+                    : 'bg-white hover:bg-gray-100 text-red-600'
+                }`}
+                title="Logout"
+              >
+                <LogOut className="w-4 h-4" />
+              </button>
+            </div>
+          </div>
+        </div>
+        
+        {/* Mobile Navigation Tabs */}
+        {isMobile && showNav && (
+          <nav className={`px-2 py-2 ${
+            darkMode 
+              ? 'bg-[#40414F]' 
+              : 'bg-white'
+          }`}>
+            <div className="flex gap-1 overflow-x-auto scrollbar-hide">
               {navigation.map(({ id, label, icon: Icon, description }) => (
                 <button
                   key={id}
                   onClick={() => setCurrentView(id as any)}
-                  className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-all duration-200 ${
+                  className={`flex flex-col items-center gap-1 px-3 py-2 rounded-lg font-medium transition-all duration-200 flex-shrink-0 min-w-[80px] ${
                     currentView === id
                       ? 'text-white shadow-lg'
                       : darkMode 
@@ -160,39 +244,16 @@ function AppContent() {
                   }}
                   title={description}
                 >
-                  <Icon size={18} />
-                  <span className="hidden sm:inline text-sm">{label}</span>
+                  <Icon size={20} />
+                  <span className="text-xs whitespace-nowrap">{label}</span>
                 </button>
               ))}
-              
-              <button
-                onClick={() => setDarkMode(!darkMode)}
-                className={`ml-4 p-2 rounded-lg transition-all duration-300 ${
-                  darkMode 
-                    ? 'bg-gray-700 hover:bg-gray-600 text-yellow-400' 
-                    : 'bg-white hover:bg-gray-100 text-slate-600'
-                }`}
-              >
-                {darkMode ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
-              </button>
-              
-              <button
-                onClick={logout}
-                className={`ml-2 p-2 rounded-lg transition-all duration-300 ${
-                  darkMode 
-                    ? 'bg-gray-700 hover:bg-gray-600 text-red-400' 
-                    : 'bg-white hover:bg-gray-100 text-red-600'
-                }`}
-                title="Logout"
-              >
-                <LogOut className="w-5 h-5" />
-              </button>
-            </nav>
-          </div>
-        </div>
+            </div>
+          </nav>
+        )}
       </header>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className={`px-2 py-4 ${isMobile ? 'pb-20' : 'pb-8'}`}>
         {/* Main Content */}
         <main>
           {currentView === 'home' && <HomePage darkMode={darkMode} />}

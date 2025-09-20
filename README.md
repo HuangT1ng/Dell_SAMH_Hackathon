@@ -6,8 +6,8 @@ A comprehensive mental health platform consisting of two independent application
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
-│                 Shared Database Server                      │
-│                 (Port 3003)                                │
+│                  Unified Backend Server                      │
+│                 (Port 3001)                                │
 │   ┌─────────────────────┐  ┌─────────────────────────────┐  │
 │   │ Mental Health Posts │  │     Mood Entries           │  │
 │   │ (Scraper writes)    │  │  (SAMH Platform writes)    │  │

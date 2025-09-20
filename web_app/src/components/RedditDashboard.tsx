@@ -32,6 +32,19 @@ const RedditDashboard: React.FC<RedditDashboardProps> = ({ darkMode, onNavigateT
   const [postStatuses, setPostStatuses] = useState<{[key: string]: 'unattended' | 'pending' | 'ready' | 'attended'}>({});
   const [buttonStates, setButtonStates] = useState<{[key: string]: boolean}>({});
   const [isInitialLoad, setIsInitialLoad] = useState(true);
+  const [isMobile, setIsMobile] = useState(false);
+
+  // Detect mobile screen size
+  useEffect(() => {
+    const checkMobile = () => {
+      const mobile = window.innerWidth < 768;
+      setIsMobile(mobile);
+    };
+
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
 
   // Load data on component mount
   useEffect(() => {
@@ -288,10 +301,10 @@ const RedditDashboard: React.FC<RedditDashboardProps> = ({ darkMode, onNavigateT
           ? 'bg-[#40414F] border-gray-700' 
           : 'bg-white/90 backdrop-blur-sm border-blue-100'
       }`}>
-        <div className="p-6">
-          <div className="flex justify-between items-center">
+        <div className={`${isMobile ? 'p-4' : 'p-6'}`}>
+          <div className={`${isMobile ? 'space-y-4' : 'flex justify-between items-center'}`}>
             <div>
-              <h2 className={`text-2xl font-semibold ${
+              <h2 className={`${isMobile ? 'text-xl' : 'text-2xl'} font-semibold ${
                 darkMode ? 'text-white' : 'text-slate-800'
               }`}>
                 Mental Health Data Dashboard
@@ -299,9 +312,10 @@ const RedditDashboard: React.FC<RedditDashboardProps> = ({ darkMode, onNavigateT
               <p className={`text-sm mt-1 ${
                 darkMode ? 'text-slate-300' : 'text-slate-600'
               }`}>
+                Monitor and manage mental health posts from social media
               </p>
             </div>
-            <div className="flex gap-3">
+            <div className={`flex gap-3 ${isMobile ? 'justify-center' : ''}`}>
               <button
                 onClick={handleRefresh}
                 disabled={isLoadingData}
@@ -353,12 +367,12 @@ const RedditDashboard: React.FC<RedditDashboardProps> = ({ darkMode, onNavigateT
           ? 'bg-[#40414F] border-gray-700' 
           : 'bg-white/90 backdrop-blur-sm border-blue-100'
       }`}>
-        <div className="p-4">
-          <div className="relative max-w-2xl">
+        <div className={`${isMobile ? 'p-3' : 'p-4'}`}>
+          <div className={`relative ${isMobile ? 'w-full' : 'max-w-2xl'}`}>
             <Search className="w-4 h-4 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
             <input
               type="text"
-              placeholder="Search posts by title, content, or author..."
+              placeholder={isMobile ? "Search posts..." : "Search posts by title, content, or author..."}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className={`w-full pl-9 pr-4 py-2 rounded-lg border focus:outline-none focus:ring-2 ${
@@ -371,60 +385,224 @@ const RedditDashboard: React.FC<RedditDashboardProps> = ({ darkMode, onNavigateT
         </div>
       </div>
 
-      {/* Data Table */}
+      {/* Data Display */}
       <div className={`rounded-xl border overflow-hidden shadow-lg transition-all duration-300 ${
               darkMode 
           ? 'bg-[#40414F] border-gray-700' 
           : 'bg-white/90 backdrop-blur-sm border-blue-100'
       }`}>
-        <div className="overflow-x-auto">
-          <table className="w-full">
-            {/* Table Header */}
-            <thead className={`${
-              darkMode ? 'bg-gradient-to-r from-slate-700 to-slate-600' : 'bg-gradient-to-r from-gray-50 to-gray-100'
-            }`}>
-              <tr>
-                <th className={`px-6 py-4 text-left text-sm font-semibold tracking-wide ${
-                  darkMode ? 'text-white' : 'text-gray-800'
+        {isMobile ? (
+          // Mobile Card Layout
+          <div className="p-4 space-y-4">
+            {isLoadingData ? (
+              <div className="flex flex-col items-center justify-center py-16">
+                <RefreshCw className="w-10 h-10 animate-spin mb-4 text-blue-500" />
+                <p className={`text-lg font-medium ${
+                  darkMode ? 'text-gray-300' : 'text-gray-600'
                 }`}>
-                  <div className="flex items-center gap-2">
-                    <Users className="w-4 h-4" />
-                    Author
-                  </div>
-                </th>
-                <th className={`px-6 py-4 text-left text-sm font-semibold tracking-wide ${
-                  darkMode ? 'text-white' : 'text-gray-800'
+                  Loading...
+                </p>
+              </div>
+            ) : data.length === 0 ? (
+              <div className="flex flex-col items-center justify-center py-16">
+                <div className={`w-16 h-16 rounded-full flex items-center justify-center mb-4 ${
+                  darkMode ? 'bg-slate-700' : 'bg-gray-100'
                 }`}>
-                  <div className="flex items-center gap-2">
-                    <MessageSquare className="w-4 h-4" />
-                    Content
+                  <Search className={`w-8 h-8 ${
+                    darkMode ? 'text-slate-400' : 'text-gray-400'
+                  }`} />
                 </div>
-                </th>
-                <th className={`px-6 py-4 text-left text-sm font-semibold tracking-wide ${
-                  darkMode ? 'text-white' : 'text-gray-800'
+                <p className={`text-lg font-medium mb-2 ${
+                  darkMode ? 'text-gray-300' : 'text-gray-600'
                 }`}>
-                  Sentiment
-                </th>
-                <th className={`px-6 py-4 text-left text-sm font-semibold tracking-wide ${
-                  darkMode ? 'text-white' : 'text-gray-800'
+                  No data available
+                </p>
+                <p className={`text-sm ${
+                  darkMode ? 'text-gray-400' : 'text-gray-500'
                 }`}>
-                  Actions
-                </th>
-                <th className={`px-6 py-4 text-left text-sm font-semibold tracking-wide ${
-                  darkMode ? 'text-white' : 'text-gray-800'
-                }`}>
-                  Status
-                </th>
-                <th className={`px-6 py-4 text-left text-sm font-semibold tracking-wide ${
-                  darkMode ? 'text-white' : 'text-gray-800'
-                }`}>
-                  <div className="flex items-center gap-2">
-                    <User className="w-4 h-4" />
-                    Summary
+                  Click refresh to load mental health posts
+                </p>
+              </div>
+            ) : (
+              filteredData.map((item) => (
+                <div
+                  key={item.id}
+                  className={`p-4 rounded-lg border transition-all duration-200 ${
+                    darkMode 
+                      ? 'bg-slate-800 border-slate-700' 
+                      : 'bg-white border-gray-200'
+                  }`}
+                >
+                  {/* Author Section */}
+                  <div className="flex items-center gap-3 mb-3">
+                    <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
+                      darkMode ? 'bg-slate-600' : 'bg-gray-200'
+                    }`}>
+                      <Users className={`w-5 h-5 ${
+                        darkMode ? 'text-slate-300' : 'text-gray-600'
+                      }`} />
+                    </div>
+                    <div>
+                      <span className={`font-semibold text-base ${
+                        darkMode ? 'text-white' : 'text-gray-900'
+                      }`}>
+                        {item.author}
+                      </span>
+                      <div className="flex items-center gap-2 mt-1">
+                        <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
+                          item.platform === 'REDDIT' 
+                            ? 'bg-orange-100 text-orange-800'
+                            : item.platform === 'FACEBOOK'
+                              ? 'bg-blue-100 text-blue-800'
+                              : 'bg-gray-100 text-gray-800'
+                        }`}>
+                          {item.platform}
+                        </span>
+                      </div>
+                    </div>
                   </div>
-                </th>
-              </tr>
-            </thead>
+
+                  {/* Content Section */}
+                  <div className="mb-3">
+                    <h4 className={`font-semibold text-base mb-2 leading-tight ${
+                      darkMode ? 'text-white' : 'text-gray-900'
+                    }`}>
+                      {item.title}
+                    </h4>
+                    <p className={`text-sm leading-relaxed ${
+                      darkMode ? 'text-gray-300' : 'text-gray-700'
+                    }`}>
+                      {item.content.length > 100 ? `${item.content.substring(0, 100)}...` : item.content}
+                    </p>
+                  </div>
+
+                  {/* Sentiment and Status */}
+                  <div className="flex items-center justify-between mb-3">
+                    <span className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-semibold ${
+                      darkMode ? getSentimentColorDark(item.sentiment) : getSentimentColor(item.sentiment)
+                    }`}>
+                      <span>{item.sentiment === 'positive' ? '😊' : item.sentiment === 'negative' ? '😔' : '😐'}</span>
+                      <span>{item.sentiment}</span>
+                    </span>
+                    <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
+                      postStatuses[item.id] === 'attended'
+                        ? 'bg-green-100 text-green-800'
+                        : postStatuses[item.id] === 'ready'
+                          ? 'bg-blue-100 text-blue-800'
+                          : postStatuses[item.id] === 'pending'
+                            ? 'bg-yellow-100 text-yellow-800'
+                            : 'bg-gray-100 text-gray-800'
+                    }`}>
+                      {postStatuses[item.id] === 'attended' ? 'Attended' :
+                       postStatuses[item.id] === 'ready' ? 'Ready' :
+                       postStatuses[item.id] === 'pending' ? 'Pending' : 'Unattended'}
+                    </span>
+                  </div>
+
+                  {/* Actions */}
+                  <div className="flex flex-col gap-2">
+                    <button
+                      onClick={(e) => {
+                        e.preventDefault();
+                        handleConsentClick(item.id);
+                      }}
+                      style={{
+                        opacity: buttonStates[item.id] ? '0.6' : '1',
+                        transform: buttonStates[item.id] ? 'scale(0.95)' : 'scale(1)'
+                      }}
+                      className={`w-full flex items-center justify-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
+                        darkMode 
+                          ? 'bg-blue-600 hover:bg-blue-700 text-white' 
+                          : 'bg-blue-500 hover:bg-blue-600 text-white'
+                      }`}
+                    >
+                      {postStatuses[item.id] === 'pending' ? 'Processing...' : 'Get Consent'}
+                    </button>
+                    
+                    {postStatuses[item.id] === 'ready' && (
+                      <div className="flex gap-2">
+                        <button
+                          onClick={() => handleReadyToChatClick(item.id)}
+                          className="flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 bg-green-600 hover:bg-green-700 text-white"
+                        >
+                          <MessageSquare className="w-4 h-4" />
+                          Chat
+                        </button>
+                        <button
+                          onClick={() => handleViewUserJourney(item.id)}
+                          className="flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 bg-purple-600 hover:bg-purple-700 text-white"
+                        >
+                          <User className="w-4 h-4" />
+                          Summary
+                        </button>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* SAMH Username */}
+                  {item.samh_username && (
+                    <div className="mt-3 pt-3 border-t border-gray-200 dark:border-gray-600">
+                      <span className={`text-xs ${
+                        darkMode ? 'text-gray-400' : 'text-gray-500'
+                      }`}>
+                        SAMH User: {item.samh_username}
+                      </span>
+                    </div>
+                  )}
+                </div>
+              ))
+            )}
+          </div>
+        ) : (
+          // Desktop Table Layout
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              {/* Table Header */}
+              <thead className={`${
+                darkMode ? 'bg-gradient-to-r from-slate-700 to-slate-600' : 'bg-gradient-to-r from-gray-50 to-gray-100'
+              }`}>
+                <tr>
+                  <th className={`px-6 py-4 text-left text-sm font-semibold tracking-wide ${
+                    darkMode ? 'text-white' : 'text-gray-800'
+                  }`}>
+                    <div className="flex items-center gap-2">
+                      <Users className="w-4 h-4" />
+                      Author
+                    </div>
+                  </th>
+                  <th className={`px-6 py-4 text-left text-sm font-semibold tracking-wide ${
+                    darkMode ? 'text-white' : 'text-gray-800'
+                  }`}>
+                    <div className="flex items-center gap-2">
+                      <MessageSquare className="w-4 h-4" />
+                      Content
+                    </div>
+                  </th>
+                  <th className={`px-6 py-4 text-left text-sm font-semibold tracking-wide ${
+                    darkMode ? 'text-white' : 'text-gray-800'
+                  }`}>
+                    Sentiment
+                  </th>
+                  <th className={`px-6 py-4 text-left text-sm font-semibold tracking-wide ${
+                    darkMode ? 'text-white' : 'text-gray-800'
+                  }`}>
+                    Actions
+                  </th>
+                  <th className={`px-6 py-4 text-left text-sm font-semibold tracking-wide ${
+                    darkMode ? 'text-white' : 'text-gray-800'
+                  }`}>
+                    Status
+                  </th>
+                  <th className={`px-6 py-4 text-left text-sm font-semibold tracking-wide ${
+                    darkMode ? 'text-white' : 'text-gray-800'
+                  }`}>
+                    <div className="flex items-center gap-2">
+                      <User className="w-4 h-4" />
+                      Summary
+                    </div>
+                  </th>
+                </tr>
+              </thead>
             
             {/* Table Body */}
             <tbody className={`divide-y ${darkMode ? 'divide-slate-600' : 'divide-gray-200'}`}>
@@ -615,6 +793,7 @@ const RedditDashboard: React.FC<RedditDashboardProps> = ({ darkMode, onNavigateT
             </tbody>
           </table>
           </div>
+        )}
       </div>
 
       {filteredData.length === 0 && !isLoadingData && data.length > 0 && (

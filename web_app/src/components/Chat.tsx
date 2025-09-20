@@ -73,10 +73,14 @@ const Chat: React.FC<ChatProps> = ({ darkMode, initializationData, onInitializat
     console.log('🔄 Quick messages updated:', quickMessages);
   }, [quickMessages]);
   const [isGeneratingQuickMessages, setIsGeneratingQuickMessages] = useState(false);
-  const [processedConversations, setProcessedConversations] = useState<{[conversationId: string]: number}>({});
+  const [, setProcessedConversations] = useState<{[conversationId: string]: number}>({});
   const [generatingForConversation, setGeneratingForConversation] = useState<{[conversationId: string]: boolean}>({});
   const processedConversationsRef = useRef<{[conversationId: string]: number}>({});
   const processedMessageIdsRef = useRef<{[conversationId: string]: Set<string>}>({});
+  
+  // Mobile layout state
+  const [showContactList, setShowContactList] = useState(true);
+  const [isMobile, setIsMobile] = useState(false);
 
   // API functions
   const fetchConversations = async (userId: string) => {
@@ -340,7 +344,7 @@ const Chat: React.FC<ChatProps> = ({ darkMode, initializationData, onInitializat
     }
   };
 
-  const startChatWithUser = async (username: string, accountType?: string) => {
+  const startChatWithUser = async (username: string, _accountType?: string) => {
     console.log('Starting chat with user:', username);
     if (!user?.username) {
       console.log('No current user found');
@@ -410,6 +414,23 @@ const Chat: React.FC<ChatProps> = ({ darkMode, initializationData, onInitializat
 
   const selectedContact = contacts.find(contact => contact.id === selectedContactId);
   const currentMessages = selectedContact?.messages || [];
+
+  // Detect mobile screen size
+  useEffect(() => {
+    const checkMobile = () => {
+      const mobile = window.innerWidth < 768;
+      setIsMobile(mobile);
+      if (mobile && selectedContactId) {
+        setShowContactList(false);
+      } else if (!mobile) {
+        setShowContactList(true);
+      }
+    };
+
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, [selectedContactId]);
 
   // Load conversations and messages when user is available
   useEffect(() => {
@@ -664,6 +685,10 @@ const Chat: React.FC<ChatProps> = ({ darkMode, initializationData, onInitializat
 
   const handleContactSelect = async (contactId: string) => {
     setSelectedContactId(contactId);
+    // On mobile, hide contact list when conversation is selected
+    if (isMobile) {
+      setShowContactList(false);
+    }
     // Mark messages as read in database and locally
     await markConversationAsRead(contactId);
     setContacts(prev => prev.map(contact => 
@@ -763,16 +788,16 @@ const Chat: React.FC<ChatProps> = ({ darkMode, initializationData, onInitializat
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       {/* Main Chat Layout */}
       <div className={`rounded-xl border transition-all duration-300 ${
         darkMode 
           ? 'bg-[#40414F] border-gray-700' 
           : 'bg-white/90 backdrop-blur-sm border-blue-100'
       }`}>
-        <div className="flex h-[600px]">
+        <div className={`flex ${isMobile ? 'h-[calc(100vh-200px)]' : 'h-[600px]'}`}>
           {/* Contact List Sidebar */}
-          <div className={`w-80 border-r ${
+          <div className={`${isMobile ? (showContactList ? 'w-full' : 'hidden') : 'w-80'} border-r ${
             darkMode ? 'border-gray-700' : 'border-blue-100'
           }`}>
             {/* Search Bar */}
@@ -1003,13 +1028,28 @@ const Chat: React.FC<ChatProps> = ({ darkMode, initializationData, onInitializat
           </div>
 
           {/* Chat Area */}
-          <div className="flex-1 flex flex-col">
+          <div className={`${isMobile ? (showContactList ? 'hidden' : 'flex-1') : 'flex-1'} flex flex-col min-w-0 overflow-hidden`}>
             {/* Chat Header */}
             {selectedContact && (
               <div className={`p-4 border-b ${
                 darkMode ? 'border-gray-700' : 'border-blue-100'
               }`}>
                 <div className="flex items-center gap-3">
+                  {/* Back button for mobile */}
+                  {isMobile && (
+                    <button
+                      onClick={() => setShowContactList(true)}
+                      className={`p-2 rounded-lg transition-all duration-200 ${
+                        darkMode
+                          ? 'hover:bg-gray-700 text-gray-300'
+                          : 'hover:bg-gray-100 text-gray-600'
+                      }`}
+                    >
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                      </svg>
+                    </button>
+                  )}
                   <div className={`w-10 h-10 rounded-full flex items-center justify-center text-xl ${
                     darkMode ? 'bg-gray-700' : 'bg-gray-200'
                   }`}>
@@ -1032,17 +1072,15 @@ const Chat: React.FC<ChatProps> = ({ darkMode, initializationData, onInitializat
             )}
 
             {/* Messages Area */}
-            <div className="flex-1 overflow-y-auto p-4 space-y-4">
+            <div className="flex-1 overflow-y-auto p-3 space-y-3">
               {currentMessages.map((message) => (
                 <div
                   key={message.id}
-                  className={`flex gap-3 ${
+                  className={`flex gap-2 ${
                     message.sender === 'user' ? 'justify-end' : 'justify-start'
                   }`}
                 >
-                  
-                  
-                  <div className={`max-w-xs lg:max-w-md px-4 py-2 rounded-lg ${
+                  <div className={`max-w-[85%] px-3 py-2 rounded-lg ${
                     message.sender === 'user'
                       ? darkMode
                         ? 'bg-blue-600 text-white'
@@ -1051,7 +1089,7 @@ const Chat: React.FC<ChatProps> = ({ darkMode, initializationData, onInitializat
                         ? 'bg-gray-700 text-white'
                         : 'bg-gray-100 text-gray-900'
                   }`}>
-                    <p className="text-sm">{message.text}</p>
+                    <p className="text-sm break-words">{message.text}</p>
                     <p className={`text-xs mt-1 ${
                       message.sender === 'user'
                         ? 'text-blue-100'
@@ -1065,8 +1103,6 @@ const Chat: React.FC<ChatProps> = ({ darkMode, initializationData, onInitializat
                       })}
                     </p>
                   </div>
-                  
-
                 </div>
               ))}
 
@@ -1079,21 +1115,21 @@ const Chat: React.FC<ChatProps> = ({ darkMode, initializationData, onInitializat
               <>
                 {/* Suggested Messages - Only for Admin Users */}
                 {user?.accountType === 'admin' && (
-                  <div className={`border-t px-4 py-2 ${
+                  <div className={`border-t px-3 py-1.5 min-w-0 ${
                     darkMode ? 'border-gray-700' : 'border-blue-100'
                   }`}>
-                    <div className="flex items-center gap-3">
-                      <h4 className={`text-xs font-medium ${
+                    <div className={`flex items-center gap-2 ${isMobile ? 'flex-row min-w-0' : ''}`}>
+                      <h4 className={`text-xs font-medium flex-shrink-0 ${
                         darkMode ? 'text-gray-400' : 'text-gray-500'
                       }`}>
-                        Quick messages:
+                        Suggestions:
                       </h4>
-                      <div className="flex gap-3 flex-1 justify-center">
+                      <div className={`flex gap-1.5 ${isMobile ? 'flex-1 overflow-x-auto scrollbar-hide min-w-0' : 'flex-1 justify-center'}`}>
                         {isGeneratingQuickMessages ? (
-                          <div className="flex items-center gap-2">
+                          <div className="flex items-center gap-1">
                             <Loader2 className="w-3 h-3 animate-spin" />
                             <span className={`text-xs ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
-                              Generating suggestions...
+                              Generating...
                             </span>
                           </div>
                         ) : (
@@ -1101,7 +1137,7 @@ const Chat: React.FC<ChatProps> = ({ darkMode, initializationData, onInitializat
                             <button
                               key={index}
                               onClick={() => setInputText(suggestion)}
-                              className={`px-2 py-1 text-xs rounded-full transition-all duration-200 ${
+                              className={`px-2 py-1 text-xs rounded-full transition-all duration-200 whitespace-nowrap flex-shrink-0 ${
                                 darkMode
                                   ? 'bg-gray-700 hover:bg-gray-600 text-gray-300 border border-gray-600'
                                   : 'bg-gray-100 hover:bg-gray-200 text-gray-700 border border-gray-300'
@@ -1115,7 +1151,7 @@ const Chat: React.FC<ChatProps> = ({ darkMode, initializationData, onInitializat
                       <button
                         onClick={refreshQuickMessages}
                         disabled={isGeneratingQuickMessages}
-                        className={`p-1.5 rounded-lg transition-all duration-200 ${
+                        className={`p-1 rounded-lg transition-all duration-200 flex-shrink-0 ${
                           isGeneratingQuickMessages
                             ? darkMode
                               ? 'bg-gray-700 text-gray-500 cursor-not-allowed'
@@ -1133,21 +1169,21 @@ const Chat: React.FC<ChatProps> = ({ darkMode, initializationData, onInitializat
                 )}
 
                 {/* Input Area */}
-                <div className={`border-t p-4 ${
+                <div className={`border-t p-3 min-w-0 ${
                   darkMode ? 'border-gray-700' : 'border-blue-100'
                 }`}>
-                  <div className="flex gap-2">
+                  <div className="flex gap-2 min-w-0">
                     <textarea
                       value={inputText}
                       onChange={(e) => setInputText(e.target.value)}
                       onKeyPress={handleKeyPress}
-                      placeholder="Type your message here..."
-                      className={`flex-1 p-3 rounded-lg border resize-none focus:outline-none focus:ring-2 transition-all duration-200 ${
+                      placeholder="Type your message..."
+                      className={`flex-1 p-3 rounded-lg border resize-none focus:outline-none focus:ring-2 transition-all duration-200 min-w-0 ${
                         darkMode
                           ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400 focus:ring-blue-500'
                           : 'bg-white border-gray-300 text-gray-900 placeholder-gray-500 focus:ring-blue-500'
                       }`}
-                      rows={2}
+                      rows={isMobile ? 1 : 2}
                       disabled={isLoading}
                     />
                     <button
@@ -1164,9 +1200,9 @@ const Chat: React.FC<ChatProps> = ({ darkMode, initializationData, onInitializat
                       }`}
                     >
                       {isLoading ? (
-                        <Loader2 className="w-5 h-5 animate-spin" />
+                        <Loader2 className="w-4 h-4 animate-spin" />
                       ) : (
-                        <Send className="w-5 h-5" />
+                        <Send className="w-4 h-4" />
                       )}
                     </button>
                   </div>

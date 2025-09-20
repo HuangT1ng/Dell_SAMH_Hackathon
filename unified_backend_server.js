@@ -680,6 +680,76 @@ const initializeDatabase = () => {
           description: "Group sports meetups (volleyball, basketball, floorball, dodgeball) open for all sign-ups, every Saturday.",
           location: "Community Clubs and Sport Centres",
           image_url: ""
+        },
+        {
+          "id": "42",
+          "organization_name": "Healing Steps 2025: Mental Wellness Walk",
+          "description": "A free community walk for mental wellness at East Coast Park (Casuarina Grove) on 11 Oct, with a virtual walk option available throughout October. Open to everyone, no registration needed – join in person or virtually via Strava app.",
+          "location": "East Coast Park, Casuarina Grove (and virtual/Strava)",
+          "image_url": "https://www.clubheal.sg//image/catalog/icon/CH%20Logo_full-02.png"
+        },
+        {
+          "id": "43",
+          "organization_name": "SPS World Mental Health Day 2025",
+          "description": "A youth-focused mental health event with interactive booths, talks, and panel discussions. Includes free goodie bags for walk-ins. No registration required.",
+          "location": "The Foundry, 11 Prinsep Link, Singapore",
+          "image_url": "https://singaporepsychologicalsociety.org/wp-content/uploads/2024/08/sps1-1.jpg"
+        },
+        {
+          "id": "44",
+          "organization_name": "Singapore Red Cross World Mental Health Day Outreach",
+          "description": "A free outreach event on youth mental wellness, featuring workshops, poetry, films, and psychological first aid. Open to all, some events online/virtual.",
+          "location": "Singapore Red Cross (partial virtual)",
+          "image_url": "https://donate.redcross.sg//image/catalog/home/src%20logo/logo.png"
+        },
+        {
+          "id": "45",
+          "organization_name": "SAMH Creative Hub Free Workshops",
+          "description": "Free art, music, dance, and writing workshops designed to promote emotional well-being. Suitable for teens and youths, open to all ages in October.",
+          "location": "Singapore Association for Mental Health (SAMH) Creative Hub",
+          "image_url": "https://www.samhealth.org.sg/client/samhealth/wp-content/uploads/2018/02/SAMH-logo-web.png"
+        },
+        {
+          "id": "46",
+          "organization_name": "Community Youth Engagements: Open Stage Live",
+          "description": "Open mic and performing arts showcase—'The Right To Be Human.' Free admission, youth/teen-focused, all are welcome.",
+          "location": "NAFA, Singapore",
+          "image_url": "https://www.nafa.edu.sg/images/default-source/corp-images/about-us/our-belief/nafa-logo-2022.jpg"
+        },
+        {
+          "id": "47",
+          "organization_name": "Free K-Pop Dance and Fitness Classes",
+          "description": "Community clubs and dance studios (like O School) offer free/try-out dance and fitness classes for youth – check respective venues' October schedules. Ideal for stress relief and self-expression.",
+          "location": "Community Centres, O School, local studios",
+          "image_url": "https://www.seekpng.com/png/small/957-9576767_peoples-association-png-community-centre-logo-singapore.png"
+        },
+        {
+          "id": "48",
+          "organization_name": "Youth Corps Singapore Volunteering & Engagement Projects",
+          "description": "Free youth volunteering events, ages 15–35, including the Health Awareness Event (18 Oct). Activities foster teamwork, friendship, and stress relief.",
+          "location": "Various, including Tiong Bahru CC for Health Awareness Event",
+          "image_url": "https://isomer-user-content.by.gov.sg/141/2602773c-6c61-444f-959c-a98de388c45b/YCS_RGB_black_words.png"
+        },
+        {
+          "id": "49",
+          "organization_name": "Mental Health Workshops for Teens (Silver Ribbon Singapore, CHAT)",
+          "description": "Free talks, interactive workshops, and confidential mental health checks for teens (16–30), focused on stress management and World Mental Health Day.",
+          "location": "Various organizations – mainly online or at community venues",
+          "image_url": "https://icapcharityday.com/Assets/4cf8780e-af8d-4dc8-a6ff-cda4543a2bbe/Silver%20Ribbon%20Logo%20(Outlined)%20On%20White%20BG-02-02.png"
+        },
+        {
+          "id": "50",
+          "organization_name": "Health Dialogue Webinar Series",
+          "description": "Free online webinars on stress relief, well-being, and practical mental health tips, open to teens and youth.",
+          "location": "Online",
+          "image_url": "https://d2u1z1lopyfwlx.cloudfront.net/thumbnails/a37e0fa1-5899-5d44-8eed-394ad503418f/e1552eaa-b7d1-56e6-a296-59dbf0e1db7d.jpg"
+        },
+        {
+          "id": "51",
+          "organization_name": "Pay What You Wish / Free Yoga and Wellness Events",
+          "description": "Donation-based or free yoga and meditation sessions at parks, community spaces, and online. Suitable for teens, helps with stress relief.",
+          "location": "Parks, community spaces, Eventbrite listings (Singapore)",
+          "image_url": "https://d2u1z1lopyfwlx.cloudfront.net/thumbnails/1ba1b7ca-6b0d-5540-9ba7-b882b21df2f9/e0768043-f16d-5667-a3cd-c51a212d68ac.jpg"
         }
       ];
 

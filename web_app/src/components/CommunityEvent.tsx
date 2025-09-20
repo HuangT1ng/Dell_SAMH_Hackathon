@@ -52,24 +52,14 @@ const CommunityEvent: React.FC<CommunityEventProps> = ({ darkMode }) => {
   }, []);
 
 
-  const recommendedKeywords = ['sport', 'dance', 'music', 'yoga'];
 
   const handleMatch = async () => {
     setIsMatching(true);
     
-    // Simulate matching process with a short delay
     setTimeout(() => {
-      // Filter events based on recommended keywords using OR logic
       const matchedEvents = events.filter(event => {
-        // Check if any of the recommended keywords match the event description or organization name
-        return recommendedKeywords.some(keyword => {
-          const keywordLower = keyword.toLowerCase();
-          const descriptionLower = event.description.toLowerCase();
-          const organizationLower = event.organization_name.toLowerCase();
-          
-          // Check if keyword appears in description or organization name
-          return descriptionLower.includes(keywordLower) || organizationLower.includes(keywordLower);
-        });
+        const eventId = parseInt(event.id);
+        return eventId >= 42;
       });
       
       setFilteredEvents(matchedEvents);
@@ -78,7 +68,7 @@ const CommunityEvent: React.FC<CommunityEventProps> = ({ darkMode }) => {
       
       // Show popup after matching is complete
       setShowPopup(true);
-      setTimeout(() => setShowPopup(false), 4000); // Auto-hide after 4 seconds
+      setTimeout(() => setShowPopup(false), 4000); 
     }, 1500);
   };
 
@@ -94,11 +84,7 @@ const CommunityEvent: React.FC<CommunityEventProps> = ({ darkMode }) => {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="text-center flex-1">
-          <h1 className={`text-3xl font-bold mb-2 ${
-            darkMode ? 'text-white' : 'text-gray-900'
-          }`}>
-            Community Events
-          </h1>
+ 
           <p className={`text-lg ${
             darkMode ? 'text-gray-400' : 'text-gray-600'
           }`}>
@@ -107,7 +93,7 @@ const CommunityEvent: React.FC<CommunityEventProps> = ({ darkMode }) => {
         </div>
         
         {/* Magnifying Glass Button */}
-        <div className="flex flex-col items-center gap-2 mr-8">
+        <div className="flex flex-col items-center gap-2 ml-auto">
           <button
             onClick={handleMatch}
             disabled={isMatching}
@@ -123,7 +109,7 @@ const CommunityEvent: React.FC<CommunityEventProps> = ({ darkMode }) => {
               <Search className="w-6 h-6" />
             )}
           </button>
-          <span className={`text-xs font-medium ${
+          <span className={`text-xs font-medium ml-2 ${
             isMatching
               ? darkMode ? 'text-gray-500' : 'text-gray-400'
               : darkMode ? 'text-gray-300' : 'text-gray-600'
@@ -230,7 +216,7 @@ const CommunityEvent: React.FC<CommunityEventProps> = ({ darkMode }) => {
                 <img
                   src={event.image_url}
                   alt={event.organization_name}
-                  className="w-full h-full object-cover"
+                  className="w-full h-full object-fill"
                 />
               </div>
 
