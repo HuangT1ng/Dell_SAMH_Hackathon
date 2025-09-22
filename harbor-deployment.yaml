@@ -1,0 +1,304 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: samh-platform
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: samh-backend
+  namespace: kai-platform
+  labels:
+    app: samh-backend
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: samh-backend
+  template:
+    metadata:
+      labels:
+        app: samh-backend
+    spec:
+      imagePullSecrets:
+      - name: harbor-secret
+      containers:
+      - name: backend
+        image: ihl-harbor.apps.innovate.sg-cna.com/ntu/backend:latest
+        ports:
+        - containerPort: 3001
+        env:
+        - name: NODE_ENV
+          value: "production"
+        - name: PORT
+          value: "3001"
+        volumeMounts:
+        - name: shared-data
+          mountPath: /app/shared_data
+        livenessProbe:
+          httpGet:
+            path: /api/health
+            port: 3001
+          initialDelaySeconds: 30
+          periodSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /api/health
+            port: 3001
+          initialDelaySeconds: 5
+          periodSeconds: 5
+        resources:
+          requests:
+            memory: "256Mi"
+            cpu: "250m"
+          limits:
+            memory: "512Mi"
+            cpu: "500m"
+      volumes:
+      - name: shared-data
+        persistentVolumeClaim:
+          claimName: samh-data-pvc
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: samh-backend-service
+  namespace: kai-platform
+spec:
+  selector:
+    app: samh-backend
+  ports:
+  - port: 3001
+    targetPort: 3001
+  type: ClusterIP
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: samh-webapp
+  namespace: kai-platform
+  labels:
+    app: samh-webapp
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: samh-webapp
+  template:
+    metadata:
+      labels:
+        app: samh-webapp
+    spec:
+      imagePullSecrets:
+      - name: harbor-secret
+      containers:
+      - name: webapp
+        image: ihl-harbor.apps.innovate.sg-cna.com/ntu/webapp:latest
+        ports:
+        - containerPort: 80
+        livenessProbe:
+          httpGet:
+            path: /
+            port: 80
+          initialDelaySeconds: 30
+          periodSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /
+            port: 80
+          initialDelaySeconds: 5
+          periodSeconds: 5
+        resources:
+          requests:
+            memory: "128Mi"
+            cpu: "100m"
+          limits:
+            memory: "256Mi"
+            cpu: "200m"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: samh-webapp-service
+  namespace: kai-platform
+spec:
+  selector:
+    app: samh-webapp
+  ports:
+  - port: 80
+    targetPort: 80
+  type: ClusterIP
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: samh-dashboard
+  namespace: kai-platform
+  labels:
+    app: samh-dashboard
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: samh-dashboard
+  template:
+    metadata:
+      labels:
+        app: samh-dashboard
+    spec:
+      imagePullSecrets:
+      - name: harbor-secret
+      containers:
+      - name: dashboard
+        image: ihl-harbor.apps.innovate.sg-cna.com/ntu/dashboard:latest
+        ports:
+        - containerPort: 80
+        livenessProbe:
+          httpGet:
+            path: /
+            port: 80
+          initialDelaySeconds: 30
+          periodSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /
+            port: 80
+          initialDelaySeconds: 5
+          periodSeconds: 5
+        resources:
+          requests:
+            memory: "128Mi"
+            cpu: "100m"
+          limits:
+            memory: "256Mi"
+            cpu: "200m"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: samh-dashboard-service
+  namespace: kai-platform
+spec:
+  selector:
+    app: samh-dashboard
+  ports:
+  - port: 80
+    targetPort: 80
+  type: ClusterIP
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: samh-chatbot
+  namespace: kai-platform
+  labels:
+    app: samh-chatbot
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: samh-chatbot
+  template:
+    metadata:
+      labels:
+        app: samh-chatbot
+    spec:
+      imagePullSecrets:
+      - name: harbor-secret
+      containers:
+      - name: chatbot
+        image: ihl-harbor.apps.innovate.sg-cna.com/ntu/chatbot:latest
+        ports:
+        - containerPort: 8000
+        env:
+        - name: PYTHONUNBUFFERED
+          value: "1"
+        volumeMounts:
+        - name: chatbot-logs
+          mountPath: /app/logs
+        resources:
+          requests:
+            memory: "256Mi"
+            cpu: "250m"
+          limits:
+            memory: "512Mi"
+            cpu: "500m"
+      volumes:
+      - name: chatbot-logs
+        persistentVolumeClaim:
+          claimName: samh-logs-pvc
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: samh-chatbot-service
+  namespace: kai-platform
+spec:
+  selector:
+    app: samh-chatbot
+  ports:
+  - port: 8000
+    targetPort: 8000
+  type: ClusterIP
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: samh-data-pvc
+  namespace: kai-platform
+spec:
+  accessModes:
+    - ReadWriteMany
+  resources:
+    requests:
+      storage: 10Gi
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: samh-logs-pvc
+  namespace: kai-platform
+spec:
+  accessModes:
+    - ReadWriteMany
+  resources:
+    requests:
+      storage: 5Gi
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: samh-ingress
+  namespace: kai-platform
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /
+    nginx.ingress.kubernetes.io/ssl-redirect: "false"
+spec:
+  rules:
+  - host: samh.your-domain.com
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: samh-webapp-service
+            port:
+              number: 80
+      - path: /api
+        pathType: Prefix
+        backend:
+          service:
+            name: samh-backend-service
+            port:
+              number: 3001
+  - host: dashboard.samh.your-domain.com
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: samh-dashboard-service
+            port:
+              number: 80

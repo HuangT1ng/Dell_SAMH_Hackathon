@@ -52,7 +52,10 @@ export interface UserAchievement {
 }
 
 class SharedDatabaseManager {
-  private baseUrl: string = 'http://localhost:3001/api';
+  // Environment-aware API configuration
+  private baseUrl: string = window.location.hostname === 'localhost' 
+    ? 'http://localhost:3001/api' 
+    : 'https://backend-ntu.apps.innovate.sg-cna.com/api';
 
   // Mood Entries Management
   async getAllMoodEntries(): Promise<MoodEntry[]> {

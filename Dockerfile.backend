@@ -1,0 +1,32 @@
+# Backend API Server Dockerfile
+FROM node:18-alpine
+
+WORKDIR /app
+
+# Copy package files
+COPY package*.json ./
+COPY unified_backend_server.js ./
+COPY scraper_server.js ./
+COPY run_scraper.js ./
+
+# Install dependencies
+RUN npm install
+
+# Create shared data directory
+RUN mkdir -p shared_data
+
+# Copy shared data if it exists
+COPY shared_data/ ./shared_data/
+
+# Expose port
+EXPOSE 3001
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
+  CMD node -e "require('http').get('http://localhost:3001/api/health', (res) => { process.exit(res.statusCode === 200 ? 0 : 1) })"
+
+# Set environment for production
+ENV NODE_ENV=production
+
+# Start the server
+CMD ["node", "unified_backend_server.js"]

@@ -22,7 +22,10 @@ interface ScrapperData {
   samh_username?: string;
 }
 
-const API_BASE_URL = 'http://localhost:3001';
+// Environment-aware API configuration
+const API_BASE_URL = window.location.hostname === 'localhost' 
+  ? 'http://localhost:3001' 
+  : 'https://backend-ntu.apps.innovate.sg-cna.com';
 
 const RedditDashboard: React.FC<RedditDashboardProps> = ({ darkMode, onNavigateToChat, onNavigateToUserJourney }) => {
   const [searchQuery, setSearchQuery] = useState('');

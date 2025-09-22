@@ -1,0 +1,44 @@
+{
+  "questions": [
+    {
+      "question_id": 1,
+      "prompt": "You have two overdue tutorials and an exam tomorrow. What do you do?",
+      "choices": [
+        { "choice_id": 1, "label": "Break into small Pomodoro sessions", "health_impact": 5 },
+        { "choice_id": 2, "label": "All-nighter cram", "health_impact": -8 }
+      ]
+    },
+    {
+      "question_id": 2,
+      "prompt": "You're overwhelmed with CCA and schoolwork. How do you cope?",
+      "choices": [
+        { "choice_id": 3, "label": "Talk to a friend/mentor", "health_impact": 4 },
+        { "choice_id": 4, "label": "Bottle it up alone", "health_impact": -6 }
+      ]
+    },
+    {
+      "question_id": 3,
+      "prompt": "You failed a quiz unexpectedly. What's your reaction?",
+      "choices": [
+        { "choice_id": 5, "label": "Review mistakes & plan", "health_impact": 3 },
+        { "choice_id": 6, "label": "Beat yourself up", "health_impact": -7 }
+      ]
+    },
+    {
+      "question_id": 4,
+      "prompt": "Extra homework before the weekend — what's your move?",
+      "choices": [
+        { "choice_id": 7, "label": "Plan early & spread work", "health_impact": 4 },
+        { "choice_id": 8, "label": "Procrastinate & rush", "health_impact": -5 }
+      ]
+    },
+    {
+      "question_id": 5,
+      "prompt": "Big test coming but you're exhausted. What now?",
+      "choices": [
+        { "choice_id": 9, "label": "Sleep well; study fresh", "health_impact": 6 },
+        { "choice_id": 10, "label": "Skip sleep to study more", "health_impact": -9 }
+      ]
+    }
+  ]
+}

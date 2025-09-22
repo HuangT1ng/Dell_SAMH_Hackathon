@@ -1,8 +1,10 @@
 import { useState, useEffect } from 'react';
-import { Home, Heart, Brain, Gamepad2, MessageCircle, LogOut, BarChart3, Calendar, User, Menu } from 'lucide-react';
+import { Home, Heart, Brain, Gamepad2, MessageCircle, LogOut, BarChart3, Calendar, User, Menu, X } from 'lucide-react';
+import KAILogo from './Assets/KAILogo.png';
 import HomePage from './components/HomePage';
 import MoodBar from './components/MoodBar';
 import Gaming from './components/Gaming';
+import AcademicStressGamePage from './components/AcademicStressGamePage';
 import Chat from './components/Chat';
 import RedditDashboard from './components/RedditDashboard';
 import CommunityEvent from './components/CommunityEvent';
@@ -14,7 +16,7 @@ import { SessionProvider, useSession } from './utils/sessionContext';
 
 function AppContent() {
   const { user, logout, isLoggedIn } = useSession();
-  const [currentView, setCurrentView] = useState<'home' | 'mood' | 'gaming' | 'chat' | 'community' | 'dashboard' | 'journey'>('home');
+  const [currentView, setCurrentView] = useState<'home' | 'mood' | 'gaming' | 'academic-stress-game' | 'chat' | 'community' | 'dashboard' | 'journey'>('home');
   const [entries, setEntries] = useState<MoodEntry[]>([]);
   const [darkMode, setDarkMode] = useState(false);
   const [chatInitialization, setChatInitialization] = useState<{samhUsername: string} | null>(null);
@@ -80,8 +82,10 @@ function AppContent() {
       setEntries(updatedEntries);
       localStorage.setItem('moodEntries', JSON.stringify(updatedEntries));
     }
+  };
 
-    setCurrentView('mood');
+  const handleNavigate = (view: string) => {
+    setCurrentView(view as any);
   };
 
   const handleNavigateToChat = (samhUsername: string) => {
@@ -136,24 +140,21 @@ function AppContent() {
           ? 'bg-[#40414F] border-gray-700' 
           : 'bg-white border-gray-200'
       }`}>
-        <div className="px-4 py-3">
+        <div className="px-6 py-4">
           <div className="flex justify-between items-center">
-            <div className="flex items-center gap-2">
-              <button
-                onClick={() => setDarkMode(!darkMode)}
-                className="w-8 h-8 rounded-lg flex items-center justify-center transition-all duration-200 hover:opacity-80"
-                style={{ backgroundColor: '#4a6cf7' }}
-                title={darkMode ? "Switch to Light Mode" : "Switch to Dark Mode"}
-              >
-                <Brain className="w-5 h-5 text-white" />
-              </button>
+            <div className="flex items-center gap-4">
+              <img 
+                src={KAILogo} 
+                alt="KAI Logo" 
+                className="w-12 h-12 object-contain"
+              />
               <div className="flex flex-col">
-                <span className={`text-lg font-bold ${
+                <span className={`text-2xl font-bold ${
                   darkMode ? 'text-white' : 'text-slate-800'
                 }`}>
-                  SAMH
+                  KAI
                 </span>
-                <span className={`text-xs ${
+                <span className={`text-sm ${
                   darkMode ? 'text-gray-400' : 'text-slate-500'
                 }`}>
                   {user?.username} ({user?.accountType})
@@ -220,36 +221,139 @@ function AppContent() {
           </div>
         </div>
         
-        {/* Mobile Navigation Tabs */}
-        {isMobile && showNav && (
-          <nav className={`px-2 py-2 ${
-            darkMode 
-              ? 'bg-[#40414F]' 
-              : 'bg-white'
-          }`}>
-            <div className="flex gap-1 overflow-x-auto scrollbar-hide">
-              {navigation.map(({ id, label, icon: Icon, description }) => (
-                <button
-                  key={id}
-                  onClick={() => setCurrentView(id as any)}
-                  className={`flex flex-col items-center gap-1 px-3 py-2 rounded-lg font-medium transition-all duration-200 flex-shrink-0 min-w-[80px] ${
-                    currentView === id
-                      ? 'text-white shadow-lg'
-                      : darkMode 
-                        ? 'text-gray-300 hover:bg-gray-700 hover:text-white' 
-                        : 'text-slate-600 hover:bg-white hover:text-slate-800'
-                  }`}
-                  style={{
-                    backgroundColor: currentView === id ? '#4a6cf7' : undefined
-                  }}
-                  title={description}
-                >
-                  <Icon size={20} />
-                  <span className="text-xs whitespace-nowrap">{label}</span>
-                </button>
-              ))}
+        {/* Mobile Slide-out Navigation */}
+        {isMobile && (
+          <>
+            {/* Backdrop */}
+            {showNav && (
+              <div 
+                className="fixed inset-0 bg-black bg-opacity-50 z-40 transition-opacity duration-300"
+                onClick={() => setShowNav(false)}
+              />
+            )}
+            
+            {/* Slide-out Menu */}
+            <div className={`fixed top-0 right-0 h-full w-80 z-50 transform transition-transform duration-300 ease-in-out ${
+              showNav ? 'translate-x-0' : 'translate-x-full'
+            }`}>
+              <div className={`h-full ${
+                darkMode 
+                  ? 'bg-slate-800 border-l border-slate-700' 
+                  : 'bg-white border-l border-gray-200'
+              } shadow-2xl`}>
+                {/* Menu Header */}
+                <div className={`p-6 border-b ${
+                  darkMode ? 'border-slate-700' : 'border-gray-200'
+                }`}>
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <img 
+                        src={KAILogo} 
+                        alt="KAI Logo" 
+                        className="w-10 h-10 object-contain"
+                      />
+                      <div>
+                        <h2 className={`text-xl font-bold ${
+                          darkMode ? 'text-white' : 'text-slate-900'
+                        }`}>
+                          KAI
+                        </h2>
+                        <p className={`text-sm ${
+                          darkMode ? 'text-gray-400' : 'text-slate-500'
+                        }`}>
+                          Navigation
+                        </p>
+                      </div>
+                    </div>
+                    <button
+                      onClick={() => setShowNav(false)}
+                      className={`p-2 rounded-lg transition-colors duration-200 ${
+                        darkMode 
+                          ? 'hover:bg-slate-700 text-gray-400' 
+                          : 'hover:bg-gray-100 text-gray-500'
+                      }`}
+                    >
+                      <X className="w-5 h-5" />
+                    </button>
+                  </div>
+                </div>
+
+                {/* Navigation Items */}
+                <nav className="p-4">
+                  <div className="space-y-2">
+                    {navigation.map(({ id, label, icon: Icon, description }) => (
+                      <button
+                        key={id}
+                        onClick={() => {
+                          setCurrentView(id as any);
+                          setShowNav(false);
+                        }}
+                        className={`w-full flex items-center gap-4 p-4 rounded-xl transition-all duration-200 ${
+                          currentView === id
+                            ? darkMode
+                              ? 'bg-blue-600 text-white shadow-lg'
+                              : 'bg-blue-500 text-white shadow-lg'
+                            : darkMode
+                              ? 'hover:bg-slate-700 text-gray-300'
+                              : 'hover:bg-gray-100 text-slate-700'
+                        }`}
+                      >
+                        <Icon className="w-6 h-6" />
+                        <div className="flex-1 text-left">
+                          <div className="font-semibold">{label}</div>
+                          <div className={`text-sm ${
+                            currentView === id
+                              ? 'text-white/80'
+                              : darkMode ? 'text-gray-400' : 'text-gray-500'
+                          }`}>
+                            {description}
+                          </div>
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+                </nav>
+
+                {/* User Info */}
+                <div className={`absolute bottom-0 left-0 right-0 p-4 border-t ${
+                  darkMode ? 'border-slate-700 bg-slate-800' : 'border-gray-200 bg-gray-50'
+                }`}>
+                  <div className="flex items-center gap-3">
+                    <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
+                      darkMode ? 'bg-slate-600' : 'bg-gray-200'
+                    }`}>
+                      <User className={`w-5 h-5 ${
+                        darkMode ? 'text-gray-300' : 'text-gray-600'
+                      }`} />
+                    </div>
+                    <div className="flex-1">
+                      <div className={`font-semibold ${
+                        darkMode ? 'text-white' : 'text-slate-900'
+                      }`}>
+                        {user?.username}
+                      </div>
+                      <div className={`text-sm ${
+                        darkMode ? 'text-gray-400' : 'text-slate-500'
+                      }`}>
+                        {user?.accountType}
+                      </div>
+                    </div>
+                    <button
+                      onClick={logout}
+                      className={`p-2 rounded-lg transition-colors duration-200 ${
+                        darkMode 
+                          ? 'hover:bg-slate-700 text-red-400' 
+                          : 'hover:bg-gray-200 text-red-600'
+                      }`}
+                      title="Logout"
+                    >
+                      <LogOut className="w-5 h-5" />
+                    </button>
+                  </div>
+                </div>
+              </div>
             </div>
-          </nav>
+          </>
         )}
       </header>
 
@@ -261,11 +365,14 @@ function AppContent() {
           {currentView === 'mood' && (
             <MoodBar 
               entries={entries} 
-              onAddEntry={saveEntry} 
-              darkMode={darkMode} 
+              onSave={saveEntry} 
+              onNavigate={handleNavigate}
             />
           )}
-          {currentView === 'gaming' && <Gaming darkMode={darkMode} />}
+          {currentView === 'gaming' && <Gaming darkMode={darkMode} onNavigate={handleNavigate} />}
+          {currentView === 'academic-stress-game' && (
+            <AcademicStressGamePage onBack={() => setCurrentView('gaming')} />
+          )}
           {currentView === 'chat' && <Chat darkMode={darkMode} initializationData={chatInitialization || undefined} onInitializationComplete={clearChatInitialization} />}
           {currentView === 'community' && <CommunityEvent darkMode={darkMode} />}
           {currentView === 'dashboard' && <RedditDashboard darkMode={darkMode} onNavigateToChat={handleNavigateToChat} onNavigateToUserJourney={handleNavigateToUserJourney} />}

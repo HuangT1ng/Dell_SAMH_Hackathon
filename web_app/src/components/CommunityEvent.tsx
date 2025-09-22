@@ -14,7 +14,9 @@ interface EventCard {
   created_at: string;
 }
 
-const API_BASE_URL = 'http://localhost:3001';
+const API_BASE_URL = window.location.hostname === 'localhost' 
+  ? 'http://localhost:3001' 
+  : 'https://backend-ntu.apps.innovate.sg-cna.com';
 
 const CommunityEvent: React.FC<CommunityEventProps> = ({ darkMode }) => {
   const [events, setEvents] = useState<EventCard[]>([]);
@@ -201,54 +203,69 @@ const CommunityEvent: React.FC<CommunityEventProps> = ({ darkMode }) => {
 
       {/* Events Grid */}
       {!isLoading && !error && (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {(showFilteredEvents ? filteredEvents : events).map((event) => (
-            <div
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          {(showFilteredEvents ? filteredEvents : events).map((event, index) => (
+            <article
               key={event.id}
-              className={`rounded-xl border transition-all duration-300 hover:shadow-lg overflow-hidden ${
-                darkMode 
-                  ? 'bg-[#40414F] border-gray-700 hover:border-gray-600' 
-                  : 'bg-white border-gray-200 hover:border-gray-300'
+              className={`group relative rounded-3xl p-6 transition-all duration-500 hover:scale-105 hover:shadow-2xl ${
+                darkMode
+                  ? "bg-gradient-to-br from-slate-800/80 to-slate-900/80 border border-slate-700/50 backdrop-blur-sm"
+                  : "bg-gradient-to-br from-white/90 to-white/70 border border-white/50 backdrop-blur-sm shadow-xl"
               }`}
+              style={{
+                background: darkMode 
+                  ? `linear-gradient(135deg, rgba(30, 41, 59, 0.8) 0%, rgba(15, 23, 42, 0.8) 100%)`
+                  : `linear-gradient(135deg, rgba(255, 255, 255, 0.9) 0%, rgba(255, 255, 255, 0.7) 100%)`
+              }}
             >
-              {/* Event Image */}
-              <div className="w-full h-48 overflow-hidden">
-                <img
-                  src={event.image_url}
-                  alt={event.organization_name}
-                  className="w-full h-full object-fill"
-                />
-              </div>
+              {/* Decorative gradient overlay */}
+              <div 
+                className="absolute inset-0 rounded-3xl opacity-10 group-hover:opacity-20 transition-opacity duration-500"
+                style={{ 
+                  background: `linear-gradient(135deg, #4a6cf720 0%, #4a6cf740 100%)`
+                }}
+              ></div>
+              
+              <div className="relative z-10">
+                {/* Event Image */}
+                <div className="rounded-2xl overflow-hidden shadow-lg group-hover:shadow-xl transition-shadow duration-300 mb-6">
+                  <img
+                    src={event.image_url}
+                    alt={event.organization_name}
+                    className="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-500"
+                  />
+                </div>
 
-              {/* Event Content */}
-              <div className="p-6 space-y-3">
                 {/* Organization Name */}
-                <h3 className={`text-xl font-semibold ${
-                  darkMode ? 'text-white' : 'text-gray-900'
+                <h3 className={`text-2xl font-bold mb-4 ${
+                  darkMode ? 'text-white' : 'text-slate-900'
                 }`}>
                   {event.organization_name}
                 </h3>
 
                 {/* Event Description */}
-                <p className={`text-sm leading-relaxed ${
-                  darkMode ? 'text-gray-300' : 'text-gray-600'
+                <p className={`text-lg leading-relaxed mb-6 ${
+                  darkMode ? 'text-gray-300' : 'text-slate-600'
                 }`}>
                   {event.description}
                 </p>
 
                 {/* Location */}
-                <div className="flex items-center gap-2">
-                  <MapPin className={`w-4 h-4 ${
-                    darkMode ? 'text-gray-400' : 'text-gray-500'
-                  }`} />
-                  <span className={`text-sm ${
-                    darkMode ? 'text-gray-300' : 'text-gray-600'
+                <div className="flex items-center gap-3">
+                  <div
+                    className="grid h-12 w-12 place-items-center rounded-2xl shadow-lg group-hover:scale-110 transition-transform duration-300"
+                    style={{ backgroundColor: '#4a6cf7' }}
+                  >
+                    <MapPin className="h-6 w-6 text-white" />
+                  </div>
+                  <span className={`text-lg font-medium ${
+                    darkMode ? 'text-gray-200' : 'text-slate-700'
                   }`}>
                     {event.location}
                   </span>
                 </div>
               </div>
-            </div>
+            </article>
           ))}
         </div>
       )}

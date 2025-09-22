@@ -35,7 +35,10 @@ interface SearchResult {
   isOnline: boolean;
 }
 
-const API_BASE_URL = 'http://localhost:3001';
+// Environment-aware API configuration
+const API_BASE_URL = window.location.hostname === 'localhost' 
+  ? 'http://localhost:3001' 
+  : 'https://backend-ntu.apps.innovate.sg-cna.com';
 
 const Chat: React.FC<ChatProps> = ({ darkMode, initializationData, onInitializationComplete }) => {
   const { user } = useSession();
@@ -788,38 +791,45 @@ const Chat: React.FC<ChatProps> = ({ darkMode, initializationData, onInitializat
   }
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-4" style={{
+      background: darkMode 
+        ? '#0f172a' 
+        : '#f8fafc'
+    }}>
+
       {/* Main Chat Layout */}
-      <div className={`rounded-xl border transition-all duration-300 ${
+      <div className={`rounded-2xl border transition-all duration-300 shadow-xl ${
         darkMode 
-          ? 'bg-[#40414F] border-gray-700' 
-          : 'bg-white/90 backdrop-blur-sm border-blue-100'
+          ? 'bg-slate-800 border-slate-600' 
+          : 'bg-white border-gray-200'
       }`}>
         <div className={`flex ${isMobile ? 'h-[calc(100vh-200px)]' : 'h-[600px]'}`}>
           {/* Contact List Sidebar */}
           <div className={`${isMobile ? (showContactList ? 'w-full' : 'hidden') : 'w-80'} border-r ${
-            darkMode ? 'border-gray-700' : 'border-blue-100'
+            darkMode ? 'border-gray-700 bg-slate-800' : 'border-gray-200 bg-white'
           }`}>
             {/* Search Bar */}
-            <div className="p-4 border-b border-gray-200 dark:border-gray-700">
+            <div className={`p-6 border-b border-gray-100 dark:border-slate-600/50 ${
+              darkMode ? 'bg-slate-700' : 'bg-gradient-to-br from-blue-50 to-indigo-50'
+            }`}>
               <div className="relative">
-                <Search className={`absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 ${
-                  darkMode ? 'text-gray-400' : 'text-gray-500'
+                <Search className={`absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 ${
+                  darkMode ? 'text-blue-400' : 'text-blue-500'
                 }`} />
                 <input
                   type="text"
                   placeholder="Search contacts or users..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className={`w-full pl-10 pr-4 py-2 rounded-lg border focus:outline-none focus:ring-2 transition-all duration-200 ${
+                  className={`w-full pl-12 pr-4 py-3 rounded-2xl border focus:outline-none focus:ring-2 focus:ring-blue-500/20 transition-all duration-300 shadow-sm ${
                     darkMode
-                      ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400 focus:ring-blue-500'
-                      : 'bg-white border-gray-300 text-gray-900 placeholder-gray-500 focus:ring-blue-500'
+                      ? 'bg-slate-600 border-slate-500 text-white placeholder-slate-400'
+                      : 'bg-white border-blue-200 text-slate-900 placeholder-slate-500 hover:border-blue-300'
                   }`}
                 />
                 {isSearching && (
-                  <Loader2 className={`absolute right-3 top-1/2 transform -translate-y-1/2 w-4 h-4 animate-spin ${
-                    darkMode ? 'text-gray-400' : 'text-gray-500'
+                  <Loader2 className={`absolute right-4 top-1/2 transform -translate-y-1/2 w-5 h-5 animate-spin ${
+                    darkMode ? 'text-blue-400' : 'text-blue-500'
                   }`} />
                 )}
               </div>
@@ -831,10 +841,10 @@ const Chat: React.FC<ChatProps> = ({ darkMode, initializationData, onInitializat
               {isLoadingContacts ? (
                 <div className="flex items-center justify-center h-32">
                   <div className="flex items-center gap-2">
-                    <Loader2 className="w-4 h-4 animate-spin" />
-                    <span className={`text-sm ${
-                      darkMode ? 'text-gray-400' : 'text-gray-600'
-                    }`}>
+                    <Loader2 className="w-4 h-4 animate-spin" style={{ color: '#4a6cf7' }} />
+                    <span className={`text-sm`} style={{
+                      color: darkMode ? '#4a6cf7' : '#4a6cf7'
+                    }}>
                       Loading conversations...
                     </span>
                   </div>
@@ -927,18 +937,18 @@ const Chat: React.FC<ChatProps> = ({ darkMode, initializationData, onInitializat
                 filteredContacts.map((contact) => (
                 <div
                   key={contact.id}
-                  className={`group p-4 cursor-pointer transition-all duration-200 border-b ${
+                  className={`group p-4 cursor-pointer transition-all duration-300 border-b hover:scale-[1.01] ${
                     contact.isDeleted
                       ? darkMode
-                        ? 'bg-gray-800/50 border-gray-600 opacity-60'
-                        : 'bg-gray-100/50 border-gray-300 opacity-60'
+                        ? 'bg-slate-800/50 border-slate-600 opacity-60'
+                        : 'bg-slate-100/50 border-slate-300 opacity-60'
                       : selectedContactId === contact.id
                         ? darkMode
-                          ? 'bg-blue-600/20 border-blue-500'
-                          : 'bg-blue-50 border-blue-200'
+                          ? 'border-blue-400 bg-blue-600/10 shadow-md'
+                          : 'border-blue-300 bg-gradient-to-r from-blue-50 to-indigo-50 shadow-md'
                         : darkMode
-                          ? 'hover:bg-gray-700 border-gray-700'
-                          : 'hover:bg-gray-50 border-gray-200'
+                          ? 'hover:bg-slate-700/50 border-slate-700 hover:shadow-sm'
+                          : 'hover:border-blue-200 hover:bg-gradient-to-r hover:from-gray-50 hover:to-blue-50/30 hover:shadow-sm'
                   }`}
                 >
                   <div className="flex items-center gap-2 w-full">
@@ -947,8 +957,8 @@ const Chat: React.FC<ChatProps> = ({ darkMode, initializationData, onInitializat
                       onClick={() => !contact.isDeleted && handleContactSelect(contact.id)}
                     >
                       <div className="relative flex-shrink-0">
-                        <div className={`w-10 h-10 rounded-full flex items-center justify-center text-lg ${
-                          darkMode ? 'bg-gray-700' : 'bg-gray-200'
+                        <div className={`w-10 h-10 rounded-full flex items-center justify-center text-lg shadow-sm ${
+                          darkMode ? 'bg-gradient-to-br from-slate-600 to-slate-700' : 'bg-gradient-to-br from-blue-100 to-indigo-100'
                         }`}>
                           {renderUserAvatar(contact.accountType, 'w-5 h-5')}
                         </div>
@@ -963,21 +973,21 @@ const Chat: React.FC<ChatProps> = ({ darkMode, initializationData, onInitializat
                             {contact.name}
                           </h3>
                           {contact.unreadCount > 0 && !contact.isDeleted && (
-                            <span className={`px-1.5 py-0.5 text-xs rounded-full flex-shrink-0 ${
-                              darkMode ? 'bg-blue-600 text-white' : 'bg-blue-500 text-white'
+                            <span className={`px-2 py-1 text-xs rounded-full flex-shrink-0 shadow-sm ${
+                              darkMode ? 'bg-gradient-to-r from-blue-500 to-blue-600 text-white' : 'bg-gradient-to-r from-blue-500 to-indigo-500 text-white'
                             }`}>
                               {contact.unreadCount}
                             </span>
                           )}
                         </div>
-                        <p className={`text-xs truncate ${
+                        <p className={`text-xs truncate font-medium ${
                           contact.isDeleted
                             ? darkMode ? 'text-gray-600' : 'text-gray-500'
                             : darkMode ? 'text-gray-400' : 'text-gray-600'
                         }`}>
                           {contact.isDeleted ? 'Deleted' : contact.lastMessage}
                         </p>
-                        <p className={`text-xs ${
+                        <p className={`text-xs font-medium ${
                           darkMode ? 'text-gray-500' : 'text-gray-500'
                         }`}>
                           {new Date(contact.lastMessageTime).toLocaleTimeString([], { 
@@ -1028,21 +1038,23 @@ const Chat: React.FC<ChatProps> = ({ darkMode, initializationData, onInitializat
           </div>
 
           {/* Chat Area */}
-          <div className={`${isMobile ? (showContactList ? 'hidden' : 'flex-1') : 'flex-1'} flex flex-col min-w-0 overflow-hidden`}>
+          <div className={`${isMobile ? (showContactList ? 'hidden' : 'flex-1') : 'flex-1'} flex flex-col min-w-0 overflow-hidden ${
+            darkMode ? 'bg-slate-800' : 'bg-white'
+          }`}>
             {/* Chat Header */}
             {selectedContact && (
-              <div className={`p-4 border-b ${
-                darkMode ? 'border-gray-700' : 'border-blue-100'
+              <div className={`p-6 border-b ${
+                darkMode ? 'border-slate-600 bg-slate-700' : 'border-gray-200 bg-white'
               }`}>
-                <div className="flex items-center gap-3">
+                <div className="flex items-center gap-4">
                   {/* Back button for mobile */}
                   {isMobile && (
                     <button
                       onClick={() => setShowContactList(true)}
-                      className={`p-2 rounded-lg transition-all duration-200 ${
+                      className={`p-3 rounded-2xl transition-all duration-300 hover:scale-105 ${
                         darkMode
-                          ? 'hover:bg-gray-700 text-gray-300'
-                          : 'hover:bg-gray-100 text-gray-600'
+                          ? 'hover:bg-slate-700 text-slate-300'
+                          : 'hover:bg-blue-100 text-blue-600'
                       }`}
                     >
                       <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -1050,21 +1062,29 @@ const Chat: React.FC<ChatProps> = ({ darkMode, initializationData, onInitializat
                       </svg>
                     </button>
                   )}
-                  <div className={`w-10 h-10 rounded-full flex items-center justify-center text-xl ${
-                    darkMode ? 'bg-gray-700' : 'bg-gray-200'
-                  }`}>
+                  <div className={`w-12 h-12 rounded-2xl flex items-center justify-center text-xl shadow-lg ${
+                    selectedContact.accountType === 'admin' 
+                      ? '' 
+                      : darkMode ? 'bg-slate-700' : 'bg-slate-100'
+                  }`} style={{
+                    background: selectedContact.accountType === 'admin' 
+                      ? '#4a6cf7' 
+                      : undefined
+                  }}>
                     {renderUserAvatar(selectedContact.accountType, 'w-6 h-6')}
                   </div>
                   <div>
-                    <h3 className={`font-semibold ${
+                    <h3 className={`font-bold text-lg ${
                       darkMode ? 'text-white' : 'text-gray-900'
                     }`}>
                       {selectedContact.name}
                     </h3>
-                    <p className={`text-sm ${
-                      darkMode ? 'text-gray-400' : 'text-gray-600'
+                    <p className={`text-sm font-medium ${
+                      selectedContact.isOnline 
+                        ? 'text-green-600' 
+                        : darkMode ? 'text-slate-400' : 'text-gray-600'
                     }`}>
-                      {selectedContact.isOnline ? 'Online' : ''}
+                      {selectedContact.isOnline ? '🟢 Online' : '⚫ Offline'}
                     </p>
                   </div>
                 </div>
@@ -1072,30 +1092,36 @@ const Chat: React.FC<ChatProps> = ({ darkMode, initializationData, onInitializat
             )}
 
             {/* Messages Area */}
-            <div className="flex-1 overflow-y-auto p-3 space-y-3">
+            <div className={`flex-1 overflow-y-auto p-6 space-y-4 ${
+              darkMode ? 'bg-slate-800' : 'bg-white'
+            }`}>
               {currentMessages.map((message) => (
                 <div
                   key={message.id}
-                  className={`flex gap-2 ${
+                  className={`flex gap-3 ${
                     message.sender === 'user' ? 'justify-end' : 'justify-start'
                   }`}
                 >
-                  <div className={`max-w-[85%] px-3 py-2 rounded-lg ${
+                  <div className={`max-w-[85%] px-4 py-3 rounded-2xl shadow-lg transition-all duration-300 hover:scale-[1.02] ${
                     message.sender === 'user'
-                      ? darkMode
-                        ? 'bg-blue-600 text-white'
-                        : 'bg-blue-500 text-white'
+                      ? 'text-white'
                       : darkMode
-                        ? 'bg-gray-700 text-white'
-                        : 'bg-gray-100 text-gray-900'
-                  }`}>
-                    <p className="text-sm break-words">{message.text}</p>
-                    <p className={`text-xs mt-1 ${
+                        ? 'bg-gradient-to-br from-green-700 to-green-800 text-white'
+                        : 'text-slate-900 border border-green-200'
+                  }`} style={{
+                    background: message.sender === 'user'
+                      ? '#4a6cf7' 
+                      : darkMode 
+                        ? undefined 
+                        : 'linear-gradient(to bottom right, #dcfce7, #bbf7d0)'
+                  }}>
+                    <p className="text-sm break-words leading-relaxed">{message.text}</p>
+                    <p className={`text-xs mt-2 font-medium ${
                       message.sender === 'user'
-                        ? 'text-blue-100'
+                        ? 'text-white/80'
                         : darkMode
-                          ? 'text-gray-400'
-                          : 'text-gray-500'
+                          ? 'text-slate-400'
+                          : 'text-slate-500'
                     }`}>
                       {new Date(message.timestamp).toLocaleTimeString([], { 
                         hour: '2-digit', 
@@ -1169,19 +1195,19 @@ const Chat: React.FC<ChatProps> = ({ darkMode, initializationData, onInitializat
                 )}
 
                 {/* Input Area */}
-                <div className={`border-t p-3 min-w-0 ${
-                  darkMode ? 'border-gray-700' : 'border-blue-100'
+                <div className={`border-t p-6 min-w-0 ${
+                  darkMode ? 'border-slate-600 bg-slate-700' : 'border-gray-200 bg-white'
                 }`}>
-                  <div className="flex gap-2 min-w-0">
+                  <div className="flex gap-3 min-w-0">
                     <textarea
                       value={inputText}
                       onChange={(e) => setInputText(e.target.value)}
                       onKeyPress={handleKeyPress}
                       placeholder="Type your message..."
-                      className={`flex-1 p-3 rounded-lg border resize-none focus:outline-none focus:ring-2 transition-all duration-200 min-w-0 ${
+                      className={`flex-1 p-4 rounded-2xl border resize-none focus:outline-none focus:ring-2 transition-all duration-300 min-w-0 shadow-sm ${
                         darkMode
-                          ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400 focus:ring-blue-500'
-                          : 'bg-white border-gray-300 text-gray-900 placeholder-gray-500 focus:ring-blue-500'
+                          ? 'bg-slate-600 border-slate-500 text-white placeholder-slate-400'
+                          : 'bg-white border-gray-300 text-slate-900 placeholder-slate-500'
                       }`}
                       rows={isMobile ? 1 : 2}
                       disabled={isLoading}
@@ -1189,20 +1215,22 @@ const Chat: React.FC<ChatProps> = ({ darkMode, initializationData, onInitializat
                     <button
                       onClick={handleSendMessage}
                       disabled={!inputText.trim() || isLoading}
-                      className={`p-3 rounded-lg transition-all duration-200 ${
+                      className={`p-4 rounded-2xl transition-all duration-300 hover:scale-105 shadow-lg ${
                         !inputText.trim() || isLoading
                           ? darkMode
-                            ? 'bg-gray-700 text-gray-500 cursor-not-allowed'
-                            : 'bg-gray-200 text-gray-400 cursor-not-allowed'
-                          : darkMode
-                            ? 'bg-blue-600 hover:bg-blue-700 text-white'
-                            : 'bg-blue-500 hover:bg-blue-600 text-white'
-                      }`}
+                            ? 'bg-slate-700 text-slate-500 cursor-not-allowed'
+                            : 'bg-slate-200 text-slate-400 cursor-not-allowed'
+                          : 'text-white'
+                      }`} style={{
+                        background: !inputText.trim() || isLoading
+                          ? undefined
+                          : '#4a6cf7'
+                      }}
                     >
                       {isLoading ? (
-                        <Loader2 className="w-4 h-4 animate-spin" />
+                        <Loader2 className="w-5 h-5 animate-spin" />
                       ) : (
-                        <Send className="w-4 h-4" />
+                        <Send className="w-5 h-5" />
                       )}
                     </button>
                   </div>
@@ -1225,13 +1253,17 @@ const Chat: React.FC<ChatProps> = ({ darkMode, initializationData, onInitializat
           {/* Modal Content */}
           <div className={`relative w-full max-w-md rounded-xl border transition-all duration-300 ${
             darkMode 
-              ? 'bg-[#40414F] border-gray-700' 
-              : 'bg-white border-gray-200'
-          }`}>
+              ? 'bg-gradient-to-br from-slate-800 to-slate-900 border-slate-600' 
+              : 'border-blue-200'
+          }`} style={{
+            background: darkMode 
+              ? undefined 
+              : 'linear-gradient(to bottom right, #ffffff, #f8fafc)'
+          }}>
             <div className="p-6">
               <div className="flex items-center gap-3 mb-4">
                 <div className={`p-3 rounded-full ${
-                  darkMode ? 'bg-red-600/20' : 'bg-red-100'
+                  darkMode ? 'bg-red-500/20' : 'bg-red-100'
                 }`}>
                   <Trash2 className={`w-6 h-6 ${
                     darkMode ? 'text-red-400' : 'text-red-500'
@@ -1239,12 +1271,12 @@ const Chat: React.FC<ChatProps> = ({ darkMode, initializationData, onInitializat
                 </div>
                 <div>
                   <h3 className={`text-lg font-semibold ${
-                    darkMode ? 'text-white' : 'text-gray-900'
+                    darkMode ? 'text-white' : 'text-slate-900'
                   }`}>
                     Delete Chat
                   </h3>
                   <p className={`text-sm ${
-                    darkMode ? 'text-gray-400' : 'text-gray-600'
+                    darkMode ? 'text-slate-400' : 'text-slate-600'
                   }`}>
                     This action cannot be undone
                   </p>
@@ -1252,7 +1284,7 @@ const Chat: React.FC<ChatProps> = ({ darkMode, initializationData, onInitializat
               </div>
               
               <p className={`mb-6 ${
-                darkMode ? 'text-gray-300' : 'text-gray-700'
+                darkMode ? 'text-slate-300' : 'text-slate-700'
               }`}>
                 Are you sure you want to delete this chat?
               </p>
@@ -1262,15 +1294,16 @@ const Chat: React.FC<ChatProps> = ({ darkMode, initializationData, onInitializat
                   onClick={cancelDelete}
                   className={`px-4 py-2 rounded-lg font-medium transition-all duration-200 ${
                     darkMode
-                      ? 'bg-gray-700 hover:bg-gray-600 text-gray-300'
-                      : 'bg-gray-100 hover:bg-gray-200 text-gray-700'
+                      ? 'bg-slate-700 hover:bg-slate-600 text-slate-300'
+                      : 'bg-blue-100 hover:bg-blue-200 text-blue-700'
                   }`}
                 >
                   Cancel
                 </button>
                 <button
                   onClick={confirmDelete}
-                  className="px-4 py-2 rounded-lg font-medium transition-all duration-200 bg-red-600 hover:bg-red-700 text-white"
+                  className="px-4 py-2 rounded-lg font-medium transition-all duration-200 text-white"
+                  style={{ background: '#ec4899' }}
                 >
                   Delete
                 </button>

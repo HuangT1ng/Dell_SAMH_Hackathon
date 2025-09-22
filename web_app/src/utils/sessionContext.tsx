@@ -27,7 +27,10 @@ interface SessionProviderProps {
   children: ReactNode;
 }
 
-const API_BASE_URL = 'http://localhost:3001';
+// Environment-aware API configuration
+const API_BASE_URL = window.location.hostname === 'localhost' 
+  ? 'http://localhost:3001' 
+  : 'https://backend-ntu.apps.innovate.sg-cna.com';
 
 export const SessionProvider: React.FC<SessionProviderProps> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);

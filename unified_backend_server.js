@@ -16,7 +16,16 @@ const PORT = 3001; // Single backend port
 
 // Middleware
 app.use(cors({
-  origin: ['http://localhost:5173', 'http://localhost:5174'],
+  origin: [
+    'http://localhost:5173', 
+    'http://localhost:5174', 
+    'http://localhost:8080', 
+    'http://localhost:8081', 
+    'http://samh-webapp-service:80', 
+    'http://samh-dashboard-service:80',
+    'https://webapp-ntu.apps.innovate.sg-cna.com',
+    'https://dashboard-ntu.apps.innovate.sg-cna.com'
+  ],
   credentials: true
 }));
 app.use(express.json());
@@ -1296,6 +1305,7 @@ ${conversationHistory}
 
 Respond with ONLY 3 lines, each containing one suggestion. No explanations, no reasoning, just the 3 suggestions.`;
 
+
   // Add randomness for force refresh to get different responses
   const randomTemp = forceRefresh ? (0.7 + Math.random() * 0.3).toFixed(2) : '0.5'; // 0.7-1.0 for force refresh
   const randomTopP = forceRefresh ? (0.8 + Math.random() * 0.2).toFixed(2) : '0.7'; // 0.8-1.0 for force refresh
@@ -1304,104 +1314,51 @@ Respond with ONLY 3 lines, each containing one suggestion. No explanations, no r
     console.log(`🎲 [NVIDIA NIMs] Using randomized parameters: temp=${randomTemp}, top_p=${randomTopP}`);
   }
   
-  // Call the Python chatbot service
-  console.log(`🐍 [NVIDIA NIMs] Spawning Python process for conversation ${conversationId}`);
-  const pythonProcess = spawn('python3', [
-    path.join(__dirname, 'chatbot', 'main.py'),
-    '--prompt', prompt,
-    '--max-tokens', '100',
-    '--temperature', randomTemp,
-    '--top-p', randomTopP
-  ]);
+  // Call the chatbot service via HTTP
+  console.log(`🐍 [NVIDIA NIMs] Calling chatbot service for conversation ${conversationId}`);
+  
+  const chatbotUrl = process.env.CHATBOT_SERVICE_URL || 
+    (process.env.NODE_ENV === 'production' ? 'https://chatbot-ntu.apps.innovate.sg-cna.com' : 'http://localhost:8000');
+  const requestBody = {
+    prompt: prompt,
+    max_tokens: 100,
+    temperature: parseFloat(randomTemp),
+    top_p: parseFloat(randomTopP)
+  };
+  
+  fetch(`${chatbotUrl}/generate`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(requestBody)
+  }).then(response => {
+    if (!response.ok) {
+      throw new Error(`Chatbot service error: ${response.status}`);
+    }
+    return response.text();
+  }).then(output => {
+    console.log(`📤 [NVIDIA NIMs] Chatbot response: ${output.trim()}`);
     
-    let output = '';
-    let errorOutput = '';
+    // Parse the response and extract suggestions
+    const suggestions = output.trim().split('\n').filter(line => line.trim()).slice(0, 3);
     
-    pythonProcess.stdout.on('data', (data) => {
-      output += data.toString();
-      console.log(`📤 [NVIDIA NIMs] Python stdout: ${data.toString().trim()}`);
-    });
+    if (suggestions.length === 0) {
+      throw new Error('No suggestions generated');
+    }
     
-    pythonProcess.stderr.on('data', (data) => {
-      errorOutput += data.toString();
-      console.log(`⚠️ [NVIDIA NIMs] Python stderr: ${data.toString().trim()}`);
-    });
-    
-    pythonProcess.on('close', (code) => {
-      console.log(`🏁 [NVIDIA NIMs] Python process completed with code ${code} for conversation ${conversationId}`);
-      
-      if (code === 0) {
-        console.log(`✅ [NVIDIA NIMs] Successfully received response from NVIDIA API`);
-        console.log(`📝 [NVIDIA NIMs] Raw output: ${output.trim()}`);
-        
-        // Parse the output to extract 3 suggestions
-        let suggestions = [];
-        
-        // Try to extract suggestions from the output
-        const lines = output.trim().split('\n').filter(line => line.trim());
-        
-        // Look for numbered suggestions (1., 2., 3.) or quoted suggestions
-        for (const line of lines) {
-          const trimmed = line.trim();
-          // Look for numbered items or quoted text
-          if (trimmed.match(/^\d+\.\s*["']?/) || trimmed.match(/^["']/)) {
-            // Remove numbering and quotes
-            let suggestion = trimmed.replace(/^\d+\.\s*/, '').replace(/^["']|["']$/g, '');
-            if (suggestion.length > 5 && suggestion.length < 100) {
-              suggestions.push(suggestion);
-            }
-          }
-        }
-        
-        // If we don't have enough suggestions, try to extract from the end of the output
-        if (suggestions.length < 3) {
-          const lastLines = lines.slice(-3);
-          suggestions = lastLines.filter(line => {
-            const trimmed = line.trim();
-            return trimmed.length > 5 && trimmed.length < 100 && !trimmed.match(/^(Here are|Certainly|I'm here)/i);
-          }).slice(0, 3);
-        }
-        
-        // Ensure we have exactly 3 suggestions
-        while (suggestions.length < 3) {
-          suggestions.push('How can I help you today?');
-        }
-        
-        console.log(`🎯 [NVIDIA NIMs] Final suggestions for conversation ${conversationId}:`, suggestions);
-        
-        // Cache the results
-        quickMessageCache.set(cacheKey, {
-          suggestions,
-          timestamp: now
-        });
-        
-        res.json({ suggestions });
-      } else {
-        console.error(`❌ [NVIDIA NIMs] Python process failed with code ${code}:`, errorOutput);
-        // Fallback to default suggestions
-        res.json({ 
-          suggestions: [
-            'How are you feeling today?',
-            'I\'m here to listen and support you.',
-            'Would you like to talk about what\'s on your mind?'
-          ]
-        });
-      }
-    });
-    
-    // Set timeout for the Python process
-    setTimeout(() => {
-      pythonProcess.kill();
-      if (!res.headersSent) {
-        res.json({ 
-          suggestions: [
-            'How are you feeling today?',
-            'I\'m here to listen and support you.',
-            'Would you like to talk about what\'s on your mind?'
-          ]
-        });
-      }
-    }, 10000); // 10 second timeout
+    console.log(`✅ [NVIDIA NIMs] Generated ${suggestions.length} suggestions for conversation ${conversationId}`);
+    res.json({ suggestions });
+  }).catch(error => {
+    console.error(`❌ [NVIDIA NIMs] Error calling chatbot service:`, error);
+    // Fallback to default suggestions
+    const fallbackSuggestions = [
+      "How are you feeling today?",
+      "I'm here to listen and support you.",
+      "Would you like to talk about what's on your mind?"
+    ];
+    res.json({ suggestions: fallbackSuggestions });
+  });
     
   } catch (error) {
     console.error('Error generating quick messages:', error);
@@ -1641,8 +1598,8 @@ app.get('/api/stats', (req, res) => {
 // Initialize database and start server
 initializeDatabase();
 
-app.listen(PORT, () => {
-  console.log(`🚀 Unified Backend Server running on http://localhost:${PORT}`);
+app.listen(PORT, '0.0.0.0', () => {
+  console.log(`🚀 Unified Backend Server running on http://0.0.0.0:${PORT}`);
   console.log('📊 Database initialized');
   console.log('🔗 Available endpoints:');
   console.log(`   GET  http://localhost:${PORT}/api/mental-health-posts`);

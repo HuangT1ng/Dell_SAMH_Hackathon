@@ -16,7 +16,9 @@ export interface ScrapperData {
 }
 
 class DatabaseManager {
-  private baseUrl: string = 'http://localhost:3001/api';
+  private baseUrl: string = window.location.hostname === 'localhost' 
+    ? 'http://localhost:3001/api' 
+    : 'https://backend-ntu.apps.innovate.sg-cna.com/api';
 
   async getAllData(): Promise<ScrapperData[]> {
     try {

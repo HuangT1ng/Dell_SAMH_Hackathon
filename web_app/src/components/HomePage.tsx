@@ -1,205 +1,253 @@
-import React from 'react';
-import { Brain, ArrowRight, Star, Mail, Phone } from 'lucide-react';
+import React from "react";
+import {
+  Brain,
+  Search,
+  Gamepad2,
+  BookOpen,
+  Users,
+  ShieldCheck,
+} from "lucide-react";
+
+// Import images
+import KAIPhoneApp from "../Assets/KAIPhoneApp.png";
+import TeenIdentification from "../Assets/TeenIdentification.png";
+import ResponseCoach from "../Assets/ResponseCoach.png";
+import ResilienceGames from "../Assets/ResilienceGames.png";
+import CommunityJournal from "../Assets/CommunityJournal.png";
+import Community from "../Assets/Community.png";
 
 interface HomePageProps {
   darkMode: boolean;
 }
 
-const HomePage: React.FC<HomePageProps> = ({ darkMode }) => {
-  const services = [
-    {
-      title: 'Individual Therapy',
-      description: 'Personalized one-on-one sessions tailored to your specific needs and goals.',
-    },
-    {
-      title: 'Group Therapy',
-      description: 'Connect with others facing similar challenges in a supportive group environment.',
-    },
-    {
-      title: 'Mood Analytics',
-      description: 'Track and analyze your emotional patterns with advanced data insights.',
-    },
-    {
-      title: 'Crisis Support',
-      description: '24/7 emergency mental health support when you need it most.',
-    }
-  ];
+const PALETTE = {
+  blue: "#4a6cf7",
+  pink: "#ec4899",
+  orange: "#fb923c",
+  yellow: "#facc15",
+  green: "#34d399",
+  slate: "#64748b",
+};
 
-  const expertise = [
-    'Anxiety & Depression',
-    'Trauma & PTSD',
-    'Relationship Issues',
-    'Stress Management',
-    'Behavioral Therapy',
-    'Mindfulness & Meditation'
+const HomePage: React.FC<HomePageProps> = ({ darkMode }) => {
+  const textStrong = darkMode ? "text-white" : "text-slate-900";
+  const textSoft = darkMode ? "text-slate-200" : "text-slate-600";
+  const border = darkMode ? "border-slate-700" : "border-slate-200";
+  const ring = darkMode ? "ring-white/10" : "ring-slate-200";
+
+  const modules = [
+    {
+      title: "Smart Outreach",
+      desc:
+        "Responsible web intelligence to surface teens who may be outside traditional systems.",
+      icon: Search,
+      image: TeenIdentification,
+      tag: "AI Discovery",
+      color: PALETTE.blue,
+    },
+    {
+      title: "Personalized Guidance",
+      desc:
+        "Memory-aware tips and nudges tailored to each teen's journey.",
+      icon: Brain,
+      image: ResponseCoach,
+      tag: "RAG Engine",
+      color: PALETTE.pink,
+    },
+    {
+      title: "Coping Micro-Games",
+      desc:
+        "2–3 minute scenario games that build real self-regulation skills.",
+      icon: Gamepad2,
+      image: ResilienceGames,
+      tag: "Play to Learn",
+      color: PALETTE.orange,
+    },
+    {
+      title: "Mood Diary & Insights",
+      desc:
+        "Private journaling with gentle prompts and clear mood trends.",
+      icon: BookOpen,
+      image: CommunityJournal,
+      tag: "Private by Default",
+      color: PALETTE.yellow,
+    },
+    {
+      title: "Community & Events",
+      desc:
+        "Moderated groups, local events, and a light rewards loop.",
+      icon: Users,
+      image: Community,
+      tag: "Safe Social",
+      color: PALETTE.green,
+    },
+    {
+      title: "Safety & Compliance",
+      desc:
+        "RBAC, data minimization, audit trails, and PDPA-ready connectors.",
+      icon: ShieldCheck,
+      tag: "Trust",
+      color: PALETTE.slate,
+    },
   ];
 
   return (
-    <div className={`${
-      darkMode 
-        ? 'bg-gradient-to-br from-slate-900 via-slate-800 to-slate-700' 
-        : 'bg-white'
-    } rounded-xl p-4 shadow-lg border ${
-      darkMode ? 'border-slate-700' : 'border-gray-200'
-    }`}>
-      {/* Main Content */}
-      <div className="space-y-6">
-        {/* Hero Section */}
-        <div className="text-center space-y-4">
-          <div className={`w-24 h-24 rounded-full flex items-center justify-center shadow-xl mx-auto ${
-            darkMode 
-              ? 'bg-gradient-to-br from-slate-600 to-slate-700' 
-              : ''
-          }`} style={{ backgroundColor: darkMode ? undefined : '#4a6cf7' }}>
-            <Brain className="w-12 h-12 text-white" />
+    <div
+      className={`${
+        darkMode
+          ? "bg-gradient-to-br from-slate-900 via-slate-850 to-slate-800"
+          : "bg-gradient-to-br from-blue-50 via-white to-pink-50"
+      } min-h-screen`}
+    >
+      <main className="mx-auto max-w-7xl px-6 py-12">
+        {/* ===== HERO (Modern Design) ===== */}
+        <section className="grid grid-cols-1 gap-12 lg:grid-cols-2 items-center">
+          {/* Phone mock / visual block */}
+          <div className="relative">
+            {/* Background decorative elements */}
+            <div className="absolute -top-4 -left-4 w-24 h-24 rounded-full opacity-20" style={{ backgroundColor: PALETTE.blue }}></div>
+            <div className="absolute -bottom-4 -right-4 w-32 h-32 rounded-full opacity-20" style={{ backgroundColor: PALETTE.pink }}></div>
+            <div className="absolute top-1/2 -right-8 w-16 h-16 rounded-full opacity-20" style={{ backgroundColor: PALETTE.orange }}></div>
+            
+            <div
+              className={`relative w-full h-[600px] rounded-3xl overflow-hidden shadow-2xl border-2 ${
+                darkMode ? 'border-slate-700' : 'border-white/50'
+              }`}
+              style={{ 
+                background: darkMode 
+                  ? 'linear-gradient(135deg, #1e293b 0%, #334155 100%)'
+                  : 'linear-gradient(135deg, #ffffff 0%, #f8fafc 100%)'
+              }}
+            >
+              {/* phone with actual app image */}
+              <div className="relative h-full w-full grid place-items-center">
+                <div className="relative h-[540px] w-[270px] rounded-[40px] shadow-2xl ring-2 ring-white/20 overflow-hidden">
+                  <img 
+                    src={KAIPhoneApp} 
+                    alt="K.AI Phone App" 
+                    className="w-full h-full object-cover rounded-[40px]"
+                  />
+                </div>
+              </div>
+            </div>
           </div>
-          
-          <div>
-            <h1 className={`text-3xl font-light mb-2 ${
-              darkMode ? 'text-white' : 'text-slate-800'
-            }`}>
-              SAMH Platform
-            </h1>
-            <div className={`w-16 h-px mx-auto ${
-              darkMode ? 'bg-slate-400' : 'bg-slate-500'
-            } mb-4`}></div>
-            <p className={`text-lg font-light ${
-              darkMode ? 'text-slate-300' : 'text-slate-600'
-            }`}>
-              Mental Health Support
+
+          {/* Copy */}
+          <div className="flex flex-col justify-center space-y-6">
+            <div className="space-y-2">
+              <h1 className={`text-5xl md:text-7xl font-bold bg-gradient-to-r ${darkMode ? 'from-white to-slate-300' : 'from-slate-900 to-slate-600'} bg-clip-text text-transparent`}>
+                K.AI
+              </h1>
+              <h2 className={`text-3xl md:text-5xl font-semibold ${textStrong}`}>
+                Teen Resilience Platform
+              </h2>
+            </div>
+            
+            <p className={`text-xl leading-relaxed ${textSoft} max-w-lg`}>
+              K.AI helps teens build coping skills, keep a private mood diary,
+              and find safe community connections — in a single, privacy-first app.
+              Built for Singapore youth and partners who support them.
+            </p>
+
+            <div className="flex flex-wrap gap-3">
+              <span
+                className="inline-flex items-center rounded-full px-4 py-2 text-sm font-semibold shadow-lg hover:scale-105 transition-transform"
+                style={{ backgroundColor: PALETTE.blue, color: 'white' }}
+              >
+                Youth-first UX
+              </span>
+              <span
+                className="inline-flex items-center rounded-full px-4 py-2 text-sm font-semibold shadow-lg hover:scale-105 transition-transform"
+                style={{ backgroundColor: PALETTE.pink, color: 'white' }}
+              >
+                Memory-aware RAG
+              </span>
+              <span
+                className="inline-flex items-center rounded-full px-4 py-2 text-sm font-semibold shadow-lg hover:scale-105 transition-transform"
+                style={{ backgroundColor: PALETTE.orange, color: 'white' }}
+              >
+                Micro-games
+              </span>
+              <span
+                className="inline-flex items-center rounded-full px-4 py-2 text-sm font-semibold shadow-lg hover:scale-105 transition-transform"
+                style={{ backgroundColor: PALETTE.yellow, color: 'black' }}
+              >
+                Private by default
+              </span>
+            </div>
+          </div>
+        </section>
+
+        {/* ===== FEATURES (Modern Cards) ===== */}
+        <section id="features" className="mt-20 md:mt-32">
+          <div className="text-center mb-16">
+            <h3 className={`text-4xl md:text-5xl font-bold ${textStrong} mb-4`}>
+              Features
+            </h3>
+            <p className={`text-xl ${textSoft} max-w-2xl mx-auto`}>
+              Comprehensive tools designed to support teen mental health and resilience
             </p>
           </div>
-        </div>
 
-        <div className="space-y-4">
-          <p className={`text-base leading-relaxed ${
-            darkMode ? 'text-slate-300' : 'text-slate-600'
-          }`}>
-            A dedicated mental health platform committed to helping you navigate life's challenges. 
-            With evidence-based therapeutic techniques and compassionate understanding, 
-            we provide personalized care that honors your unique journey.
-          </p>
-        </div>
-
-        <div className="flex flex-col gap-3">
-          <button className="text-white px-6 py-3 rounded-xl font-medium hover:shadow-lg transition-all duration-300 flex items-center justify-center gap-2" style={{ backgroundColor: '#4a6cf7' }}>
-            Get Started
-            <ArrowRight className="w-4 h-4" />
-          </button>
-          <button className={`px-6 py-3 rounded-xl font-medium border-2 transition-all duration-300 ${
-            darkMode 
-              ? 'border-slate-600 text-slate-300 hover:bg-slate-800' 
-              : 'border-gray-300 text-slate-700 hover:bg-gray-50'
-          }`}>
-            Learn More
-          </button>
-        </div>
-      </div>
-
-        {/* Services Section */}
-        <div className="mt-8">
-          <h2 className={`text-2xl font-light text-center mb-6 ${
-            darkMode ? 'text-white' : 'text-slate-800'
-          }`}>
-            Services
-          </h2>
-          <div className="space-y-4">
-            {services.map((service, index) => (
-              <div key={index} className={`p-4 rounded-xl transition-all duration-300 ${
-                darkMode 
-                  ? 'bg-slate-800/50 border border-slate-700' 
-                  : 'bg-gray-50 border border-gray-200'
-              }`}>
-                <h3 className={`text-lg font-medium mb-2 ${
-                  darkMode ? 'text-white' : 'text-slate-800'
-                }`}>
-                  {service.title}
-                </h3>
-                <p className={`text-sm leading-relaxed ${
-                  darkMode ? 'text-slate-300' : 'text-slate-600'
-                }`}>
-                  {service.description}
-                </p>
-              </div>
-            ))}
+          <div className="grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-3">
+            {modules.map((m, idx) => {
+              const Icon = m.icon;
+              return (
+                <article
+                  key={idx}
+                  className={`group relative rounded-3xl p-8 transition-all duration-500 hover:scale-105 hover:shadow-2xl ${
+                    darkMode
+                      ? "bg-gradient-to-br from-slate-800/80 to-slate-900/80 border border-slate-700/50 backdrop-blur-sm"
+                      : "bg-gradient-to-br from-white/90 to-white/70 border border-white/50 backdrop-blur-sm shadow-xl"
+                  }`}
+                  style={{
+                    background: darkMode 
+                      ? `linear-gradient(135deg, rgba(30, 41, 59, 0.8) 0%, rgba(15, 23, 42, 0.8) 100%)`
+                      : `linear-gradient(135deg, rgba(255, 255, 255, 0.9) 0%, rgba(255, 255, 255, 0.7) 100%)`
+                  }}
+                >
+                  {/* Decorative gradient overlay */}
+                  <div 
+                    className="absolute inset-0 rounded-3xl opacity-10 group-hover:opacity-20 transition-opacity duration-500"
+                    style={{ 
+                      background: `linear-gradient(135deg, ${m.color}20 0%, ${m.color}40 100%)`
+                    }}
+                  ></div>
+                  
+                  <div className="relative z-10">
+                    <div className="flex items-center gap-4 mb-6">
+                      <div
+                        className="grid h-16 w-16 place-items-center rounded-2xl shadow-lg group-hover:scale-110 transition-transform duration-300"
+                        style={{ backgroundColor: m.color }}
+                      >
+                        <Icon className="h-8 w-8 text-white" />
+                      </div>
+                      <h4 className={`text-2xl font-bold ${textStrong}`}>
+                        {m.title}
+                      </h4>
+                    </div>
+                    
+                    <p className={`text-lg leading-relaxed ${textSoft} mb-6`}>{m.desc}</p>
+                    
+                    {/* Feature image */}
+                    {m.image && (
+                      <div className="rounded-2xl overflow-hidden shadow-lg group-hover:shadow-xl transition-shadow duration-300">
+                        <img 
+                          src={m.image} 
+                          alt={m.title}
+                          className="w-full h-auto object-contain group-hover:scale-105 transition-transform duration-500"
+                        />
+                      </div>
+                    )}
+                  </div>
+                </article>
+              );
+            })}
           </div>
-        </div>
-
-        {/* Areas of Expertise */}
-        <div className="mt-8">
-          <h2 className={`text-2xl font-light text-center mb-6 ${
-            darkMode ? 'text-white' : 'text-slate-800'
-          }`}>
-            Areas of Expertise
-          </h2>
-          <div className="grid grid-cols-2 gap-3">
-            {expertise.map((area, index) => (
-              <div key={index} className={`p-3 rounded-lg text-center transition-all duration-300 ${
-                darkMode 
-                  ? 'bg-slate-800/30 border border-slate-700' 
-                  : 'bg-gray-50 border border-gray-200'
-              }`}>
-                <p className={`text-sm font-medium ${
-                  darkMode ? 'text-slate-300' : 'text-slate-700'
-                }`}>
-                  {area}
-                </p>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* Contact Section */}
-        <div className={`mt-8 p-6 rounded-xl text-center ${
-          darkMode 
-            ? 'bg-gradient-to-r from-slate-800/50 to-slate-700/50 border border-slate-700' 
-            : 'bg-gradient-to-r from-gray-50 to-gray-100 border border-gray-200'
-        }`}>
-          <h2 className={`text-2xl font-light mb-4 ${
-            darkMode ? 'text-white' : 'text-slate-800'
-          }`}>
-            Ready to Begin?
-          </h2>
-          <p className={`text-base mb-6 ${
-            darkMode ? 'text-slate-300' : 'text-slate-600'
-          }`}>
-            Take the first step towards better mental health with compassionate, professional care.
-          </p>
-          <div className="flex flex-col gap-3 mb-6">
-            <button className="text-white px-6 py-3 rounded-xl font-medium hover:shadow-lg transition-all duration-300 flex items-center justify-center gap-2" style={{ backgroundColor: '#4a6cf7' }}>
-              <Star className="w-4 h-4" />
-              Start Your Journey
-            </button>
-            <button className={`px-6 py-3 rounded-xl font-medium border-2 transition-all duration-300 ${
-              darkMode 
-                ? 'border-slate-600 text-slate-300 hover:bg-slate-800' 
-                : 'border-gray-300 text-slate-700 hover:bg-gray-50'
-            }`}>
-              View Resources
-            </button>
-          </div>
-          
-          {/* Contact Info */}
-          <div className="space-y-3">
-            <div className="flex items-center justify-center gap-2">
-              <Mail className={`w-4 h-4 ${darkMode ? 'text-slate-300' : 'text-slate-600'}`} />
-              <span className={`text-sm ${darkMode ? 'text-slate-300' : 'text-slate-600'}`}>
-                contact@samhplatform.com
-              </span>
-            </div>
-            <div className="flex items-center justify-center gap-2">
-              <Phone className={`w-4 h-4 ${darkMode ? 'text-slate-300' : 'text-slate-600'}`} />
-              <span className={`text-sm ${darkMode ? 'text-slate-300' : 'text-slate-600'}`}>
-                (555) 123-4567
-              </span>
-            </div>
-          </div>
-        </div>
-      </div>
+        </section>
+      </main>
+    </div>
   );
 };
 
 export default HomePage;
-
-
-
