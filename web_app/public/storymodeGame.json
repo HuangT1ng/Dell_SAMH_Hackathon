@@ -1,0 +1,198 @@
+{
+    "intro": "The labyrinth rises around you — a shifting place of fire and moonlight, born of your own mind. Two gates stand before you: one blazing with flame, the other glowing under silver light. Whichever you choose will shape your journey.",
+    "options": {
+      "1a_FireGate": "Enter the Fire Gate (⚔️): Step into courage and face what comes head-on.",
+      "1b_MoonGate": "Enter the Moon Gate (🌙): Step into reflection, searching for clarity before action."
+    },
+    "1a_FireGate": {
+      "narration": "You step into the Fire Gate. Heat swirls around you, not to burn but to test your spirit. The air is heavy with trial, as though the labyrinth itself dares you to stand tall.",
+      "options": {
+        "2a": "Walk into the Ember Plains, where courage is tested by flame.",
+        "2b": "Step into the Ashen Arena, where shadows rise to challenge you."
+      },
+      "2a": {
+        "scene": "The Ember Plains",
+        "narration": "A scorched horizon stretches before you. Flames whisper the names of those who once stood here, their courage lingering in the air like embers.",
+        "options": {
+          "3a": "Face the Trial of Blades, where fears fall from the sky.",
+          "3b": "Cross the Burning Bridge, trembling above a pit of ash."
+        },
+        "3a": {
+          "scene": "Trial of Blades",
+          "narration": "Swords of fire descend from above, each forged from your unspoken fears. They fall in rhythm, daring you to stand your ground.",
+          "options": {
+            "4a": "Catch the blades, proving your strength.",
+            "4b": "Dodge between the blades, proving your agility."
+          },
+          "4a": {
+            "ending": "You catch the final blade, its fire dissolving in your grip. The plains bow before you.",
+            "insight": "You face fear head-on, and strength grows in your hands.",
+            "closing": "The labyrinth fades, leaving you steadier than before — a flame that no storm can snuff out."
+          },
+          "4b": {
+            "ending": "You weave between the falling swords, swift and cunning. The fire yields to your agility.",
+            "insight": "You survive storms not by force, but by adaptability.",
+            "closing": "The labyrinth fades, but its echoes remind you: quickness of mind is a shield as strong as any blade."
+          }
+        },
+        "3b": {
+          "scene": "The Burning Bridge",
+          "narration": "A trembling bridge of flame spans a pit of ash. Each plank flickers, daring you to trust it or rebuild it anew.",
+          "options": {
+            "4a": "Run across before the fire consumes it.",
+            "4b": "Rebuild and bind the bridge before crossing."
+          },
+          "4a": {
+            "ending": "You run fast, the bridge roaring but holding.",
+            "insight": "Decisiveness is your gift — you leap before fear can catch you.",
+            "closing": "The labyrinth fades, but its echo whispers: swiftness and courage carve their own path."
+          },
+          "4b": {
+            "ending": "You kneel and bind the planks with fire itself. The bridge steadies.",
+            "insight": "Your patience creates safe passage, even in chaos.",
+            "closing": "The labyrinth fades, leaving you with the reminder that care and time build bridges stronger than fire."
+          }
+        }
+      },
+      "2b": {
+        "scene": "The Ashen Arena",
+        "narration": "A circle of blackened earth opens wide. From the smoke rises a figure — your own shadow, eyes burning with defiance.",
+        "options": {
+          "3a": "Duel your shadow in the Duel of Echoes.",
+          "3b": "Enter the Inferno Maze of shifting flames."
+        },
+        "3a": {
+          "scene": "The Duel of Echoes",
+          "narration": "Your shadow moves with your every step, a perfect reflection waiting to test you in battle.",
+          "options": {
+            "4a": "Embrace your shadow, merging into one.",
+            "4b": "Strike it down and walk away."
+          },
+          "4a": {
+            "ending": "You embrace the shadow, merging into one.",
+            "insight": "You grow by accepting every side of yourself, even the darker parts.",
+            "closing": "The labyrinth fades, but the union of shadow and light remains within you."
+          },
+          "4b": {
+            "ending": "You strike the shadow down, scattering it to ash.",
+            "insight": "You thrive by drawing boundaries, refusing to let fear define you.",
+            "closing": "The labyrinth fades, and you walk on, unchained from the weight of shadows."
+          }
+        },
+        "3b": {
+          "scene": "The Inferno Maze",
+          "narration": "Walls of fire shift endlessly, trapping you in a twisting labyrinth. The path ahead flickers and fades like memory.",
+          "options": {
+            "4a": "Walk calmly, letting the fire guide you.",
+            "4b": "Force a new path through the flames."
+          },
+          "4a": {
+            "ending": "You walk calmly, letting the fire guide you.",
+            "insight": "You find peace by surrendering control, trusting the flow.",
+            "closing": "The labyrinth fades, leaving you lighter — a traveler who can walk through fire unshaken."
+          },
+          "4b": {
+            "ending": "You carve a new path through flame with raw will.",
+            "insight": "Obstacles bend when you meet them with determination.",
+            "closing": "The labyrinth fades, but its embers burn on — a reminder of your relentless strength."
+          }
+        }
+      }
+    },
+    "1b_MoonGate": {
+      "narration": "You step into the Moon Gate. Cool silver light softens the air, and silence gathers around you. Here the labyrinth tests not your fire, but your reflection.",
+      "options": {
+        "2a": "Walk to the Whispering Lake, where voices ripple on water.",
+        "2b": "Enter the Twilight Garden, blooming with memory."
+      },
+      "2a": {
+        "scene": "The Whispering Lake",
+        "narration": "A still lake stretches beneath a velvet sky. Whispers ripple across the surface, tugging at your thoughts like unseen hands.",
+        "options": {
+          "3a": "Face the Chorus Beneath, where voices rise from the lake.",
+          "3b": "Step into the Silver Boat waiting at the shore."
+        },
+        "3a": {
+          "scene": "The Chorus Beneath",
+          "narration": "Figures of water rise, voices echoing every doubt you’ve buried and every dream you’ve hidden.",
+          "options": {
+            "4a": "Sing with them, weaving your voice into theirs.",
+            "4b": "Silence them with your command."
+          },
+          "4a": {
+            "ending": "You sing with them, weaving doubt into harmony.",
+            "insight": "You heal by listening deeply, turning criticism into growth.",
+            "closing": "The labyrinth fades, but the harmony of your voice lingers in the stillness."
+          },
+          "4b": {
+            "ending": "You silence them with a gesture, the lake stills.",
+            "insight": "You thrive by trusting your own compass above all else.",
+            "closing": "The labyrinth fades, leaving only the quiet certainty of your own path."
+          }
+        },
+        "3b": {
+          "scene": "The Silver Boat",
+          "narration": "A fragile boat glimmers at the shore, waiting. The waters ahead stretch endlessly into moonlight.",
+          "options": {
+            "4a": "Drift with the current, letting it carry you.",
+            "4b": "Row hard into the waters, steering your fate."
+          },
+          "4a": {
+            "ending": "You drift, letting the current decide your path.",
+            "insight": "Patience guides you — you trust time to reveal the way.",
+            "closing": "The labyrinth fades, and the current within you still flows steady and calm."
+          },
+          "4b": {
+            "ending": "You seize the oar and row hard into the unknown.",
+            "insight": "You act with purpose, shaping reflection into direction.",
+            "closing": "The labyrinth fades, but your steady strokes ripple far into tomorrow."
+          }
+        }
+      },
+      "2b": {
+        "scene": "The Twilight Garden",
+        "narration": "Moonflowers bloom in the stillness, each petal glowing faintly. Their fragrance carries fragments of forgotten memories.",
+        "options": {
+          "3a": "Approach the Tree of Memory, heavy with glowing fruit.",
+          "3b": "Walk to the Silent Fountain, reflecting futures untold."
+        },
+        "3a": {
+          "scene": "The Tree of Memory",
+          "narration": "A great tree rises, its branches heavy with glowing fruit. Each one pulses with the light of a memory you once lived.",
+          "options": {
+            "4a": "Taste the fruit and relive the memory.",
+            "4b": "Bow and walk away, leaving the fruit untouched."
+          },
+          "4a": {
+            "ending": "You taste the fruit, reliving the memory whole.",
+            "insight": "Your strength comes from revisiting the past and carrying its lessons.",
+            "closing": "The labyrinth fades, but the sweetness of remembered lessons lingers on your tongue."
+          },
+          "4b": {
+            "ending": "You bow and walk away, leaving the fruit untouched.",
+            "insight": "You honor the past but do not let it bind you.",
+            "closing": "The labyrinth fades, and the tree’s glow remains behind you — a memory respected, not a chain."
+          }
+        },
+        "3b": {
+          "scene": "The Silent Fountain",
+          "narration": "A fountain trickles silver water, yet makes no sound. In its surface you see a thousand possible futures.",
+          "options": {
+            "4a": "Step into the fountain, embracing uncertainty.",
+            "4b": "Bottle the water, carrying it forward."
+          },
+          "4a": {
+            "ending": "You step into the fountain, surrendering to the unknown.",
+            "insight": "You find calm even in uncertainty.",
+            "closing": "The labyrinth fades, but its waters remind you: the unknown can also be a place of peace."
+          },
+          "4b": {
+            "ending": "You bottle the silver water, carrying it forward.",
+            "insight": "You move wisely, preparing for the future with hope in your hands.",
+            "closing": "The labyrinth fades, leaving you with a vessel of promise, ready for what lies ahead."
+          }
+        }
+      }
+    }
+  }
+  

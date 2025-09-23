@@ -26,6 +26,7 @@ function AppContent() {
   });
   const [isMobile, setIsMobile] = useState(false);
   const [showNav, setShowNav] = useState(true);
+  const [isJournalSetup, setIsJournalSetup] = useState(false);
 
   // Detect screen size for responsive navigation
   useEffect(() => {
@@ -60,6 +61,44 @@ function AppContent() {
     loadMoodEntries();
   }, []);
 
+  // Check if user has journal preferences set up
+  useEffect(() => {
+    const checkJournalSetup = async () => {
+      if (user?.username) {
+        try {
+          const API_BASE_URL = window.location.hostname === 'localhost' 
+            ? 'http://localhost:3001' 
+            : 'https://backend-ntu.apps.innovate.sg-cna.com';
+          
+          const response = await fetch(`${API_BASE_URL}/api/users/${user.username}/journal-preferences`);
+          if (response.ok) {
+            const data = await response.json();
+            // Check if user has more than just the default mood preference
+            const hasCustomSetup = data.preferences && data.preferences.length > 0 && 
+              !(data.preferences.length === 1 && data.preferences[0] === 'mood');
+            setIsJournalSetup(hasCustomSetup);
+            console.log(`🔍 Preferences check: ${JSON.stringify(data.preferences)}, hasCustomSetup: ${hasCustomSetup}`);
+            console.log(`✅ Journal setup check: ${user.username} - ${hasCustomSetup ? 'Custom setup' : 'Default setup'}`);
+          } else if (response.status === 404) {
+            // User doesn't exist or has no preferences, show setup
+            setIsJournalSetup(false);
+            console.log(`✅ Journal setup check: ${user.username} - No preferences found, showing setup`);
+          } else {
+            // Any other error, default to showing setup
+            setIsJournalSetup(false);
+            console.log(`✅ Journal setup check: ${user.username} - Error response, showing setup`);
+          }
+        } catch (error) {
+          console.warn('⚠️ Failed to check journal setup status:', error);
+          // Default to showing setup if check fails
+          setIsJournalSetup(false);
+        }
+      }
+    };
+
+    checkJournalSetup();
+  }, [user?.username]);
+
   const saveEntry = async (entry: Omit<MoodEntry, 'id' | 'timestamp'>) => {
     const newEntry: MoodEntry = {
       ...entry,
@@ -81,6 +120,11 @@ function AppContent() {
       const updatedEntries = [newEntry, ...entries];
       setEntries(updatedEntries);
       localStorage.setItem('moodEntries', JSON.stringify(updatedEntries));
+    }
+
+    // If this is a journal setup completion, refresh the setup status
+    if (entry.notes?.includes('Journal setup completed')) {
+      setIsJournalSetup(true);
     }
   };
 
@@ -134,92 +178,95 @@ function AppContent() {
         ? 'bg-[#343541] text-white' 
         : 'text-slate-800'
     }`} style={{ backgroundColor: darkMode ? undefined : '#f1efef' }}>
-      {/* Header */}
-      <header className={`border-b transition-colors duration-300 ${
-        darkMode 
-          ? 'bg-[#40414F] border-gray-700' 
-          : 'bg-white border-gray-200'
-      }`}>
-        <div className="px-6 py-4">
-          <div className="flex justify-between items-center">
-            <div className="flex items-center gap-4">
-              <img 
-                src={KAILogo} 
-                alt="KAI Logo" 
-                className="w-12 h-12 object-contain"
-              />
-              <div className="flex flex-col">
-                <span className={`text-2xl font-bold ${
-                  darkMode ? 'text-white' : 'text-slate-800'
-                }`}>
-                  KAI
-                </span>
-                <span className={`text-sm ${
-                  darkMode ? 'text-gray-400' : 'text-slate-500'
-                }`}>
-                  {user?.username} ({user?.accountType})
-                </span>
+      {/* Header - Hidden on mood page */}
+      {currentView !== 'mood' && (
+        <header className={`border-b transition-colors duration-300 ${
+          darkMode 
+            ? 'bg-[#40414F] border-gray-700' 
+            : 'bg-white border-gray-200'
+        }`}>
+          <div className="px-6 py-4">
+            <div className="flex justify-between items-center">
+              <div className="flex items-center gap-4">
+                <img 
+                  src={KAILogo} 
+                  alt="KAI Logo" 
+                  className="w-12 h-12 object-contain"
+                />
+                <div className="flex flex-col">
+                  <span className={`text-2xl font-bold ${
+                    darkMode ? 'text-white' : 'text-slate-800'
+                  }`}>
+                    KAI
+                  </span>
+                  <span className={`text-sm ${
+                    darkMode ? 'text-gray-400' : 'text-slate-500'
+                  }`}>
+                    {user?.username} ({user?.accountType})
+                  </span>
+                </div>
+              </div>
+              
+              {/* Desktop Navigation */}
+              {!isMobile && showNav && (
+                <nav className="flex items-center gap-1">
+                  {navigation.map(({ id, label, icon: Icon, description }) => (
+                    <button
+                      key={id}
+                      onClick={() => setCurrentView(id as any)}
+                      className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-all duration-200 ${
+                        currentView === id
+                          ? 'text-white shadow-lg'
+                          : darkMode 
+                            ? 'text-gray-300 hover:bg-gray-700 hover:text-white' 
+                            : 'text-slate-600 hover:bg-white hover:text-slate-800'
+                      }`}
+                      style={{
+                        backgroundColor: currentView === id ? '#4a6cf7' : undefined
+                      }}
+                      title={description}
+                    >
+                      <Icon size={18} />
+                      <span className="text-sm">{label}</span>
+                    </button>
+                  ))}
+                </nav>
+              )}
+              
+              {/* Right side buttons */}
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => setShowNav(!showNav)}
+                  className={`p-2 rounded-lg transition-all duration-300 ${
+                    showNav
+                      ? darkMode 
+                        ? 'bg-gray-700 hover:bg-gray-600 text-white' 
+                        : 'bg-gray-200 hover:bg-gray-300 text-slate-600'
+                      : darkMode
+                        ? 'hover:bg-gray-700 text-white'
+                        : 'hover:bg-gray-100 text-slate-600'
+                  }`}
+                  title={showNav ? "Hide Navigation" : "Show Navigation"}
+                >
+                  <Menu className="w-4 h-4" />
+                </button>
+                
+                <button
+                  onClick={logout}
+                  className={`p-2 rounded-lg transition-all duration-300 ${
+                    darkMode 
+                      ? 'bg-gray-700 hover:bg-gray-600 text-red-400' 
+                      : 'bg-white hover:bg-gray-100 text-red-600'
+                  }`}
+                  title="Logout"
+                >
+                  <LogOut className="w-4 h-4" />
+                </button>
               </div>
             </div>
-            
-            {/* Desktop Navigation */}
-            {!isMobile && showNav && (
-              <nav className="flex items-center gap-1">
-                {navigation.map(({ id, label, icon: Icon, description }) => (
-                  <button
-                    key={id}
-                    onClick={() => setCurrentView(id as any)}
-                    className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-all duration-200 ${
-                      currentView === id
-                        ? 'text-white shadow-lg'
-                        : darkMode 
-                          ? 'text-gray-300 hover:bg-gray-700 hover:text-white' 
-                          : 'text-slate-600 hover:bg-white hover:text-slate-800'
-                    }`}
-                    style={{
-                      backgroundColor: currentView === id ? '#4a6cf7' : undefined
-                    }}
-                    title={description}
-                  >
-                    <Icon size={18} />
-                    <span className="text-sm">{label}</span>
-                  </button>
-                ))}
-              </nav>
-            )}
-            
-            {/* Right side buttons */}
-            <div className="flex items-center gap-2">
-              <button
-                onClick={() => setShowNav(!showNav)}
-                className={`p-2 rounded-lg transition-all duration-300 ${
-                  showNav
-                    ? darkMode 
-                      ? 'bg-gray-700 hover:bg-gray-600 text-white' 
-                      : 'bg-gray-200 hover:bg-gray-300 text-slate-600'
-                    : darkMode
-                      ? 'hover:bg-gray-700 text-white'
-                      : 'hover:bg-gray-100 text-slate-600'
-                }`}
-                title={showNav ? "Hide Navigation" : "Show Navigation"}
-              >
-                <Menu className="w-4 h-4" />
-              </button>
-              
-              <button
-                onClick={logout}
-                className={`p-2 rounded-lg transition-all duration-300 ${
-                  darkMode 
-                    ? 'bg-gray-700 hover:bg-gray-600 text-red-400' 
-                    : 'bg-white hover:bg-gray-100 text-red-600'
-                }`}
-                title="Logout"
-              >
-                <LogOut className="w-4 h-4" />
-              </button>
-            </div>
           </div>
-        </div>
+        </header>
+      )}
         
         {/* Mobile Slide-out Navigation */}
         {isMobile && (
@@ -355,9 +402,8 @@ function AppContent() {
             </div>
           </>
         )}
-      </header>
 
-      <div className={`px-2 py-4 ${isMobile ? 'pb-20' : 'pb-8'}`}>
+      <div className={`${isMobile ? 'pb-20' : 'pb-8'}`}>
         {/* Main Content */}
         <main>
           {currentView === 'home' && <HomePage darkMode={darkMode} />}
@@ -367,6 +413,11 @@ function AppContent() {
               entries={entries} 
               onSave={saveEntry} 
               onNavigate={handleNavigate}
+              isFirstTime={!isJournalSetup}
+              username={user?.username}
+              navigation={navigation}
+              user={user}
+              darkMode={darkMode}
             />
           )}
           {currentView === 'gaming' && <Gaming darkMode={darkMode} onNavigate={handleNavigate} />}
