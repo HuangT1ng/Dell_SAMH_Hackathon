@@ -185,6 +185,76 @@ const Gaming: React.FC<GamingProps> = ({ darkMode, onNavigate }) => {
           </p>
         </div>
 
+        {/* Featured Game - Pixel Harmony */}
+        <div className="mb-8">
+          <div
+            onClick={() => onNavigate('pixel-harmony-game')}
+            className={`group relative rounded-3xl p-8 transition-all duration-500 hover:scale-105 hover:shadow-2xl cursor-pointer ${
+              darkMode 
+                ? 'bg-gradient-to-br from-purple-800/80 to-blue-900/80 border border-purple-700/50' 
+                : 'bg-gradient-to-br from-purple-100/90 to-blue-100/70 border border-purple-200/50 shadow-xl'
+            } ring-2 ring-purple-500/50`}
+          >
+            {/* Decorative gradient overlay */}
+            <div className="absolute inset-0 rounded-3xl opacity-10 group-hover:opacity-20 transition-opacity duration-500 bg-gradient-to-br from-purple-500 to-blue-500"></div>
+            
+            <div className="relative z-10">
+              <div className="flex items-center gap-6 mb-6">
+                <div className="w-20 h-20 rounded-2xl flex items-center justify-center shadow-lg bg-gradient-to-br from-purple-500 to-blue-500 group-hover:scale-110 transition-transform duration-300">
+                  <Gamepad2 className="w-10 h-10 text-white" />
+                </div>
+                <div className="flex-1">
+                  <div className="flex items-center gap-3 mb-2">
+                    <h3 className={`text-2xl font-bold ${darkMode ? 'text-white' : 'text-slate-900'}`}>
+                      🎮 Pixel Harmony
+                    </h3>
+                    <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-gradient-to-r from-purple-500 to-blue-500 text-white text-sm font-semibold">
+                      <Gamepad2 className="w-4 h-4" />
+                      <span>Featured Game</span>
+                    </div>
+                  </div>
+                  <p className={`text-lg ${darkMode ? 'text-slate-300' : 'text-slate-600'}`}>
+                    Embark on a mental health journey through interactive storytelling and mini-games. 
+                    Learn coping strategies while exploring a beautiful pixel art world.
+                  </p>
+                </div>
+              </div>
+              
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 rounded-lg bg-green-500 flex items-center justify-center">
+                    <span className="text-white text-sm">🎯</span>
+                  </div>
+                  <span className={`text-sm font-medium ${darkMode ? 'text-slate-300' : 'text-slate-600'}`}>
+                    Interactive Storytelling
+                  </span>
+                </div>
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 rounded-lg bg-blue-500 flex items-center justify-center">
+                    <span className="text-white text-sm">🧠</span>
+                  </div>
+                  <span className={`text-sm font-medium ${darkMode ? 'text-slate-300' : 'text-slate-600'}`}>
+                    Mental Health Focus
+                  </span>
+                </div>
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 rounded-lg bg-purple-500 flex items-center justify-center">
+                    <span className="text-white text-sm">🎨</span>
+                  </div>
+                  <span className={`text-sm font-medium ${darkMode ? 'text-slate-300' : 'text-slate-600'}`}>
+                    Beautiful Pixel Art
+                  </span>
+                </div>
+              </div>
+              
+              <div className="flex items-center gap-2 text-purple-500 text-sm font-medium">
+                <div className="w-2 h-2 rounded-full bg-purple-500 animate-pulse"></div>
+                <span>Click to start your mental health journey</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
           {stressors.map((stressor) => {
             const IconComponent = stressor.icon;
@@ -266,7 +336,7 @@ const Gaming: React.FC<GamingProps> = ({ darkMode, onNavigate }) => {
               
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <div className="text-center">
-                  <div className="text-4xl font-bold mb-2" style={{ color: PALETTE.blue }}>1</div>
+                  <div className="text-4xl font-bold mb-2" style={{ color: PALETTE.blue }}>2</div>
                   <p className={`text-lg font-medium ${darkMode ? 'text-slate-300' : 'text-slate-600'}`}>Games Available</p>
                 </div>
                 <div className="text-center">

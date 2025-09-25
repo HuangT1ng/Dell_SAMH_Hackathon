@@ -5,6 +5,7 @@ import HomePage from './components/HomePage';
 import MoodBar from './components/MoodBar';
 import Gaming from './components/Gaming';
 import AcademicStressGamePage from './components/AcademicStressGamePage';
+import PixelHarmonyGamePage from './components/PixelHarmonyGamePage';
 import Chat from './components/Chat';
 import RedditDashboard from './components/RedditDashboard';
 import CommunityEvent from './components/CommunityEvent';
@@ -16,7 +17,7 @@ import { SessionProvider, useSession } from './utils/sessionContext';
 
 function AppContent() {
   const { user, logout, isLoggedIn } = useSession();
-  const [currentView, setCurrentView] = useState<'home' | 'mood' | 'gaming' | 'academic-stress-game' | 'chat' | 'community' | 'dashboard' | 'journey'>('home');
+  const [currentView, setCurrentView] = useState<'home' | 'mood' | 'gaming' | 'academic-stress-game' | 'pixel-harmony-game' | 'chat' | 'community' | 'dashboard' | 'journey'>('home');
   const [entries, setEntries] = useState<MoodEntry[]>([]);
   const [darkMode, setDarkMode] = useState(false);
   const [chatInitialization, setChatInitialization] = useState<{samhUsername: string} | null>(null);
@@ -423,6 +424,9 @@ function AppContent() {
           {currentView === 'gaming' && <Gaming darkMode={darkMode} onNavigate={handleNavigate} />}
           {currentView === 'academic-stress-game' && (
             <AcademicStressGamePage onBack={() => setCurrentView('gaming')} />
+          )}
+          {currentView === 'pixel-harmony-game' && (
+            <PixelHarmonyGamePage darkMode={darkMode} onNavigate={handleNavigate} />
           )}
           {currentView === 'chat' && <Chat darkMode={darkMode} initializationData={chatInitialization || undefined} onInitializationComplete={clearChatInitialization} />}
           {currentView === 'community' && <CommunityEvent darkMode={darkMode} />}
