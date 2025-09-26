@@ -45,7 +45,7 @@ const PixelHarmonyGame: React.FC<PixelHarmonyGameProps> = ({
         <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-50 z-10">
           <div className="text-white text-center">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-white mx-auto mb-4"></div>
-            <p className="text-lg font-medium">Loading Pixel Harmony...</p>
+            <p className="text-lg font-medium">Loading Quest...</p>
             <p className="text-sm opacity-75">Your mental health journey awaits</p>
           </div>
         </div>
@@ -67,7 +67,7 @@ const PixelHarmonyGame: React.FC<PixelHarmonyGameProps> = ({
         width="100%"
         height="100%"
         className="w-full h-full border-0"
-        title="Pixel Harmony - Mental Health Game"
+        title="Resilience Quest - Mental Health Game"
         allow="fullscreen"
         sandbox="allow-same-origin allow-scripts allow-forms allow-popups allow-presentation"
         style={{ 

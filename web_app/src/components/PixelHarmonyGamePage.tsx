@@ -75,7 +75,7 @@ const PixelHarmonyGamePage: React.FC<PixelHarmonyGamePageProps> = ({ darkMode, o
             </button>
             <div className="flex-1">
               <h1 className={`text-2xl font-bold ${darkMode ? 'text-white' : 'text-gray-900'}`}>
-                🎮 Pixel Harmony - Mental Health Journey
+                🎮 Resilience Quest - Mental Health Journey
               </h1>
             </div>
           </div>
@@ -118,27 +118,27 @@ const PixelHarmonyGamePage: React.FC<PixelHarmonyGamePageProps> = ({ darkMode, o
         </div>
 
         {/* Hero Section */}
-        <div className={`relative backdrop-blur-sm rounded-3xl p-8 shadow-2xl border mb-12 ${
+        <div className={`relative backdrop-blur-sm rounded-3xl p-6 sm:p-8 shadow-2xl border mb-12 ${
           darkMode 
             ? 'bg-gradient-to-br from-purple-800/80 to-blue-900/80 border-purple-700/50' 
             : 'bg-gradient-to-br from-white/90 to-white/70 border-white/50'
         }`}>
-          <div className="flex items-center gap-8">
-            <div className="relative">
-              <div className="w-24 h-24 rounded-3xl flex items-center justify-center shadow-lg bg-gradient-to-br from-purple-500 to-blue-500">
-                <Gamepad2 className="w-12 h-12 text-white" />
+          <div className="flex flex-col sm:flex-row items-center sm:items-start gap-6 sm:gap-8">
+            <div className="relative flex-shrink-0">
+              <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-3xl flex items-center justify-center shadow-lg bg-gradient-to-br from-purple-500 to-blue-500">
+                <Gamepad2 className="w-10 h-10 sm:w-12 sm:h-12 text-white" />
               </div>
-              <div className="absolute -top-2 -right-2 w-8 h-8 rounded-full bg-green-500 border-2 border-white flex items-center justify-center">
-                <div className="w-3 h-3 rounded-full bg-white"></div>
+              <div className="absolute -top-2 -right-2 w-6 h-6 sm:w-8 sm:h-8 rounded-full bg-green-500 border-2 border-white flex items-center justify-center">
+                <div className="w-2 h-2 sm:w-3 sm:h-3 rounded-full bg-white"></div>
               </div>
             </div>
-            <div className="flex-1">
-              <h1 className={`text-5xl md:text-6xl font-bold mb-4 ${
+            <div className="flex-1 min-w-0 text-center sm:text-left">
+              <h1 className={`text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold mb-4 leading-tight ${
                 darkMode ? 'text-white' : 'text-slate-900'
               }`}>
-                🎮 Pixel Harmony
+                🎮 Resilience Quest
               </h1>
-              <p className={`text-xl md:text-2xl mb-6 ${
+              <p className={`text-base sm:text-lg md:text-xl lg:text-2xl mb-6 leading-relaxed ${
                 darkMode ? 'text-slate-300' : 'text-slate-600'
               }`}>
                 Embark on a transformative mental health journey through interactive storytelling and engaging mini-games. 
@@ -146,9 +146,9 @@ const PixelHarmonyGamePage: React.FC<PixelHarmonyGamePageProps> = ({ darkMode, o
               </p>
               <button
                 onClick={() => setShowPopup(true)}
-                className="inline-flex items-center gap-3 px-8 py-4 rounded-2xl text-lg font-semibold transition-all duration-300 hover:scale-105 hover:shadow-xl bg-gradient-to-r from-purple-500 to-blue-500 text-white"
+                className="inline-flex items-center gap-3 px-6 sm:px-8 py-3 sm:py-4 rounded-2xl text-base sm:text-lg font-semibold transition-all duration-300 hover:scale-105 hover:shadow-xl bg-gradient-to-r from-purple-500 to-blue-500 text-white w-full sm:w-auto justify-center"
               >
-                <Gamepad2 className="w-6 h-6" />
+                <Gamepad2 className="w-5 h-5 sm:w-6 sm:h-6" />
                 <span>Start Your Journey</span>
               </button>
             </div>
@@ -157,34 +157,34 @@ const PixelHarmonyGamePage: React.FC<PixelHarmonyGamePageProps> = ({ darkMode, o
 
         {/* Features Grid */}
         <div className="mb-12">
-          <h2 className={`text-3xl md:text-4xl font-bold text-center mb-8 ${
+          <h2 className={`text-2xl sm:text-3xl md:text-4xl font-bold text-center mb-6 sm:mb-8 ${
             darkMode ? 'text-white' : 'text-slate-900'
           }`}>
             What You'll Experience 🌟
           </h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
             {features.map((feature, index) => {
               const IconComponent = feature.icon;
               return (
                 <div
                   key={index}
-                  className={`group relative rounded-3xl p-6 transition-all duration-500 hover:scale-105 hover:shadow-2xl ${
+                  className={`group relative rounded-3xl p-4 sm:p-6 transition-all duration-500 hover:scale-105 hover:shadow-2xl ${
                     darkMode 
                       ? 'bg-gradient-to-br from-slate-800/80 to-slate-900/80 border border-slate-700/50' 
                       : 'bg-gradient-to-br from-white/90 to-white/70 border border-white/50 shadow-xl'
                   }`}
                 >
-                  <div className="flex items-start gap-4">
-                    <div className="w-16 h-16 rounded-2xl flex items-center justify-center shadow-lg bg-gradient-to-br from-purple-500 to-blue-500 group-hover:scale-110 transition-transform duration-300">
-                      <IconComponent className="w-8 h-8 text-white" />
+                  <div className="flex flex-col sm:flex-row items-center sm:items-start gap-3 sm:gap-4">
+                    <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl flex items-center justify-center shadow-lg bg-gradient-to-br from-purple-500 to-blue-500 group-hover:scale-110 transition-transform duration-300 flex-shrink-0">
+                      <IconComponent className="w-7 h-7 sm:w-8 sm:h-8 text-white" />
                     </div>
-                    <div className="flex-1">
-                      <h3 className={`text-xl font-bold mb-3 ${
+                    <div className="flex-1 min-w-0 text-center sm:text-left">
+                      <h3 className={`text-lg sm:text-xl font-bold mb-2 sm:mb-3 leading-tight ${
                         darkMode ? 'text-white' : 'text-slate-900'
                       }`}>
                         {feature.title}
                       </h3>
-                      <p className={`text-sm leading-relaxed ${
+                      <p className={`text-sm sm:text-base leading-relaxed ${
                         darkMode ? 'text-slate-300' : 'text-slate-600'
                       }`}>
                         {feature.description}
