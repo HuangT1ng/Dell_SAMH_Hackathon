@@ -1,14 +1,14 @@
 import React, { useState, useRef, useEffect } from 'react';
 
 interface PixelHarmonyGameProps {
-  width?: number;
-  height?: number;
+  width?: number | string;
+  height?: number | string;
   className?: string;
 }
 
 const PixelHarmonyGame: React.FC<PixelHarmonyGameProps> = ({ 
-  width = 800, 
-  height = 600, 
+  width = 800, // Reserved for future use
+  height = 600, // Reserved for future use
   className = "" 
 }) => {
   const [isLoading, setIsLoading] = useState(true);
@@ -40,7 +40,7 @@ const PixelHarmonyGame: React.FC<PixelHarmonyGameProps> = ({
   }, []);
 
   return (
-    <div className={`relative bg-gradient-to-br from-purple-600 to-blue-600 rounded-lg overflow-hidden shadow-lg ${className}`}>
+    <div className={`w-full h-full ${className}`} style={{ position: 'relative' }}>
       {isLoading && (
         <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-50 z-10">
           <div className="text-white text-center">
@@ -64,12 +64,22 @@ const PixelHarmonyGame: React.FC<PixelHarmonyGameProps> = ({
       <iframe
         ref={iframeRef}
         src="/game/index.html"
-        width={width}
-        height={height}
+        width="100%"
+        height="100%"
         className="w-full h-full border-0"
         title="Pixel Harmony - Mental Health Game"
         allow="fullscreen"
         sandbox="allow-same-origin allow-scripts allow-forms allow-popups allow-presentation"
+        style={{ 
+          border: 'none',
+          outline: 'none',
+          display: 'block',
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          width: '100%',
+          height: '100%'
+        }}
       />
     </div>
   );

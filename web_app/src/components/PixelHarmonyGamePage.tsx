@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { ArrowLeft, Gamepad2, Heart, Brain, Users, Star } from 'lucide-react';
 import PixelHarmonyGame from './PixelHarmonyGame';
 
@@ -9,6 +9,29 @@ interface PixelHarmonyGamePageProps {
 
 const PixelHarmonyGamePage: React.FC<PixelHarmonyGamePageProps> = ({ darkMode, onNavigate }) => {
   const [gameStarted, setGameStarted] = useState(false);
+  const [showPopup, setShowPopup] = useState(false);
+
+  // Handle ESC key to exit full-screen
+  useEffect(() => {
+    const handleKeyPress = (event: KeyboardEvent) => {
+      if (event.key === 'Escape' && showPopup) {
+        setShowPopup(false);
+      }
+    };
+
+    if (showPopup) {
+      document.addEventListener('keydown', handleKeyPress);
+      // Prevent body scroll when popup is open
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = 'unset';
+    }
+
+    return () => {
+      document.removeEventListener('keydown', handleKeyPress);
+      document.body.style.overflow = 'unset';
+    };
+  }, [showPopup]);
 
   const features = [
     {
@@ -58,12 +81,14 @@ const PixelHarmonyGamePage: React.FC<PixelHarmonyGamePageProps> = ({ darkMode, o
           </div>
 
           {/* Game Container */}
-          <div className="flex justify-center">
-            <PixelHarmonyGame 
-              width={1000} 
-              height={700} 
-              className="rounded-lg overflow-hidden"
-            />
+          <div className="flex justify-center items-center" style={{ height: '700px' }}>
+            <div className="w-full max-w-4xl h-full">
+              <PixelHarmonyGame 
+                width={1000} 
+                height={700} 
+                className="w-full h-full"
+              />
+            </div>
           </div>
         </div>
       </div>
@@ -120,7 +145,7 @@ const PixelHarmonyGamePage: React.FC<PixelHarmonyGamePageProps> = ({ darkMode, o
                 Learn valuable coping strategies while exploring a beautiful pixel art world.
               </p>
               <button
-                onClick={() => setGameStarted(true)}
+                onClick={() => setShowPopup(true)}
                 className="inline-flex items-center gap-3 px-8 py-4 rounded-2xl text-lg font-semibold transition-all duration-300 hover:scale-105 hover:shadow-xl bg-gradient-to-r from-purple-500 to-blue-500 text-white"
               >
                 <Gamepad2 className="w-6 h-6" />
@@ -172,37 +197,58 @@ const PixelHarmonyGamePage: React.FC<PixelHarmonyGamePageProps> = ({ darkMode, o
           </div>
         </div>
 
-        {/* Game Preview */}
-        <div className={`relative backdrop-blur-sm rounded-3xl p-8 shadow-2xl border ${
-          darkMode 
-            ? 'bg-gradient-to-br from-slate-800/80 to-slate-900/80 border-slate-700/50' 
-            : 'bg-gradient-to-br from-white/90 to-white/70 border-white/50'
-        }`}>
-          <h3 className={`text-2xl font-bold text-center mb-6 ${
-            darkMode ? 'text-white' : 'text-slate-900'
-          }`}>
-            Game Preview 🎯
-          </h3>
-          <div className="flex justify-center">
-            <div className="relative">
+      </div>
+
+      {/* Full-Screen Game Popup (Like Video Player) */}
+      {showPopup && (
+        <div 
+          className="fixed inset-0 bg-black"
+          style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            width: '100vw',
+            height: '100vh',
+            zIndex: 9999,
+            backgroundColor: '#000000'
+          }}
+        >
+          {/* Game Container - True Full Screen */}
+          <div 
+            className="w-full h-full flex justify-center items-center"
+            style={{
+              width: '100vw',
+              height: '100vh',
+              position: 'relative'
+            }}
+          >
+            <div className="w-full h-full">
               <PixelHarmonyGame 
-                width={600} 
-                height={400} 
-                className="rounded-lg overflow-hidden"
+                width="100vw" 
+                height="100vh" 
+                className="w-full h-full"
               />
-              <div className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center rounded-lg">
-                <button
-                  onClick={() => setGameStarted(true)}
-                  className="inline-flex items-center gap-3 px-6 py-3 rounded-xl text-lg font-semibold transition-all duration-300 hover:scale-105 bg-gradient-to-r from-purple-500 to-blue-500 text-white"
-                >
-                  <Gamepad2 className="w-5 h-5" />
-                  <span>Play Full Game</span>
-                </button>
-              </div>
             </div>
           </div>
+
+          {/* Close Button - Floating Overlay */}
+          <button
+            onClick={() => setShowPopup(false)}
+            className="absolute top-4 right-4 z-10 p-3 rounded-full bg-black bg-opacity-50 hover:bg-opacity-70 text-white transition-all duration-200"
+            style={{ 
+              zIndex: 10000,
+              backdropFilter: 'blur(4px)'
+            }}
+          >
+            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+
         </div>
-      </div>
+      )}
     </div>
   );
 };

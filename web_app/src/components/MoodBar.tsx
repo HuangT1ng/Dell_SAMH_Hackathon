@@ -118,7 +118,7 @@ const clamp = (v: number, min: number, max: number) => Math.max(min, Math.min(ma
 const getCurrentDate = () => new Date().toISOString().split('T')[0];
 const formatDate = (date: string) => {
   const d = new Date(date);
-  return d.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
+  return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
 };
 
 // Get week days for calendar
@@ -175,7 +175,7 @@ const ENTRY_TYPES: EntryType[] = [
   { 
     id: 'mood', 
     name: 'Mood', 
-    description: 'Multi-entry mood tracking with 1-10 scale and emotion words', 
+    description: '', 
     icon: Smile, 
     color: COLORS.primary, 
     category: 'mood',
@@ -639,7 +639,7 @@ const WeeklyMoodBar: React.FC<WeeklyMoodBarProps> = ({ entries, onSave, onNaviga
   const [showCheckIn, setShowCheckIn] = useState(false);
   const [checkInType, setCheckInType] = useState<'morning' | 'evening' | null>(null);
   // Show all journal types by default - no setup needed
-  const [userPreferences] = useState<string[]>(['mood', 'symptoms', 'sleep', 'other_factors', 'custom_factors', 'gratitude', 'personal_notes']);
+  const [userPreferences] = useState<string[]>(['mood', 'symptoms', 'sleep', 'personal_notes']);
   const [showInputModal, setShowInputModal] = useState(false);
   const [inputType, setInputType] = useState<string | null>(null);
   const [inputValue, setInputValue] = useState('');
@@ -833,7 +833,7 @@ const WeeklyMoodBar: React.FC<WeeklyMoodBarProps> = ({ entries, onSave, onNaviga
     }
 
     return (
-      <div key={typeId} className="px-6 mb-4">
+      <div key={typeId} className="px-2 mb-4">
         <div 
           className="p-4 rounded-2xl border-2 border-gray-200 flex items-center space-x-4 cursor-pointer hover:border-blue-500 transition-all"
           onClick={() => handleCardClick(typeId)}
@@ -1041,16 +1041,13 @@ const WeeklyMoodBar: React.FC<WeeklyMoodBarProps> = ({ entries, onSave, onNaviga
                         console.log(`🎯 Selected ${currentTypeId}: ${option.value}`);
                         setSelectedEmojiValue(option.value);
                       }}
-                      className={`p-4 rounded-2xl border-2 transition-all ${
+                      className={`p-4 rounded-2xl border-2 transition-all flex items-center justify-center ${
                         selectedEmojiValue === option.value
                           ? 'border-blue-500 bg-blue-50'
                           : 'border-gray-200 hover:border-gray-300'
                       }`}
                     >
-                      <div className="text-3xl mb-2">{option.emoji}</div>
-                      <div className="text-xs font-medium" style={{ color: COLORS.textLight }}>
-                        {option.label}
-                      </div>
+                      <div className="text-3xl">{option.emoji}</div>
                     </button>
                   ))}
                 </div>
@@ -1149,7 +1146,7 @@ const WeeklyMoodBar: React.FC<WeeklyMoodBarProps> = ({ entries, onSave, onNaviga
           </div>
           
           <div className="space-y-4 mb-8">
-            {MOOD_LABELS.map((label, index) => {
+            {MOOD_LABELS.map((_, index) => {
               const mood = index + 1;
               const IconComponent = MOOD_ICONS[index];
               const color = COLORS.mood[mood as keyof typeof COLORS.mood];
@@ -1158,21 +1155,13 @@ const WeeklyMoodBar: React.FC<WeeklyMoodBarProps> = ({ entries, onSave, onNaviga
                 <button
                   key={mood}
                   onClick={() => handleMoodSave(mood)}
-                  className="w-full p-4 rounded-2xl border-2 border-gray-200 hover:border-blue-500 transition-all flex items-center space-x-4"
+                  className="w-full p-4 rounded-2xl border-2 border-gray-200 hover:border-blue-500 transition-all flex items-center justify-center"
                 >
                   <div 
                     className="w-12 h-12 rounded-full flex items-center justify-center"
                     style={{ backgroundColor: color, color: 'white' }}
                   >
                     <IconComponent size={24} />
-                  </div>
-                  <div className="flex-1 text-left">
-                    <h3 className="font-semibold text-lg" style={{ color: COLORS.text }}>
-                      {label}
-                    </h3>
-                    <p className="text-sm" style={{ color: COLORS.textLight }}>
-                      {mood}/5
-                    </p>
                   </div>
                 </button>
               );
@@ -1262,16 +1251,13 @@ const WeeklyMoodBar: React.FC<WeeklyMoodBarProps> = ({ entries, onSave, onNaviga
                     <button
                       key={option.value}
                       onClick={() => setInputValue(option.value.toString())}
-                      className={`p-4 rounded-2xl border-2 transition-all ${
+                      className={`p-4 rounded-2xl border-2 transition-all flex items-center justify-center ${
                         inputValue === option.value.toString()
                           ? 'border-blue-500 bg-blue-50'
                           : 'border-gray-200 hover:border-gray-300'
                       }`}
                     >
-                      <div className="text-3xl mb-2">{option.emoji}</div>
-                      <div className="text-xs font-medium" style={{ color: COLORS.textLight }}>
-                        {option.label}
-                      </div>
+                      <div className="text-3xl">{option.emoji}</div>
                     </button>
                   ))}
                 </div>
@@ -1346,34 +1332,35 @@ const WeeklyMoodBar: React.FC<WeeklyMoodBarProps> = ({ entries, onSave, onNaviga
         </div>
         
         {/* Weekdays Section - Now part of the background */}
-        <div className="px-6 pb-4">
-          <div className="flex justify-between">
+        <div className="px-2 sm:px-4 md:px-6 pb-4">
+          <div className="flex justify-between gap-1 sm:gap-2">
             {weekDays.map((day) => {
               const mood = getMoodForDate(day.date);
               const isToday = day.isToday;
+              const isFuture = new Date(day.date) > new Date();
               
               return (
-                <div key={day.date} className="flex flex-col items-center">
-                  <div className="text-sm font-medium mb-2" style={{ color: 'white' }}>
+                <div key={day.date} className="flex flex-col items-center flex-1 min-w-0">
+                  <div className="text-xs sm:text-sm font-medium mb-1 sm:mb-2" style={{ color: 'white' }}>
                     {day.day}
                   </div>
                   <div 
-                    className={`w-12 h-12 rounded-2xl flex flex-col items-center justify-center border-2 ${
+                    className={`w-12 h-12 sm:w-14 sm:h-14 md:w-16 md:h-16 rounded-xl sm:rounded-2xl flex flex-col items-center justify-center border-2 ${
                       isToday ? 'border-blue-500 bg-blue-50' : 'border-white border-opacity-30'
                     }`}
                   >
-                    {mood ? (
-                      <>
-                        <MoodIcon mood={mood} size={16} />
-                        <span className="text-xs font-semibold mt-1" style={{ color: COLORS.text }}>
+                    <div className="relative flex flex-col items-center justify-between h-full py-1">
+                      <div className="flex-1 flex items-center justify-center">
+                        {mood && (
+                          <MoodIcon mood={mood} size={16} />
+                        )}
+                      </div>
+                      {!isFuture && (
+                        <span className="text-sm font-semibold" style={{ color: COLORS.text }}>
                           {day.number}
                         </span>
-                      </>
-                    ) : (
-                      <span className="text-sm font-semibold" style={{ color: COLORS.text }}>
-                        {day.number}
-                      </span>
-                    )}
+                      )}
+                    </div>
                   </div>
                 </div>
               );
@@ -1516,7 +1503,7 @@ const WeeklyMoodBar: React.FC<WeeklyMoodBarProps> = ({ entries, onSave, onNaviga
       )}
 
       {/* Main Content */}
-      <div className="px-6 pt-6 pb-6">
+      <div className="px-2 pt-6 pb-6">
         {/* Welcome Message and Character */}
         <div className="mb-4">
         <div className="flex items-center space-x-4">
@@ -1539,29 +1526,39 @@ const WeeklyMoodBar: React.FC<WeeklyMoodBarProps> = ({ entries, onSave, onNaviga
       </div>
 
       {/* Check-in Buttons */}
-      <div className="px-6 mb-4">
+      <div className="px-2 mb-4">
         <div className="grid grid-cols-2 gap-4">
           <button
             onClick={() => handleCheckIn('morning')}
-            className="p-4 rounded-2xl border-2 border-gray-200 hover:border-blue-500 transition-all flex items-center space-x-3"
+            className="p-4 rounded-2xl border-2 border-gray-200 hover:border-blue-500 transition-all flex items-center justify-between"
           >
-            <Sun size={24} style={{ color: COLORS.accent }} />
-            <div className="text-left">
-              <h3 className="font-semibold" style={{ color: COLORS.text }}>
-                Morning check-in
-              </h3>
+            <div className="flex items-center space-x-3">
+              <Sun size={24} style={{ color: COLORS.accent }} />
+              <div className="text-left">
+                <h3 className="font-semibold" style={{ color: COLORS.text }}>
+                  Morning check-in
+                </h3>
+              </div>
+            </div>
+            <div className="text-gray-400">
+              <span className="text-2xl">›</span>
             </div>
           </button>
           
           <button
             onClick={() => handleCheckIn('evening')}
-            className="p-4 rounded-2xl border-2 border-gray-200 hover:border-blue-500 transition-all flex items-center space-x-3"
+            className="p-4 rounded-2xl border-2 border-gray-200 hover:border-blue-500 transition-all flex items-center justify-between"
           >
-            <Sunset size={24} style={{ color: COLORS.secondary }} />
-            <div className="text-left">
-              <h3 className="font-semibold" style={{ color: COLORS.text }}>
-                Evening check-in
-              </h3>
+            <div className="flex items-center space-x-3">
+              <Sunset size={24} style={{ color: COLORS.secondary }} />
+              <div className="text-left">
+                <h3 className="font-semibold" style={{ color: COLORS.text }}>
+                  Evening check-in
+                </h3>
+              </div>
+            </div>
+            <div className="text-gray-400">
+              <span className="text-2xl">›</span>
             </div>
           </button>
         </div>
@@ -1572,7 +1569,7 @@ const WeeklyMoodBar: React.FC<WeeklyMoodBarProps> = ({ entries, onSave, onNaviga
         {userPreferences.length > 0 ? (
           userPreferences.map(typeId => renderEntryTypeCard(typeId))
         ) : (
-          <div className="px-6 mb-4">
+          <div className="px-2 mb-4">
             <div className="p-4 rounded-2xl border-2 border-gray-200 flex items-center space-x-4">
               <div className="w-12 h-12 rounded-full bg-gray-100 flex items-center justify-center">
                 <Smile size={24} style={{ color: COLORS.textLight }} />
