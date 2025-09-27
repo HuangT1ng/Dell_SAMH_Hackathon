@@ -71,7 +71,7 @@ const PixelHarmonyGamePage: React.FC<PixelHarmonyGamePageProps> = ({ darkMode, o
               } shadow-lg`}
             >
               <ArrowLeft className="w-4 h-4" />
-              Back to Gaming Hub
+              Back
             </button>
             <div className="flex-1">
               <h1 className={`text-2xl font-bold ${darkMode ? 'text-white' : 'text-gray-900'}`}>
@@ -113,7 +113,7 @@ const PixelHarmonyGamePage: React.FC<PixelHarmonyGamePageProps> = ({ darkMode, o
             } shadow-lg`}
           >
             <ArrowLeft className="w-4 h-4" />
-            Back to Gaming Hub
+            Back
           </button>
         </div>
 
