@@ -26,6 +26,7 @@ const CommunityEvent: React.FC<CommunityEventProps> = ({ darkMode }) => {
   const [filteredEvents, setFilteredEvents] = useState<EventCard[]>([]);
   const [showFilteredEvents, setShowFilteredEvents] = useState(false);
   const [showPopup, setShowPopup] = useState(false);
+  const [selectedEvent, setSelectedEvent] = useState<EventCard | null>(null);
 
   // Fetch community events from database
   const fetchEvents = async () => {
@@ -64,7 +65,16 @@ const CommunityEvent: React.FC<CommunityEventProps> = ({ darkMode }) => {
         return eventId >= 42;
       });
       
-      setFilteredEvents(matchedEvents);
+      // Prioritize SAMH Cooking Session as first choice
+      const sortedEvents = matchedEvents.sort((a, b) => {
+        // Put SAMH Cooking Session first
+        if (a.organization_name?.includes('SAMH COOKING SESSION')) return -1;
+        if (b.organization_name?.includes('SAMH COOKING SESSION')) return 1;
+        // Keep original order for other events
+        return parseInt(a.id) - parseInt(b.id);
+      });
+      
+      setFilteredEvents(sortedEvents);
       setShowFilteredEvents(true);
       setIsMatching(false);
       
@@ -74,19 +84,14 @@ const CommunityEvent: React.FC<CommunityEventProps> = ({ darkMode }) => {
     }, 1500);
   };
 
-  const showAllEvents = () => {
-    setShowFilteredEvents(false);
-    setFilteredEvents([]);
-  };
 
 
 
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <div className="text-center flex-1">
- 
+      <div className="flex items-start justify-between">
+        <div className="flex-1 ml-8 mt-4">
           <p className={`text-lg ${
             darkMode ? 'text-gray-400' : 'text-gray-600'
           }`}>
@@ -95,7 +100,7 @@ const CommunityEvent: React.FC<CommunityEventProps> = ({ darkMode }) => {
         </div>
         
         {/* Magnifying Glass Button */}
-        <div className="flex flex-col items-center gap-2 ml-auto">
+        <div className="flex flex-col items-center gap-2 mr-8 mt-4">
           <button
             onClick={handleMatch}
             disabled={isMatching}
@@ -111,10 +116,10 @@ const CommunityEvent: React.FC<CommunityEventProps> = ({ darkMode }) => {
               <Search className="w-6 h-6" />
             )}
           </button>
-          <span className={`text-xs font-medium ml-2 ${
+          <span className={`text-xs font-bold ${
             isMatching
               ? darkMode ? 'text-gray-500' : 'text-gray-400'
-              : darkMode ? 'text-gray-300' : 'text-gray-600'
+              : darkMode ? 'text-white' : 'text-black'
           }`}>
             {isMatching ? 'Matching...' : 'Match Me!'}
           </span>
@@ -134,23 +139,13 @@ const CommunityEvent: React.FC<CommunityEventProps> = ({ darkMode }) => {
               <h3 className={`text-lg font-semibold ${
                 darkMode ? 'text-white' : 'text-gray-900'
               }`}>
-                🎯 Matched Events ({filteredEvents.length})
+                KAI Suggested Personalisied Events ({filteredEvents.length})
               </h3>
               <p className={`text-sm ${
                 darkMode ? 'text-gray-400' : 'text-gray-600'
               }`}>
               </p>
             </div>
-            <button
-              onClick={showAllEvents}
-              className={`px-4 py-2 rounded-lg font-medium transition-all duration-200 ${
-                darkMode
-                  ? 'bg-gray-700 text-gray-300 hover:bg-gray-600'
-                  : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-              }`}
-            >
-              Show All Events
-            </button>
           </div>
         </div>
       )}
@@ -201,71 +196,54 @@ const CommunityEvent: React.FC<CommunityEventProps> = ({ darkMode }) => {
         </div>
       )}
 
-      {/* Events Grid */}
+      {/* Events List */}
       {!isLoading && !error && (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {(showFilteredEvents ? filteredEvents : events).map((event, index) => (
-            <article
+        <div className="space-y-4">
+          {(showFilteredEvents ? filteredEvents : events).map((event) => (
+            <div
               key={event.id}
-              className={`group relative rounded-3xl p-6 transition-all duration-500 hover:scale-105 hover:shadow-2xl ${
+              className={`flex items-center gap-4 p-4 rounded-lg transition-all duration-200 hover:shadow-md ${
                 darkMode
-                  ? "bg-gradient-to-br from-slate-800/80 to-slate-900/80 border border-slate-700/50 backdrop-blur-sm"
-                  : "bg-gradient-to-br from-white/90 to-white/70 border border-white/50 backdrop-blur-sm shadow-xl"
+                  ? "bg-slate-800 border border-slate-700 hover:bg-slate-700"
+                  : "bg-white border border-gray-200 hover:bg-gray-50"
               }`}
-              style={{
-                background: darkMode 
-                  ? `linear-gradient(135deg, rgba(30, 41, 59, 0.8) 0%, rgba(15, 23, 42, 0.8) 100%)`
-                  : `linear-gradient(135deg, rgba(255, 255, 255, 0.9) 0%, rgba(255, 255, 255, 0.7) 100%)`
-              }}
             >
-              {/* Decorative gradient overlay */}
-              <div 
-                className="absolute inset-0 rounded-3xl opacity-10 group-hover:opacity-20 transition-opacity duration-500"
-                style={{ 
-                  background: `linear-gradient(135deg, #4a6cf720 0%, #4a6cf740 100%)`
-                }}
-              ></div>
-              
-              <div className="relative z-10">
-                {/* Event Image */}
-                <div className="rounded-2xl overflow-hidden shadow-lg group-hover:shadow-xl transition-shadow duration-300 mb-6">
-                  <img
-                    src={event.image_url}
-                    alt={event.organization_name}
-                    className="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-500"
-                  />
-                </div>
+              {/* Event Image */}
+              <div className="flex-shrink-0">
+                <img
+                  src={event.image_url}
+                  alt={event.organization_name}
+                  className="w-20 h-20 rounded-lg object-contain bg-gray-50"
+                  onError={(e) => {
+                    const target = e.target as HTMLImageElement;
+                    target.src = 'https://via.placeholder.com/80x80?text=Event';
+                  }}
+                />
+              </div>
 
-                {/* Organization Name */}
-                <h3 className={`text-2xl font-bold mb-4 ${
-                  darkMode ? 'text-white' : 'text-slate-900'
+              {/* Event Content */}
+              <div className="flex-1 min-w-0">
+                <h3 className={`text-lg font-semibold ${
+                  darkMode ? 'text-white' : 'text-gray-900'
                 }`}>
                   {event.organization_name}
                 </h3>
-
-                {/* Event Description */}
-                <p className={`text-lg leading-relaxed mb-6 ${
-                  darkMode ? 'text-gray-300' : 'text-slate-600'
-                }`}>
-                  {event.description}
-                </p>
-
-                {/* Location */}
-                <div className="flex items-center gap-3">
-                  <div
-                    className="grid h-12 w-12 place-items-center rounded-2xl shadow-lg group-hover:scale-110 transition-transform duration-300"
-                    style={{ backgroundColor: '#4a6cf7' }}
-                  >
-                    <MapPin className="h-6 w-6 text-white" />
-                  </div>
-                  <span className={`text-lg font-medium ${
-                    darkMode ? 'text-gray-200' : 'text-slate-700'
-                  }`}>
-                    {event.location}
-                  </span>
-                </div>
               </div>
-            </article>
+
+              {/* Action Button */}
+              <div className="flex-shrink-0">
+                <button 
+                  onClick={() => setSelectedEvent(event)}
+                  className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                    darkMode
+                      ? 'bg-blue-600 hover:bg-blue-500 text-white'
+                      : 'bg-blue-500 hover:bg-blue-600 text-white'
+                  }`}
+                >
+                  Learn More
+                </button>
+              </div>
+            </div>
           ))}
         </div>
       )}
@@ -343,6 +321,90 @@ const CommunityEvent: React.FC<CommunityEventProps> = ({ darkMode }) => {
               >
                 Got it!
               </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Event Detail Modal */}
+      {selectedEvent && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div 
+            className="absolute inset-0 bg-black bg-opacity-50"
+            onClick={() => setSelectedEvent(null)}
+          ></div>
+          <div className={`relative max-w-2xl w-full rounded-3xl p-8 shadow-2xl ${
+            darkMode
+              ? "bg-gradient-to-br from-slate-800/95 to-slate-900/95 border border-slate-700/50 backdrop-blur-sm"
+              : "bg-gradient-to-br from-white/95 to-white/90 border border-white/50 backdrop-blur-sm"
+          }`}>
+            {/* Close Button */}
+            <button
+              onClick={() => setSelectedEvent(null)}
+              className={`absolute top-4 right-4 p-2 rounded-full transition-colors ${
+                darkMode
+                  ? 'hover:bg-slate-700 text-gray-400 hover:text-white'
+                  : 'hover:bg-gray-100 text-gray-500 hover:text-gray-700'
+              }`}
+            >
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+
+            {/* Event Content */}
+            <div className="relative z-10">
+              {/* Event Image */}
+              <div className="rounded-2xl overflow-hidden shadow-lg mb-6">
+                <img
+                  src={selectedEvent.image_url}
+                  alt={selectedEvent.organization_name}
+                  className="w-full h-64 object-contain bg-gray-50"
+                  onError={(e) => {
+                    const target = e.target as HTMLImageElement;
+                    target.src = 'https://via.placeholder.com/400x256?text=Event';
+                  }}
+                />
+              </div>
+
+              {/* Organization Name */}
+              <h3 className={`text-3xl font-bold mb-4 ${
+                darkMode ? 'text-white' : 'text-slate-900'
+              }`}>
+                {selectedEvent.organization_name}
+              </h3>
+
+              {/* Event Description */}
+              <p className={`text-lg leading-relaxed mb-6 ${
+                darkMode ? 'text-gray-300' : 'text-slate-600'
+              }`}>
+                {selectedEvent.description}
+              </p>
+
+              {/* Location */}
+              <div className="flex items-center gap-3 mb-6">
+                <div
+                  className="grid h-12 w-12 place-items-center rounded-2xl shadow-lg"
+                  style={{ backgroundColor: '#4a6cf7' }}
+                >
+                  <MapPin className="h-6 w-6 text-white" />
+                </div>
+                <span className={`text-lg font-medium ${
+                  darkMode ? 'text-gray-200' : 'text-slate-700'
+                }`}>
+                  {selectedEvent.location}
+                </span>
+              </div>
+
+              {/* Action Button */}
+              <div className="flex justify-center">
+                <button 
+                  onClick={() => setSelectedEvent(null)}
+                  className="px-8 py-3 bg-blue-500 hover:bg-blue-600 text-white rounded-2xl font-semibold transition-colors"
+                >
+                  Close
+                </button>
+              </div>
             </div>
           </div>
         </div>

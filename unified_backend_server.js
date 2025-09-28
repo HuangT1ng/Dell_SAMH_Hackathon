@@ -83,10 +83,22 @@ const initializeDatabase = () => {
         triggers TEXT NOT NULL,
         activities TEXT NOT NULL,
         notes TEXT,
+        energy INTEGER,
+        sleep_time TEXT,
+        symptoms TEXT,
+        gratitude TEXT,
+        reflection TEXT,
         timestamp INTEGER NOT NULL,
         created_at DATETIME DEFAULT CURRENT_TIMESTAMP
       )
     `);
+
+    // Add new columns if they don't exist (for existing databases)
+    db.run(`ALTER TABLE mood_entries ADD COLUMN energy INTEGER`, () => {});
+    db.run(`ALTER TABLE mood_entries ADD COLUMN sleep_time TEXT`, () => {});
+    db.run(`ALTER TABLE mood_entries ADD COLUMN symptoms TEXT`, () => {});
+    db.run(`ALTER TABLE mood_entries ADD COLUMN gratitude TEXT`, () => {});
+    db.run(`ALTER TABLE mood_entries ADD COLUMN reflection TEXT`, () => {});
 
     // Chat conversations table (for shared chat history)
     db.run(`
@@ -151,6 +163,7 @@ const initializeDatabase = () => {
         first_login DATETIME DEFAULT CURRENT_TIMESTAMP,
         last_login DATETIME DEFAULT CURRENT_TIMESTAMP,
         login_count INTEGER DEFAULT 1,
+        journal_preferences TEXT DEFAULT '["mood"]',
         created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
         updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
       )
@@ -159,6 +172,13 @@ const initializeDatabase = () => {
         console.error('Error creating user_accounts table:', err);
       } else {
         console.log('✅ user_accounts table created successfully');
+      }
+    });
+
+    // Add journal_preferences column if it doesn't exist (for existing databases)
+    db.run(`ALTER TABLE user_accounts ADD COLUMN journal_preferences TEXT DEFAULT '["mood"]'`, (err) => {
+      if (err && !err.message.includes('duplicate column name')) {
+        console.error('Error adding journal_preferences column:', err);
       }
     });
     
@@ -182,7 +202,7 @@ const initializeDatabase = () => {
             url: 'https://www.reddit.com/user/Ok_Rabbit_1613/',
             sentiment: 'negative',
             platform: 'REDDIT',
-            samh_username: 'ht'
+            samh_username: 'Abhiraj'
           },
           {
             id: '2',
@@ -713,9 +733,9 @@ const initializeDatabase = () => {
         },
         {
           "id": "45",
-          "organization_name": "SAMH Creative Hub Free Workshops",
-          "description": "Free art, music, dance, and writing workshops designed to promote emotional well-being. Suitable for teens and youths, open to all ages in October.",
-          "location": "Singapore Association for Mental Health (SAMH) Creative Hub",
+          "organization_name": "SAMH COOKING SESSION : TASTY TIDBITS",
+          "description": "Join in and let's cook something fun! Grab your apron, follow along, and enjoy the process. No stress—just good food andgood times . Let's go !",
+          "location": "SAMH C'SAY @ NORTH",
           "image_url": "https://www.samhealth.org.sg/client/samhealth/wp-content/uploads/2018/02/SAMH-logo-web.png"
         },
         {
@@ -958,7 +978,12 @@ app.get('/api/mood-entries', (req, res) => {
     const parsedRows = rows.map(row => ({
       ...row,
       triggers: JSON.parse(row.triggers || '[]'),
-      activities: JSON.parse(row.activities || '[]')
+      activities: JSON.parse(row.activities || '[]'),
+      symptoms: JSON.parse(row.symptoms || '[]'),
+      sleepTime: row.sleep_time,
+      energy: row.energy,
+      gratitude: row.gratitude,
+      reflection: row.reflection
     }));
     
     // console.log(`📊 Returning ${parsedRows.length} mood entries`);
@@ -967,25 +992,63 @@ app.get('/api/mood-entries', (req, res) => {
 });
 
 app.post('/api/mood-entries', (req, res) => {
-  const { id, date, mood, moodLabel, triggers, activities, notes, timestamp } = req.body;
+  const { id, date, mood, moodLabel, triggers, activities, notes, energy, sleepTime, symptoms, gratitude, reflection, timestamp } = req.body;
+  
+  console.log('📥 Received mood entry data:', {
+    id, date, mood, moodLabel, energy, sleepTime, 
+    symptoms: symptoms, gratitude, reflection, timestamp
+  });
   
   if (!id || !date || mood === undefined || !moodLabel) {
     return res.status(400).json({ error: 'Missing required mood entry fields' });
   }
   
-  db.run(`
-    INSERT INTO mood_entries 
-    (id, date, mood, mood_label, triggers, activities, notes, timestamp)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-  `, [id, date, mood, moodLabel, JSON.stringify(triggers || []), JSON.stringify(activities || []), notes, timestamp], function(err) {
+  // Check if entry already exists for this date
+  db.get("SELECT id FROM mood_entries WHERE date = ?", [date], (err, existingRow) => {
     if (err) {
-      console.error('Error inserting mood entry:', err);
-      res.status(500).json({ error: 'Failed to insert mood entry' });
+      console.error('Error checking existing entry:', err);
+      res.status(500).json({ error: 'Failed to check existing entry' });
       return;
     }
     
-    console.log('✅ New mood entry added');
-    res.json({ id, message: 'Mood entry inserted successfully' });
+    if (existingRow) {
+      // Update existing entry
+      console.log('🔄 Updating existing entry with reflection:', reflection);
+      db.run(`
+        UPDATE mood_entries 
+        SET mood = ?, mood_label = ?, triggers = ?, activities = ?, notes = ?, 
+            energy = ?, sleep_time = ?, symptoms = ?, gratitude = ?, reflection = ?, timestamp = ?
+        WHERE date = ?
+      `, [mood, moodLabel, JSON.stringify(triggers || []), JSON.stringify(activities || []), notes, 
+          energy, sleepTime, JSON.stringify(symptoms || []), gratitude, reflection, timestamp, date], function(err) {
+        if (err) {
+          console.error('Error updating mood entry:', err);
+          res.status(500).json({ error: 'Failed to update mood entry' });
+          return;
+        }
+        
+        console.log('✅ Mood entry updated');
+        res.json({ id, message: 'Mood entry updated successfully' });
+      });
+    } else {
+      // Insert new entry
+      console.log('➕ Inserting new entry with reflection:', reflection);
+      db.run(`
+        INSERT INTO mood_entries 
+        (id, date, mood, mood_label, triggers, activities, notes, energy, sleep_time, symptoms, gratitude, reflection, timestamp)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      `, [id, date, mood, moodLabel, JSON.stringify(triggers || []), JSON.stringify(activities || []), notes, 
+          energy, sleepTime, JSON.stringify(symptoms || []), gratitude, reflection, timestamp], function(err) {
+        if (err) {
+          console.error('Error inserting mood entry:', err);
+          res.status(500).json({ error: 'Failed to insert mood entry' });
+          return;
+        }
+        
+        console.log('✅ New mood entry added');
+        res.json({ id, message: 'Mood entry inserted successfully' });
+      });
+    }
   });
 });
 
@@ -1298,7 +1361,7 @@ app.post('/api/chat/generate-quick-messages', async (req, res) => {
       `${msg.role}: ${msg.content}`
     ).join('\n');
     
-    const prompt = `You are a mental health support assistant. Based on the conversation history below, provide exactly 3 short, empathetic response suggestions for an admin to use. Each suggestion should be under 15 words and be supportive and appropriate.
+    const prompt = `You are a mental health support assistant and your name is HT. You would be talking to Abhiraj. Based on the conversation history below, provide exactly 3 short, empathetic response suggestions for an admin to use. Each suggestion should be under 15 words and be supportive and appropriate.
 
 Conversation History:
 ${conversationHistory}
@@ -1472,6 +1535,101 @@ app.get('/api/users/:username', (req, res) => {
       lastLogin: user.last_login,
       loginCount: user.login_count,
       createdAt: user.created_at
+    });
+  });
+});
+
+// Check if user is first-time user
+app.get('/api/users/:username/first-time', (req, res) => {
+  const { username } = req.params;
+  
+  db.get("SELECT login_count FROM user_accounts WHERE username = ?", [username], (err, user) => {
+    if (err) {
+      console.error('Error checking first-time user:', err);
+      res.status(500).json({ error: 'Failed to check user status' });
+      return;
+    }
+    
+    if (!user) {
+      // User doesn't exist, so they are first-time
+      res.json({ isFirstTime: true, loginCount: 0 });
+      return;
+    }
+    
+    // User is first-time if login count is 1 or less
+    const isFirstTime = user.login_count <= 1;
+    res.json({ 
+      isFirstTime, 
+      loginCount: user.login_count,
+      username: username
+    });
+  });
+});
+
+// Get user's journal preferences
+app.get('/api/users/:username/journal-preferences', (req, res) => {
+  const { username } = req.params;
+  
+  db.get("SELECT journal_preferences FROM user_accounts WHERE username = ?", [username], (err, user) => {
+    if (err) {
+      console.error('Error fetching journal preferences:', err);
+      res.status(500).json({ error: 'Failed to fetch journal preferences' });
+      return;
+    }
+    
+    if (!user) {
+      res.status(404).json({ error: 'User not found' });
+      return;
+    }
+    
+    // Parse journal preferences or return default
+    const preferences = user.journal_preferences ? JSON.parse(user.journal_preferences) : ['mood'];
+    res.json({ preferences });
+  });
+});
+
+// Update user's journal preferences
+app.post('/api/users/:username/journal-preferences', (req, res) => {
+  const { username } = req.params;
+  const { preferences } = req.body;
+  
+  if (!preferences || !Array.isArray(preferences)) {
+    return res.status(400).json({ error: 'Invalid preferences format' });
+  }
+  
+  const preferencesJson = JSON.stringify(preferences);
+  const currentTime = new Date().toISOString();
+  
+  // First check if user exists
+  db.get("SELECT * FROM user_accounts WHERE username = ?", [username], (err, user) => {
+    if (err) {
+      console.error('Error checking user:', err);
+      res.status(500).json({ error: 'Failed to check user' });
+      return;
+    }
+    
+    if (!user) {
+      res.status(404).json({ error: 'User not found' });
+      return;
+    }
+    
+    // Update user preferences
+    db.run(`
+      UPDATE user_accounts 
+      SET journal_preferences = ?, updated_at = ?
+      WHERE username = ?
+    `, [preferencesJson, currentTime, username], function(updateErr) {
+      if (updateErr) {
+        console.error('Error updating journal preferences:', updateErr);
+        res.status(500).json({ error: 'Failed to update journal preferences' });
+        return;
+      }
+      
+      console.log(`✅ Journal preferences updated for user: ${username}`);
+      res.json({ 
+        message: 'Journal preferences updated successfully',
+        preferences: preferences
+      });
     });
   });
 });

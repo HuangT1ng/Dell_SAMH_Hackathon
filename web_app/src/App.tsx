@@ -12,13 +12,13 @@ import CommunityEvent from './components/CommunityEvent';
 import MyJourney from './components/MyJourney';
 import UserJourneyModal from './components/UserJourneyModal';
 import Login from './components/Login';
-import { sharedDatabase, type MoodEntry } from './utils/sharedDatabase';
+import { sharedDatabase } from './utils/sharedDatabase';
 import { SessionProvider, useSession } from './utils/sessionContext';
 
 function AppContent() {
   const { user, logout, isLoggedIn } = useSession();
   const [currentView, setCurrentView] = useState<'home' | 'mood' | 'gaming' | 'academic-stress-game' | 'pixel-harmony-game' | 'chat' | 'community' | 'dashboard' | 'journey'>('home');
-  const [entries, setEntries] = useState<MoodEntry[]>([]);
+  const [entries, setEntries] = useState<any[]>([]);
   const [darkMode, setDarkMode] = useState(false);
   const [chatInitialization, setChatInitialization] = useState<{samhUsername: string} | null>(null);
   const [userJourneyModal, setUserJourneyModal] = useState<{isOpen: boolean, targetUsername: string}>({
@@ -100,27 +100,21 @@ function AppContent() {
     checkJournalSetup();
   }, [user?.username]);
 
-  const saveEntry = async (entry: Omit<MoodEntry, 'id' | 'timestamp'>) => {
-    const newEntry: MoodEntry = {
+  const saveEntry = (entry: any) => {
+    const newEntry = {
       ...entry,
       id: Date.now().toString(),
       timestamp: Date.now(),
     };
 
-    try {
-      // Try to save to shared database first
-      await sharedDatabase.addMoodEntry(newEntry);
-      console.log('✅ Saved mood entry to shared database');
-      
-      // Update local state
-      const updatedEntries = [newEntry, ...entries];
-      setEntries(updatedEntries);
-    } catch (error) {
-      console.warn('⚠️ Shared database not available, saving to localStorage');
-      // Fallback to localStorage
-      const updatedEntries = [newEntry, ...entries];
-      setEntries(updatedEntries);
-      localStorage.setItem('moodEntries', JSON.stringify(updatedEntries));
+    const updatedEntries = [newEntry, ...entries];
+    setEntries(updatedEntries);
+
+    // Try to save to shared database (fire and forget)
+    if (entry.mood !== undefined) {
+      sharedDatabase.addMoodEntry(newEntry as any).catch(() => {
+        localStorage.setItem('moodEntries', JSON.stringify(updatedEntries));
+      });
     }
 
     // If this is a journal setup completion, refresh the setup status
@@ -179,8 +173,8 @@ function AppContent() {
         ? 'bg-[#343541] text-white' 
         : 'text-slate-800'
     }`} style={{ backgroundColor: darkMode ? undefined : '#f1efef' }}>
-      {/* Header - Hidden on mood page */}
-      {currentView !== 'mood' && (
+      {/* Header - Hidden on mood and chat pages */}
+      {currentView !== 'mood' && currentView !== 'chat' && (
         <header className={`border-b transition-colors duration-300 ${
           darkMode 
             ? 'bg-[#40414F] border-gray-700' 
@@ -428,7 +422,7 @@ function AppContent() {
           {currentView === 'pixel-harmony-game' && (
             <PixelHarmonyGamePage darkMode={darkMode} onNavigate={handleNavigate} />
           )}
-          {currentView === 'chat' && <Chat darkMode={darkMode} initializationData={chatInitialization || undefined} onInitializationComplete={clearChatInitialization} />}
+          {currentView === 'chat' && <Chat darkMode={darkMode} initializationData={chatInitialization || undefined} onInitializationComplete={clearChatInitialization} onNavigate={handleNavigate} navigation={navigation} />}
           {currentView === 'community' && <CommunityEvent darkMode={darkMode} />}
           {currentView === 'dashboard' && <RedditDashboard darkMode={darkMode} onNavigateToChat={handleNavigateToChat} onNavigateToUserJourney={handleNavigateToUserJourney} />}
         </main>

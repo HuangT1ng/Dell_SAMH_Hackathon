@@ -1,11 +1,19 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { MessageCircle, Send, Loader2, Search, Trash2, Brain, RefreshCw } from 'lucide-react';
+import { MessageCircle, Send, Loader2, Search, Trash2, Brain, RefreshCw, MoreVertical, Plus, ArrowLeft, Mic, Paperclip, X, Download } from 'lucide-react';
 import { useSession } from '../utils/sessionContext';
+import SAMHWorkerImage from '../Assets/SAMHWorker.png';
 
 interface ChatProps {
   darkMode: boolean;
   initializationData?: { samhUsername: string };
   onInitializationComplete?: () => void;
+  onNavigate?: (view: string) => void;
+  navigation?: Array<{
+    id: string;
+    label: string;
+    icon: any;
+    description: string;
+  }>;
 }
 
 interface Message {
@@ -40,7 +48,7 @@ const API_BASE_URL = window.location.hostname === 'localhost'
   ? 'http://localhost:3001' 
   : 'https://backend-ntu.apps.innovate.sg-cna.com';
 
-const Chat: React.FC<ChatProps> = ({ darkMode, initializationData, onInitializationComplete }) => {
+const Chat: React.FC<ChatProps> = ({ darkMode, initializationData, onInitializationComplete, onNavigate, navigation = [] }) => {
   const { user } = useSession();
   const initializationCompleted = useRef(false);
   const startingChatWith = useRef<string | null>(null);
@@ -68,13 +76,6 @@ const Chat: React.FC<ChatProps> = ({ darkMode, initializationData, onInitializat
   const [isSearching, setIsSearching] = useState(false);
   const [showSearchResults, setShowSearchResults] = useState(false);
 
-  // LLM quick messages state
-  const [quickMessages, setQuickMessages] = useState<string[]>(['Hi there! 👋', 'How are you?', 'What\'s up?']);
-  
-  // Debug: Log when quick messages change
-  useEffect(() => {
-    console.log('🔄 Quick messages updated:', quickMessages);
-  }, [quickMessages]);
   const [isGeneratingQuickMessages, setIsGeneratingQuickMessages] = useState(false);
   const [, setProcessedConversations] = useState<{[conversationId: string]: number}>({});
   const [generatingForConversation, setGeneratingForConversation] = useState<{[conversationId: string]: boolean}>({});
@@ -84,6 +85,12 @@ const Chat: React.FC<ChatProps> = ({ darkMode, initializationData, onInitializat
   // Mobile layout state
   const [showContactList, setShowContactList] = useState(true);
   const [isMobile, setIsMobile] = useState(false);
+  const [activeTab, setActiveTab] = useState<'all' | 'groups' | 'contacts'>('all');
+  const [currentView, setCurrentView] = useState<'list' | 'chat'>('list');
+  const [showNavMenu, setShowNavMenu] = useState(false);
+
+  // LLM quick messages state (USP Feature)
+  const [quickMessages, setQuickMessages] = useState<string[]>(['Hi there! 👋', 'How are you?', 'What\'s up?']);
 
   // API functions
   const fetchConversations = async (userId: string) => {
@@ -107,80 +114,6 @@ const Chat: React.FC<ChatProps> = ({ darkMode, initializationData, onInitializat
     } catch (error) {
       console.error('Error fetching messages:', error);
       return [];
-    }
-  };
-
-  const checkForNewMessages = async (conversationId: string) => {
-    try {
-      const newMessages = await fetchMessages(conversationId);
-      const currentMessageCount = currentMessages.length;
-      const lastProcessedCount = processedConversationsRef.current[conversationId] || 0;
-      
-      console.log(`🔍 Polling conversation ${conversationId}:`, {
-        newMessagesCount: newMessages.length,
-        currentMessageCount,
-        lastProcessedCount,
-        hasNewMessages: newMessages.length > currentMessageCount,
-        generatingForConversation: generatingForConversation[conversationId],
-        userAccountType: user?.accountType
-      });
-      
-      // Initialize processed message IDs for this conversation if not exists
-      if (!processedMessageIdsRef.current[conversationId]) {
-        processedMessageIdsRef.current[conversationId] = new Set();
-      }
-      
-      // Find truly new messages by comparing with processed message IDs
-      const processedIds = processedMessageIdsRef.current[conversationId];
-      const newMessagesOnly = newMessages.filter((msg: any) => !processedIds.has(msg.id));
-      
-      if (newMessagesOnly.length > 0) {
-        console.log(`🆕 New messages detected! Count: ${newMessagesOnly.length}, Total: ${newMessages.length}, Current local: ${currentMessageCount}`);
-        console.log(`📋 New messages found:`, newMessagesOnly.map((msg: any) => ({ id: msg.id, sender: msg.sender })));
-        
-        // Update processed message IDs IMMEDIATELY
-        newMessagesOnly.forEach((msg: any) => {
-          processedIds.add(msg.id);
-        });
-        
-        // Update processed count IMMEDIATELY in both ref and state
-        processedConversationsRef.current[conversationId] = newMessages.length;
-        setProcessedConversations(prev => ({
-          ...prev,
-          [conversationId]: newMessages.length
-        }));
-        console.log(`✅ Updated processed count for ${conversationId}:`, newMessages.length);
-        
-        setContacts(prev => prev.map(contact => 
-          contact.id === conversationId 
-            ? { ...contact, messages: newMessages }
-            : contact
-        ));
-        
-        // Generate quick messages for admin ONLY when there's a new USER message (sender: 'bot')
-        if (user?.accountType === 'admin') {
-          const newUserMessages = newMessagesOnly.filter((msg: any) => msg.sender === 'bot');
-          
-          if (newUserMessages.length > 0 && !generatingForConversation[conversationId]) {
-            const lastUserMessage = newUserMessages[newUserMessages.length - 1];
-            console.log('🔄 Generating quick messages for new user message:', lastUserMessage.id);
-            await generateQuickMessages(conversationId, newMessages);
-          } else if (generatingForConversation[conversationId]) {
-            console.log('⏳ Skipping generation - already generating for this conversation');
-          } else {
-            console.log('⏭️ Skipping generation - no new user messages found:', {
-              newMessagesCount: newMessagesOnly.length,
-              newUserMessagesCount: newUserMessages.length,
-              isGenerating: generatingForConversation[conversationId]
-            });
-          }
-        }
-        
-        // Mark conversation as read since we're viewing it
-        await markConversationAsRead(conversationId);
-      }
-    } catch (error) {
-      console.error('Error checking for new messages:', error);
     }
   };
 
@@ -282,6 +215,7 @@ const Chat: React.FC<ChatProps> = ({ darkMode, initializationData, onInitializat
     }
   };
 
+  // AI Quick Messages Functions (USP Feature)
   const refreshQuickMessages = async () => {
     if (!selectedContactId || !user?.accountType || user.accountType !== 'admin') {
       console.log('❌ Cannot refresh quick messages - no selected contact or not admin');
@@ -344,6 +278,80 @@ const Chat: React.FC<ChatProps> = ({ darkMode, initializationData, onInitializat
         ...prev,
         [conversationId]: false
       }));
+    }
+  };
+
+  const checkForNewMessages = async (conversationId: string) => {
+    try {
+      const newMessages = await fetchMessages(conversationId);
+      const currentMessageCount = currentMessages.length;
+      const lastProcessedCount = processedConversationsRef.current[conversationId] || 0;
+      
+      console.log(`🔍 Polling conversation ${conversationId}:`, {
+        newMessagesCount: newMessages.length,
+        currentMessageCount,
+        lastProcessedCount,
+        hasNewMessages: newMessages.length > currentMessageCount,
+        generatingForConversation: generatingForConversation[conversationId],
+        userAccountType: user?.accountType
+      });
+      
+      // Initialize processed message IDs for this conversation if not exists
+      if (!processedMessageIdsRef.current[conversationId]) {
+        processedMessageIdsRef.current[conversationId] = new Set();
+      }
+      
+      // Find truly new messages by comparing with processed message IDs
+      const processedIds = processedMessageIdsRef.current[conversationId];
+      const newMessagesOnly = newMessages.filter((msg: any) => !processedIds.has(msg.id));
+      
+      if (newMessagesOnly.length > 0) {
+        console.log(`🆕 New messages detected! Count: ${newMessagesOnly.length}, Total: ${newMessages.length}, Current local: ${currentMessageCount}`);
+        console.log(`📋 New messages found:`, newMessagesOnly.map((msg: any) => ({ id: msg.id, sender: msg.sender })));
+        
+        // Update processed message IDs IMMEDIATELY
+        newMessagesOnly.forEach((msg: any) => {
+          processedIds.add(msg.id);
+        });
+        
+        // Update processed count IMMEDIATELY in both ref and state
+        processedConversationsRef.current[conversationId] = newMessages.length;
+        setProcessedConversations(prev => ({
+          ...prev,
+          [conversationId]: newMessages.length
+        }));
+        console.log(`✅ Updated processed count for ${conversationId}:`, newMessages.length);
+        
+        setContacts(prev => prev.map(contact => 
+          contact.id === conversationId 
+            ? { ...contact, messages: newMessages }
+            : contact
+        ));
+        
+        // Generate quick messages for admin ONLY when there's a new USER message (sender: 'bot')
+        if (user?.accountType === 'admin') {
+          const newUserMessages = newMessagesOnly.filter((msg: any) => msg.sender === 'bot');
+          
+          if (newUserMessages.length > 0 && !generatingForConversation[conversationId]) {
+            const lastUserMessage = newUserMessages[newUserMessages.length - 1];
+            console.log('🔄 Generating quick messages for new user message:', lastUserMessage.id);
+            await generateQuickMessages(conversationId, newMessages);
+          } else if (generatingForConversation[conversationId]) {
+            console.log('⏳ Skipping generation - already generating for this conversation');
+          } else {
+            console.log('⏭️ Skipping generation - no new user messages found:', {
+              newMessagesCount: newMessagesOnly.length,
+              newUserMessagesCount: newUserMessages.length,
+              isGenerating: generatingForConversation[conversationId]
+            });
+          }
+        }
+        
+        // Mark conversation as read since we're viewing it
+        await markConversationAsRead(conversationId);
+      }
+    } catch (error) {
+      console.error('Error checking for new messages:', error);
     }
   };
 
@@ -467,6 +475,11 @@ const Chat: React.FC<ChatProps> = ({ darkMode, initializationData, onInitializat
     return () => clearTimeout(timeoutId);
   }, [searchQuery]);
 
+  // Debug: Log when quick messages change
+  useEffect(() => {
+    console.log('🔄 Quick messages updated:', quickMessages);
+  }, [quickMessages]);
+
   // Poll for new messages every 3 seconds
   useEffect(() => {
     if (!user?.username) return;
@@ -524,6 +537,34 @@ const Chat: React.FC<ChatProps> = ({ darkMode, initializationData, onInitializat
     }
   }, [initializationData]);
 
+  // Set body and html background to prevent white areas when scrolling
+  useEffect(() => {
+    const originalBodyBg = document.body.style.background;
+    const originalHtmlBg = document.documentElement.style.background;
+    const originalBodyOverflow = document.body.style.overflow;
+    const originalHtmlOverflow = document.documentElement.style.overflow;
+    
+    if (currentView === 'chat') {
+      // Set both body and html to blue background
+      document.body.style.background = '#4a6cf7';
+      document.documentElement.style.background = '#4a6cf7';
+      document.body.style.overflow = 'hidden';
+      document.documentElement.style.overflow = 'hidden';
+    } else {
+      // Set both body and html to white background
+      document.body.style.background = '#ffffff';
+      document.documentElement.style.background = '#ffffff';
+      document.body.style.overflow = 'auto';
+      document.documentElement.style.overflow = 'auto';
+    }
+    
+    return () => {
+      document.body.style.background = originalBodyBg;
+      document.documentElement.style.background = originalHtmlBg;
+      document.body.style.overflow = originalBodyOverflow;
+      document.documentElement.style.overflow = originalHtmlOverflow;
+    };
+  }, [currentView]);
 
   const refreshConversationMetadata = async () => {
     if (!user?.username) return;
@@ -600,10 +641,7 @@ const Chat: React.FC<ChatProps> = ({ darkMode, initializationData, onInitializat
       
       setContacts(contactsData);
       
-      // Set first contact as selected if none selected
-      if (contactsData.length > 0 && !selectedContactId) {
-        setSelectedContactId(contactsData[0].id);
-      }
+      // Keep in list view by default - don't auto-select contacts
     } catch (error) {
       console.error('Error loading conversations:', error);
       // Initialize with default contacts if no user data
@@ -643,8 +681,107 @@ const Chat: React.FC<ChatProps> = ({ darkMode, initializationData, onInitializat
   };
 
   const initializeDefaultContacts = async () => {
-    // No default contacts - users will start conversations with real users
-    setContacts([]);
+    // Sample contacts to match the mobile interface design
+    const sampleContacts: Contact[] = [
+      {
+        id: '1',
+        name: 'Larry Machigo',
+        avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&h=100&fit=crop&crop=face',
+        lastMessage: 'Ok, Let me check',
+        lastMessageTime: Date.now() - 300000, // 5 minutes ago
+        unreadCount: 0,
+        isOnline: true,
+        messages: [
+          { id: '1', text: 'Hey 👋', sender: 'bot', timestamp: Date.now() - 600000 },
+          { id: '2', text: 'Are you available for a New UI Project', sender: 'bot', timestamp: Date.now() - 580000 },
+          { id: '3', text: 'Hello!', sender: 'user', timestamp: Date.now() - 560000 },
+          { id: '4', text: 'yes, have some space for the new task', sender: 'user', timestamp: Date.now() - 540000 },
+          { id: '5', text: 'Cool, should I share the details now?', sender: 'bot', timestamp: Date.now() - 520000 },
+          { id: '6', text: 'Yes Sure, please', sender: 'user', timestamp: Date.now() - 500000 },
+          { id: '7', text: 'Great, here is the SOW of the Project', sender: 'bot', timestamp: Date.now() - 480000 },
+          { id: '8', text: 'UI Brief.docx', sender: 'bot', timestamp: Date.now() - 460000 }
+        ],
+        accountType: 'user'
+      },
+      {
+        id: '2',
+        name: 'Natalie Nora',
+        avatar: 'https://images.unsplash.com/photo-1494790108755-2616b612b786?w=100&h=100&fit=crop&crop=face',
+        lastMessage: 'Natalie is typing...',
+        lastMessageTime: Date.now() - 120000, // 2 minutes ago
+        unreadCount: 2,
+        isOnline: true,
+        messages: [],
+        accountType: 'user'
+      },
+      {
+        id: '3',
+        name: 'Jennifer Jones',
+        avatar: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=100&h=100&fit=crop&crop=face',
+        lastMessage: '🎵 Voice message',
+        lastMessageTime: Date.now() - 7200000, // 2 hours ago
+        unreadCount: 0,
+        isOnline: false,
+        messages: [],
+        accountType: 'user'
+      },
+      {
+        id: '4',
+        name: 'Larry Machigo',
+        avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100&h=100&fit=crop&crop=face',
+        lastMessage: 'See you tomorrow, take...',
+        lastMessageTime: Date.now() - 86400000, // Yesterday
+        unreadCount: 0,
+        isOnline: false,
+        messages: [],
+        accountType: 'user'
+      },
+      {
+        id: '5',
+        name: 'Sofia',
+        avatar: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=100&h=100&fit=crop&crop=face',
+        lastMessage: 'Oh... thank you so...',
+        lastMessageTime: Date.now() - 2592000000, // 30 days ago
+        unreadCount: 0,
+        isOnline: false,
+        messages: [],
+        accountType: 'user'
+      },
+      {
+        id: '6',
+        name: 'Haider Lve',
+        avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=100&h=100&fit=crop&crop=face',
+        lastMessage: '🎯 Sticker',
+        lastMessageTime: Date.now() - 1209600000, // 14 days ago
+        unreadCount: 0,
+        isOnline: false,
+        messages: [],
+        accountType: 'user'
+      },
+      {
+        id: '7',
+        name: 'Mr. elon',
+        avatar: 'https://images.unsplash.com/photo-1519244703995-f4e0f30006d5?w=100&h=100&fit=crop&crop=face',
+        lastMessage: 'Cool :)))',
+        lastMessageTime: Date.now() - 604800000, // 7 days ago
+        unreadCount: 0,
+        isOnline: false,
+        messages: [],
+        accountType: 'user'
+      },
+      {
+        id: '8',
+        name: 'Gupta',
+        avatar: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=100&h=100&fit=crop&crop=face',
+        lastMessage: 'hihi',
+        lastMessageTime: Date.now() - 1800000, // 30 minutes ago
+        unreadCount: 0,
+        isOnline: true,
+        messages: [],
+        accountType: 'user'
+      }
+    ];
+    setContacts(sampleContacts);
   };
 
 
@@ -688,6 +825,7 @@ const Chat: React.FC<ChatProps> = ({ darkMode, initializationData, onInitializat
 
   const handleContactSelect = async (contactId: string) => {
     setSelectedContactId(contactId);
+    setCurrentView('chat');
     // On mobile, hide contact list when conversation is selected
     if (isMobile) {
       setShowContactList(false);
@@ -759,6 +897,26 @@ const Chat: React.FC<ChatProps> = ({ darkMode, initializationData, onInitializat
     }
   };
 
+  const formatMessageTime = (timestamp: number) => {
+    const now = Date.now();
+    const diff = now - timestamp;
+    const minutes = Math.floor(diff / 60000);
+    const hours = Math.floor(diff / 3600000);
+    const days = Math.floor(diff / 86400000);
+    
+    if (minutes < 60) {
+      return new Date(timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    } else if (hours < 24) {
+      return new Date(timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    } else if (days === 1) {
+      return 'Yesterday';
+    } else if (days < 30) {
+      return `${days} ${days === 1 ? 'day' : 'days'} ago`;
+    } else {
+      return new Date(timestamp).toLocaleDateString([], { day: 'numeric', month: 'short' });
+    }
+  };
+
   // Show login prompt if user is not logged in
   if (!user) {
     return (
@@ -791,18 +949,421 @@ const Chat: React.FC<ChatProps> = ({ darkMode, initializationData, onInitializat
   }
 
   return (
-    <div className="space-y-4" style={{
-      background: darkMode 
-        ? '#0f172a' 
-        : '#f8fafc'
+    <div className="min-h-screen" style={{ 
+      fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
+      background: currentView === 'chat' ? '#4a6cf7' : '#ffffff',
+      minHeight: '100vh',
+      height: currentView === 'chat' ? '100vh' : 'auto'
     }}>
+      {currentView === 'list' ? (
+        // Mobile Chat List View - Fullscreen
+        <div className="bg-white min-h-screen overflow-hidden">
+          {/* Header - Clean and Simple */}
+          <div className="px-4 py-3 bg-white">
+            <div className="flex justify-between items-center">
+              <div className="ml-2" style={{ fontFamily: "'SF Pro Display', -apple-system, BlinkMacSystemFont, 'Helvetica Neue', sans-serif" }}>
+                <div className="text-sm text-gray-400 font-light tracking-wide">Hello,</div>
+                <div className="text-2xl font-medium text-gray-900 -mt-0.5 tracking-tight">
+                  {user?.username || 'Johan'}
+                </div>
+              </div>
+              
+              <div className="flex items-center gap-2">
+                <button className="w-11 h-11 rounded-full border border-gray-300 flex items-center justify-center hover:bg-gray-50 transition-colors">
+                  <Search className="w-5 h-5 text-blue-500" />
+                </button>
+                <button 
+                  onClick={() => setShowNavMenu(true)}
+                  className="w-11 h-11 rounded-full border border-gray-300 flex items-center justify-center hover:bg-gray-50 transition-colors"
+                >
+                  <MoreVertical className="w-5 h-5 text-blue-500" />
+                </button>
+              </div>
+            </div>
+          </div>
 
-      {/* Main Chat Layout */}
-      <div className={`rounded-2xl border transition-all duration-300 shadow-xl ${
-        darkMode 
-          ? 'bg-slate-800 border-slate-600' 
-          : 'bg-white border-gray-200'
-      }`}>
+          {/* Navigation Tabs */}
+          <div className="bg-white px-6 py-4">
+            <div className="bg-gray-100 rounded-full p-1 flex w-full max-w-sm" style={{ fontFamily: "'SF Pro Display', -apple-system, BlinkMacSystemFont, 'Helvetica Neue', sans-serif" }}>
+              <button
+                onClick={() => setActiveTab('all')}
+                className={`flex-1 py-3 px-4 text-sm font-semibold transition-all duration-200 rounded-full text-center ${
+                  activeTab === 'all'
+                    ? 'bg-blue-500 text-white shadow-sm'
+                    : 'text-gray-500 hover:text-gray-700'
+                }`}
+              >
+                All Chats
+              </button>
+              <button
+                onClick={() => setActiveTab('groups')}
+                className={`flex-1 py-3 px-4 text-sm font-semibold transition-all duration-200 rounded-full text-center ${
+                  activeTab === 'groups'
+                    ? 'bg-blue-500 text-white shadow-sm'
+                    : 'text-gray-500 hover:text-gray-700'
+                }`}
+              >
+                Groups
+              </button>
+              <button
+                onClick={() => setActiveTab('contacts')}
+                className={`flex-1 py-3 px-4 text-sm font-semibold transition-all duration-200 rounded-full text-center ${
+                  activeTab === 'contacts'
+                    ? 'bg-blue-500 text-white shadow-sm'
+                    : 'text-gray-500 hover:text-gray-700'
+                }`}
+              >
+                Contacts
+              </button>
+            </div>
+          </div>
+
+          {/* Contact List */}
+          <div className="flex-1 overflow-y-auto bg-white">
+            {filteredContacts.map((contact, index) => (
+              <div
+                key={contact.id}
+                className="flex items-center gap-4 p-4 hover:bg-gray-50 cursor-pointer border-b border-gray-100 transition-colors"
+                onClick={() => handleContactSelect(contact.id)}
+                style={{ animationDelay: `${index * 50}ms` }}
+              >
+                <div className="relative">
+                  <div className="w-14 h-14 rounded-2xl overflow-hidden shadow-md group-hover:shadow-lg transition-all duration-300 group-hover:scale-105">
+                    {contact.avatar.startsWith('http') ? (
+                      <img 
+                        src={contact.avatar} 
+                        alt={contact.name}
+                        className="w-full h-full object-cover"
+                        onError={(e) => {
+                          // Fallback to initials if image fails to load
+                          const target = e.target as HTMLImageElement;
+                          target.style.display = 'none';
+                          const fallback = target.nextElementSibling as HTMLElement;
+                          if (fallback) fallback.style.display = 'flex';
+                        }}
+                      />
+                    ) : (
+                      <div className="w-full h-full bg-gradient-to-br from-blue-400 to-purple-500 flex items-center justify-center text-xl">
+                        {contact.avatar}
+                      </div>
+                    )}
+                    {/* Fallback initials */}
+                    <div className="w-full h-full bg-gradient-to-br from-blue-400 to-purple-500 flex items-center justify-center text-white font-bold text-lg hidden">
+                      {contact.name.split(' ').map(n => n[0]).join('').substring(0, 2)}
+                    </div>
+                  </div>
+                  {contact.isOnline && (
+                    <div className="absolute -bottom-1 -right-1 w-5 h-5 bg-green-500 rounded-full border-3 border-white shadow-lg animate-pulse"></div>
+                  )}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center justify-between mb-1">
+                    <div className="flex items-center gap-2">
+                      <h3 className="font-bold text-gray-900 truncate text-lg group-hover:text-blue-700 transition-colors">
+                        {contact.name}
+                      </h3>
+                      {contact.name === 'Larry Machigo' && contact.id === '1' && (
+                        <div className="w-5 h-5 bg-gradient-to-r from-yellow-400 to-orange-500 rounded-full flex items-center justify-center">
+                          <span className="text-white text-xs">⚡</span>
+                        </div>
+                      )}
+                    </div>
+                    <span className="text-xs font-medium text-gray-500 bg-gray-100 px-2 py-1 rounded-full">
+                      {formatMessageTime(contact.lastMessageTime)}
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <p className="text-sm text-gray-600 truncate font-medium">
+                      {contact.lastMessage}
+                    </p>
+                    {contact.unreadCount > 0 && (
+                      <span className="px-3 py-1 text-xs font-bold rounded-full bg-gradient-to-r from-blue-500 to-purple-600 text-white shadow-lg min-w-[24px] text-center animate-bounce">
+                        {contact.unreadCount}
+                      </span>
+                    )}
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* Floating Action Button */}
+          <button className="fixed bottom-6 right-6 w-14 h-14 bg-blue-500 text-white rounded-full shadow-lg hover:bg-blue-600 transition-colors flex items-center justify-center">
+            <Plus className="w-6 h-6" />
+          </button>
+        </div>
+      ) : (
+        // Chat Conversation View - Fullscreen
+        <div className="fixed inset-0 flex flex-col" style={{
+          background: '#4a6cf7'
+        }}>
+          {/* Background Pattern */}
+          <div className="absolute inset-0 opacity-10">
+            <div className="absolute top-20 left-10 w-32 h-32 bg-white rounded-full blur-3xl"></div>
+            <div className="absolute top-40 right-20 w-24 h-24 bg-white rounded-full blur-2xl"></div>
+            <div className="absolute bottom-40 left-20 w-40 h-40 bg-white rounded-full blur-3xl"></div>
+          </div>
+          
+          {/* Seamless Header - Blended with Chat */}
+          {selectedContact && (
+            <div className="relative z-20 px-6 pt-6 pb-4 flex items-center gap-4 text-white">
+              <button
+                onClick={() => setCurrentView('list')}
+                className="p-3 hover:bg-white/10 rounded-2xl transition-all duration-300 hover:scale-110"
+              >
+                <ArrowLeft className="w-6 h-6" />
+              </button>
+              <div className="relative">
+                <div className="w-12 h-12 rounded-2xl overflow-hidden bg-white/10 shadow-lg">
+                  <img 
+                    src={SAMHWorkerImage} 
+                    alt={selectedContact.name}
+                    className="w-full h-full object-contain"
+                    onError={(e) => {
+                      const target = e.target as HTMLImageElement;
+                      target.style.display = 'none';
+                      const parent = target.parentElement!;
+                      parent.innerHTML = '<div class="w-full h-full flex items-center justify-center text-xl text-white">👤</div>';
+                    }}
+                  />
+                </div>
+                {selectedContact.isOnline && (
+                  <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-green-400 rounded-full border-2 border-white shadow-lg"></div>
+                )}
+              </div>
+              <div className="flex-1" style={{ fontFamily: "'SF Pro Display', -apple-system, BlinkMacSystemFont, 'Helvetica Neue', sans-serif" }}>
+                <h3 className="text-2xl font-medium text-white tracking-tight">{selectedContact.name}</h3>
+              </div>
+            </div>
+          )}
+
+          {/* Messages Area */}
+          <div className="flex-1 overflow-y-auto relative z-10 px-6 space-y-4 pb-6">
+            {currentMessages.map((message, index) => (
+              <div
+                key={message.id}
+                className={`flex ${
+                  message.sender === 'user' ? 'justify-end' : 'justify-start'
+                } animate-fadeIn`}
+                style={{ animationDelay: `${index * 100}ms` }}
+              >
+                <div className={`max-w-[80%] px-5 py-4 rounded-3xl shadow-lg backdrop-blur-sm transition-all duration-300 hover:scale-[1.02] ${
+                  message.sender === 'user'
+                    ? 'bg-white/95 text-gray-900 shadow-white/20'
+                    : 'bg-white/20 text-white shadow-blue-500/30'
+                }`}>
+                  <p className="text-sm font-medium leading-relaxed">{message.text}</p>
+                  {message.text.includes('UI Brief.docx') && (
+                    <div className="mt-3 p-3 bg-white/10 rounded-2xl flex items-center gap-3">
+                      <div className="w-8 h-8 bg-blue-500 rounded-lg flex items-center justify-center">
+                        <Paperclip className="w-4 h-4 text-white" />
+                      </div>
+                      <div className="flex-1">
+                        <p className="text-sm font-semibold">UI Brief.docx</p>
+                        <p className="text-xs opacity-80">269.18 KB</p>
+                      </div>
+                      <button className="p-2 bg-white/20 rounded-lg hover:bg-white/30 transition-colors">
+                        <Download className="w-4 h-4" />
+                      </button>
+                    </div>
+                  )}
+                </div>
+              </div>
+            ))}
+            
+            <div ref={messagesEndRef} />
+          </div>
+
+          {/* AI Quick Messages - Above Input (USP Feature) */}
+          {user?.accountType === 'admin' && selectedContactId && (
+            <div className="relative z-10 px-6 pb-4">
+              <div className="bg-white/10 backdrop-blur-xl rounded-2xl border border-white/20 shadow-2xl p-4">
+                <div className="flex items-center justify-between mb-3">
+                  <h3 className="text-white font-bold text-sm flex items-center gap-2">
+                    
+                    Suggested Messages
+                  </h3>
+                  <button
+                    onClick={refreshQuickMessages}
+                    disabled={isGeneratingQuickMessages}
+                    className={`p-1.5 rounded-lg transition-all duration-200 ${
+                      isGeneratingQuickMessages
+                        ? 'bg-white/10 text-white/50 cursor-not-allowed'
+                        : 'bg-white/20 hover:bg-white/30 text-white'
+                    }`}
+                    title="Refresh quick messages"
+                  >
+                    <RefreshCw className={`w-3.5 h-3.5 ${isGeneratingQuickMessages ? 'animate-spin' : ''}`} />
+                  </button>
+                </div>
+                <div className="space-y-2">
+                  {isGeneratingQuickMessages ? (
+                    <div className="flex items-center gap-2 p-3 bg-white/10 rounded-xl">
+                      <Loader2 className="w-4 h-4 animate-spin text-white" />
+                      <span className="text-white/90 text-xs">Generating AI suggestions...</span>
+                    </div>
+                  ) : (
+                    quickMessages.map((suggestion, index) => (
+                      <button
+                        key={index}
+                        onClick={() => setInputText(suggestion)}
+                        className="w-full p-3 bg-white/10 hover:bg-white/20 rounded-xl text-left transition-all duration-200 group"
+                      >
+                        <p className="text-white/90 text-xs group-hover:text-white">{suggestion}</p>
+                      </button>
+                    ))
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Input Area */}
+          <div className="relative z-10 p-6">
+            <div className="flex items-end gap-3 bg-white/95 backdrop-blur-xl rounded-3xl shadow-2xl p-3 border border-white/20">
+              <div className="flex-1">
+                <textarea
+                  value={inputText}
+                  onChange={(e) => {
+                    setInputText(e.target.value);
+                    // Auto-resize like WhatsApp
+                    e.target.style.height = 'auto';
+                    e.target.style.height = Math.min(e.target.scrollHeight, 100) + 'px';
+                  }}
+                  onKeyPress={handleKeyPress}
+                  placeholder="Type a message..."
+                  className="w-full px-4 py-3 rounded-2xl border-0 focus:outline-none text-gray-900 placeholder-gray-500 font-normal bg-transparent resize-none overflow-hidden leading-relaxed"
+                  disabled={isLoading}
+                  rows={1}
+                  style={{ 
+                    fontFamily: "'SF Pro Display', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
+                    minHeight: '44px',
+                    maxHeight: '100px',
+                    lineHeight: '1.4'
+                  }}
+                />
+              </div>
+              <button className="p-2 hover:bg-blue-50 rounded-full transition-all duration-200 flex-shrink-0">
+                <Mic className="w-5 h-5 text-gray-600 hover:text-blue-600" />
+              </button>
+              <button
+                onClick={handleSendMessage}
+                disabled={!inputText.trim() || isLoading}
+                className={`p-3 rounded-full transition-all duration-200 flex-shrink-0 ${
+                  !inputText.trim() || isLoading
+                    ? 'bg-gray-200 text-gray-400 cursor-not-allowed'
+                    : 'bg-blue-500 text-white hover:bg-blue-600 shadow-lg'
+                }`}
+              >
+                {isLoading ? (
+                  <Loader2 className="w-5 h-5 animate-spin" />
+                ) : (
+                  <Send className="w-5 h-5" />
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Mobile Slide-out Navigation */}
+      {showNavMenu && (
+        <>
+          {/* Backdrop */}
+          <div 
+            className="fixed inset-0 bg-black bg-opacity-50 z-40 transition-opacity duration-300"
+            onClick={() => setShowNavMenu(false)}
+          />
+          
+          {/* Slide-out Menu */}
+          <div className={`fixed top-0 right-0 h-full w-80 z-50 transform transition-transform duration-300 ease-in-out ${
+            showNavMenu ? 'translate-x-0' : 'translate-x-full'
+          }`}>
+            <div className="h-full bg-white border-l border-gray-200 shadow-2xl">
+              {/* Menu Header */}
+              <div className="p-6 border-b border-gray-200">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 bg-blue-500 rounded-lg flex items-center justify-center">
+                      <span className="text-white font-bold text-sm">.AI</span>
+                    </div>
+                    <div>
+                      <h2 className="text-xl font-bold text-slate-900">
+                        KAI
+                      </h2>
+                      <p className="text-sm text-slate-500">
+                        Navigation
+                      </p>
+                    </div>
+                  </div>
+                  <button
+                    onClick={() => setShowNavMenu(false)}
+                    className="p-2 rounded-lg transition-colors duration-200 hover:bg-gray-100 text-gray-500"
+                  >
+                    <X className="w-5 h-5" />
+                  </button>
+                </div>
+              </div>
+
+              {/* Navigation Items */}
+              <nav className="p-4">
+                <div className="space-y-2">
+                  {navigation.map(({ id, label, icon: Icon, description }) => (
+                    <button
+                      key={id}
+                      onClick={() => {
+                        if (onNavigate) {
+                          onNavigate(id);
+                        }
+                        setShowNavMenu(false);
+                      }}
+                      className={`w-full flex items-center gap-4 p-4 rounded-xl transition-all duration-200 ${
+                        id === 'chat'
+                          ? 'bg-blue-500 text-white shadow-lg'
+                          : 'hover:bg-gray-100 text-slate-700'
+                      }`}
+                    >
+                      <Icon className="w-6 h-6" />
+                      <div className="flex-1 text-left">
+                        <div className="font-semibold">{label}</div>
+                        <div className={`text-sm ${
+                          id === 'chat'
+                            ? 'text-white/80'
+                            : 'text-gray-500'
+                        }`}>
+                          {description}
+                        </div>
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              </nav>
+
+              {/* User Info */}
+              <div className="absolute bottom-0 left-0 right-0 p-4 border-t border-gray-200 bg-gray-50">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-full flex items-center justify-center bg-gray-200">
+                    <span className="text-lg text-gray-600">
+                      👤
+                    </span>
+                  </div>
+                  <div className="flex-1">
+                    <div className="font-semibold text-slate-900">
+                      {user?.username}
+                    </div>
+                    <div className="text-sm text-slate-500">
+                      {user?.accountType}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </>
+      )}
+
+      {/* Hidden original layout for compatibility */}
+      <div className="hidden">
         <div className={`flex ${isMobile ? 'h-[calc(100vh-200px)]' : 'h-[600px]'}`}>
           {/* Contact List Sidebar */}
           <div className={`${isMobile ? (showContactList ? 'w-full' : 'hidden') : 'w-80'} border-r ${
@@ -1198,29 +1759,41 @@ const Chat: React.FC<ChatProps> = ({ darkMode, initializationData, onInitializat
                 <div className={`border-t p-6 min-w-0 ${
                   darkMode ? 'border-slate-600 bg-slate-700' : 'border-gray-200 bg-white'
                 }`}>
-                  <div className="flex gap-3 min-w-0">
-                    <textarea
-                      value={inputText}
-                      onChange={(e) => setInputText(e.target.value)}
-                      onKeyPress={handleKeyPress}
-                      placeholder="Type your message..."
-                      className={`flex-1 p-4 rounded-2xl border resize-none focus:outline-none focus:ring-2 transition-all duration-300 min-w-0 shadow-sm ${
-                        darkMode
-                          ? 'bg-slate-600 border-slate-500 text-white placeholder-slate-400'
-                          : 'bg-white border-gray-300 text-slate-900 placeholder-slate-500'
-                      }`}
-                      rows={isMobile ? 1 : 2}
-                      disabled={isLoading}
-                    />
+                  <div className="flex items-end gap-3 min-w-0">
+                    <div className="flex-1">
+                      <textarea
+                        value={inputText}
+                        onChange={(e) => {
+                          setInputText(e.target.value);
+                          // Auto-resize like WhatsApp
+                          e.target.style.height = 'auto';
+                          e.target.style.height = Math.min(e.target.scrollHeight, 100) + 'px';
+                        }}
+                        onKeyPress={handleKeyPress}
+                        placeholder="Type a message..."
+                        className={`w-full px-4 py-3 rounded-2xl border resize-none focus:outline-none focus:ring-2 transition-all duration-300 shadow-sm overflow-hidden leading-relaxed ${
+                          darkMode
+                            ? 'bg-slate-600 border-slate-500 text-white placeholder-slate-400'
+                            : 'bg-white border-gray-300 text-slate-900 placeholder-slate-500'
+                        }`}
+                        rows={1}
+                        style={{
+                          minHeight: '44px',
+                          maxHeight: '100px',
+                          lineHeight: '1.4'
+                        }}
+                        disabled={isLoading}
+                      />
+                    </div>
                     <button
                       onClick={handleSendMessage}
                       disabled={!inputText.trim() || isLoading}
-                      className={`p-4 rounded-2xl transition-all duration-300 hover:scale-105 shadow-lg ${
+                      className={`p-3 rounded-full transition-all duration-300 flex-shrink-0 ${
                         !inputText.trim() || isLoading
                           ? darkMode
                             ? 'bg-slate-700 text-slate-500 cursor-not-allowed'
                             : 'bg-slate-200 text-slate-400 cursor-not-allowed'
-                          : 'text-white'
+                          : 'text-white shadow-lg'
                       }`} style={{
                         background: !inputText.trim() || isLoading
                           ? undefined
