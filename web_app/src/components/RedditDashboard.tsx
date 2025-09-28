@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Search, Download, RefreshCw, Users, MessageSquare, User, Eye } from 'lucide-react';
+import { Search, Download, RefreshCw, Users, MessageSquare, User } from 'lucide-react';
 
 interface RedditDashboardProps {
   darkMode: boolean;
@@ -272,14 +272,14 @@ const RedditDashboard: React.FC<RedditDashboardProps> = ({ darkMode, onNavigateT
 
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-0">
       {/* Header */}
       <div className={`rounded-xl border transition-all duration-300 ${
           darkMode 
           ? 'bg-[#40414F] border-gray-700' 
           : 'bg-white/90 backdrop-blur-sm border-blue-100'
       }`}>
-        <div className={`${isMobile ? 'p-4' : 'p-6'}`}>
+        <div className={`${isMobile ? 'p-3' : 'p-4'}`}>
           <div className={`${isMobile ? 'space-y-4' : 'flex justify-between items-center'}`}>
             <div>
               <h2 className={`${isMobile ? 'text-xl' : 'text-2xl'} font-semibold ${
@@ -345,7 +345,7 @@ const RedditDashboard: React.FC<RedditDashboardProps> = ({ darkMode, onNavigateT
           ? 'bg-[#40414F] border-gray-700' 
           : 'bg-white/90 backdrop-blur-sm border-blue-100'
       }`}>
-        <div className={`${isMobile ? 'p-3' : 'p-4'}`}>
+        <div className={`${isMobile ? 'p-2' : 'p-3'}`}>
           <div className={`relative ${isMobile ? 'w-full' : 'max-w-2xl'}`}>
             <Search className="w-4 h-4 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
             <input

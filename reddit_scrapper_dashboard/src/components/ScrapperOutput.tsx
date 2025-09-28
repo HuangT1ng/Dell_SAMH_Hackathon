@@ -179,7 +179,7 @@ const ScrapperOutput: React.FC<ScrapperOutputProps> = ({ darkMode }) => {
       {/* Main Content */}
       <div className="w-full">
       {/* Simple Header */}
-      <div className={`p-6 rounded-lg border mb-6 ${
+      <div className={`p-4 rounded-lg border mb-0 ${
         darkMode 
           ? 'bg-slate-800 border-slate-600' 
           : 'bg-white border-gray-200'
@@ -239,7 +239,7 @@ const ScrapperOutput: React.FC<ScrapperOutputProps> = ({ darkMode }) => {
       </div>
 
       {/* Search Filter and Platform Buttons */}
-      <div className={`p-4 rounded-lg border mb-6 ${
+      <div className={`p-3 rounded-lg border mb-0 ${
         darkMode 
           ? 'bg-slate-800 border-slate-600' 
           : 'bg-white border-gray-200'

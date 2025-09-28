@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { MessageCircle, Send, Loader2, Search, Trash2, Brain, RefreshCw, MoreVertical, ArrowLeft, Mic, Paperclip, X, Download } from 'lucide-react';
+import { MessageCircle, Send, Loader2, Search, Trash2, Brain, RefreshCw, ArrowLeft, Mic, Paperclip, X, Download } from 'lucide-react';
 import { useSession } from '../utils/sessionContext';
 import SAMHWorkerImage from '../Assets/SAMHWorker.png';
 
@@ -958,26 +958,6 @@ const Chat: React.FC<ChatProps> = ({ darkMode, initializationData, onInitializat
       {currentView === 'list' ? (
         // Mobile Chat List View - Fullscreen
         <div className="bg-white min-h-screen overflow-hidden">
-          {/* Header - Clean and Simple */}
-          <div className="px-4 py-3 bg-white">
-            <div className="flex justify-between items-center">
-              <div className="ml-2" style={{ fontFamily: "'SF Pro Display', -apple-system, BlinkMacSystemFont, 'Helvetica Neue', sans-serif" }}>
-                <div className="text-sm text-gray-400 font-light tracking-wide">Hello,</div>
-                <div className="text-2xl font-medium text-gray-900 -mt-0.5 tracking-tight">
-                  {user?.username || 'Johan'}
-                </div>
-              </div>
-              
-              <div className="flex items-center gap-2">
-                <button 
-                  onClick={() => setShowNavMenu(true)}
-                  className="w-11 h-11 rounded-full border border-gray-300 flex items-center justify-center hover:bg-gray-50 transition-colors"
-                >
-                  <MoreVertical className="w-5 h-5 text-blue-500" />
-                </button>
-              </div>
-            </div>
-          </div>
 
           {/* Navigation Tabs */}
           <div className="bg-white px-6 py-4">

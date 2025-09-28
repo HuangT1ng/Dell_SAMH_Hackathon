@@ -51,7 +51,7 @@ function AppContent() {
 
   const navigation = [
     { id: 'home', label: 'Home', icon: Home, description: 'Platform Overview' },
-    { id: 'gaming', label: 'Gaming', icon: Gamepad2, description: 'Gaming Hub & Sessions' },
+    ...(user?.accountType === 'user' ? [{ id: 'gaming', label: 'Gaming', icon: Gamepad2, description: 'Gaming Hub & Sessions' }] : []),
     { id: 'chat', label: 'Chat', icon: MessageCircle, description: 'Chat Support' },
     ...(user?.accountType === 'user' ? [{ id: 'community', label: 'Community Event', icon: Calendar, description: 'Community Events & Activities' }] : []),
     ...(user?.accountType === 'admin' ? [{ id: 'dashboard', label: 'Dashboard', icon: BarChart3, description: 'Reddit Data Dashboard' }] : []),
@@ -68,13 +68,12 @@ function AppContent() {
         ? 'bg-[#343541] text-white' 
         : 'text-slate-800'
     }`} style={{ backgroundColor: darkMode ? undefined : '#f1efef' }}>
-      {/* Header - Hidden on chat page */}
-      {currentView !== 'chat' && (
-        <header className={`border-b transition-colors duration-300 ${
-          darkMode 
-            ? 'bg-[#40414F] border-gray-700' 
-            : 'bg-white border-gray-200'
-        }`}>
+      {/* Header */}
+      <header className={`border-b transition-colors duration-300 ${
+        darkMode 
+          ? 'bg-[#40414F] border-gray-700' 
+          : 'bg-white border-gray-200'
+      }`}>
           <div className="px-6 py-4">
             <div className="flex justify-between items-center">
               <div className="flex items-center gap-4">
@@ -155,8 +154,7 @@ function AppContent() {
               </div>
             </div>
           </div>
-        </header>
-      )}
+      </header>
         
         {/* Mobile Slide-out Navigation */}
         {isMobile && (
@@ -297,11 +295,11 @@ function AppContent() {
         {/* Main Content */}
         <main>
           {currentView === 'home' && <HomePage darkMode={darkMode} />}
-          {currentView === 'gaming' && <Gaming darkMode={darkMode} onNavigate={handleNavigate} />}
-          {currentView === 'academic-stress-game' && (
+          {currentView === 'gaming' && user?.accountType === 'user' && <Gaming darkMode={darkMode} onNavigate={handleNavigate} />}
+          {currentView === 'academic-stress-game' && user?.accountType === 'user' && (
             <AcademicStressGamePage onBack={() => setCurrentView('gaming')} />
           )}
-          {currentView === 'pixel-harmony-game' && (
+          {currentView === 'pixel-harmony-game' && user?.accountType === 'user' && (
             <PixelHarmonyGamePage darkMode={darkMode} onNavigate={handleNavigate} />
           )}
           {currentView === 'chat' && <Chat darkMode={darkMode} initializationData={chatInitialization || undefined} onInitializationComplete={clearChatInitialization} onNavigate={handleNavigate} navigation={navigation} />}
