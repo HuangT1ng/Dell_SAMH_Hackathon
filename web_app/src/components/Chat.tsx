@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { MessageCircle, Send, Loader2, Search, Trash2, Brain, RefreshCw, MoreVertical, Plus, ArrowLeft, Mic, Paperclip, X, Download } from 'lucide-react';
+import { MessageCircle, Send, Loader2, Search, Trash2, Brain, RefreshCw, MoreVertical, ArrowLeft, Mic, Paperclip, X, Download } from 'lucide-react';
 import { useSession } from '../utils/sessionContext';
 import SAMHWorkerImage from '../Assets/SAMHWorker.png';
 
@@ -969,9 +969,6 @@ const Chat: React.FC<ChatProps> = ({ darkMode, initializationData, onInitializat
               </div>
               
               <div className="flex items-center gap-2">
-                <button className="w-11 h-11 rounded-full border border-gray-300 flex items-center justify-center hover:bg-gray-50 transition-colors">
-                  <Search className="w-5 h-5 text-blue-500" />
-                </button>
                 <button 
                   onClick={() => setShowNavMenu(true)}
                   className="w-11 h-11 rounded-full border border-gray-300 flex items-center justify-center hover:bg-gray-50 transition-colors"
@@ -1087,10 +1084,6 @@ const Chat: React.FC<ChatProps> = ({ darkMode, initializationData, onInitializat
             ))}
           </div>
 
-          {/* Floating Action Button */}
-          <button className="fixed bottom-6 right-6 w-14 h-14 bg-blue-500 text-white rounded-full shadow-lg hover:bg-blue-600 transition-colors flex items-center justify-center">
-            <Plus className="w-6 h-6" />
-          </button>
         </div>
       ) : (
         // Chat Conversation View - Fullscreen
