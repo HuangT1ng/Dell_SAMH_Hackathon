@@ -84,14 +84,6 @@ class JourneyTracker {
   }
 
   // Convenience methods for common events
-  async trackMoodEntry(moodLabel: string, notes?: string): Promise<void> {
-    await this.trackEvent({
-      eventType: 'mood_entry',
-      eventTitle: `Mood Entry: ${moodLabel}`,
-      eventDescription: notes || 'Tracked your mood',
-      metadata: { moodLabel, notes }
-    });
-  }
 
   async trackChatSession(sessionType: string = 'general'): Promise<void> {
     await this.trackEvent({
@@ -139,76 +131,15 @@ class JourneyTracker {
   }
 
   // Achievement checking and unlocking
-  async checkAndUnlockAchievements(moodEntries: any[], journeyEvents: UserJourneyEvent[]): Promise<void> {
+  async checkAndUnlockAchievements(journeyEvents: UserJourneyEvent[]): Promise<void> {
     if (!this.userId) return;
 
-    const totalMoodEntries = moodEntries.length;
     const totalChatSessions = journeyEvents.filter(e => e.eventType === 'chat_session').length;
     const totalGamingSessions = journeyEvents.filter(e => e.eventType === 'gaming_session').length;
     const totalCommunityEvents = journeyEvents.filter(e => e.eventType === 'community_event').length;
-    
-    // Calculate streak
-    let streakDays = 0;
-    if (moodEntries.length > 0) {
-      const sortedEntries = [...moodEntries].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
-      const today = new Date().toDateString();
-      
-      for (let i = 0; i < sortedEntries.length; i++) {
-        const entryDate = new Date(sortedEntries[i].date).toDateString();
-        const expectedDate = new Date(Date.now() - (streakDays * 24 * 60 * 60 * 1000)).toDateString();
-        
-        if (entryDate === expectedDate || (i === 0 && entryDate === today)) {
-          streakDays++;
-        } else {
-          break;
-        }
-      }
-    }
 
     // Check for achievements to unlock
     const achievementsToCheck = [
-      {
-        condition: totalMoodEntries >= 1,
-        type: 'first_steps',
-        title: 'First Steps',
-        description: 'Created your first mood entry'
-      },
-      {
-        condition: totalMoodEntries >= 5,
-        type: 'consistent_tracker',
-        title: 'Consistent Tracker',
-        description: 'Created 5 mood entries'
-      },
-      {
-        condition: totalMoodEntries >= 10,
-        type: 'dedicated_journaler',
-        title: 'Dedicated Journaler',
-        description: 'Created 10 mood entries'
-      },
-      {
-        condition: totalMoodEntries >= 25,
-        type: 'mood_master',
-        title: 'Mood Master',
-        description: 'Created 25 mood entries'
-      },
-      {
-        condition: streakDays >= 3,
-        type: 'streak_starter',
-        title: 'Streak Starter',
-        description: 'Maintained a 3-day streak'
-      },
-      {
-        condition: streakDays >= 7,
-        type: 'week_warrior',
-        title: 'Week Warrior',
-        description: 'Maintained a 7-day streak'
-      },
-      {
-        condition: streakDays >= 14,
-        type: 'two_week_champion',
-        title: 'Two Week Champion',
-        description: 'Maintained a 14-day streak'
-      },
       {
         condition: totalChatSessions >= 5,
         type: 'social_butterfly',

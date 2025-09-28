@@ -65,16 +65,10 @@ const CommunityEvent: React.FC<CommunityEventProps> = ({ darkMode }) => {
         return eventId >= 42;
       });
       
-      // Prioritize SAMH Cooking Session as first choice
-      const sortedEvents = matchedEvents.sort((a, b) => {
-        // Put SAMH Cooking Session first
-        if (a.organization_name?.includes('SAMH COOKING SESSION')) return -1;
-        if (b.organization_name?.includes('SAMH COOKING SESSION')) return 1;
-        // Keep original order for other events
-        return parseInt(a.id) - parseInt(b.id);
-      });
+      // Randomize the order of events each time
+      const randomizedEvents = matchedEvents.sort(() => Math.random() - 0.5);
       
-      setFilteredEvents(sortedEvents);
+      setFilteredEvents(randomizedEvents);
       setShowFilteredEvents(true);
       setIsMatching(false);
       
@@ -309,7 +303,7 @@ const CommunityEvent: React.FC<CommunityEventProps> = ({ darkMode }) => {
               <p className={`text-sm leading-relaxed ${
                 darkMode ? 'text-gray-300' : 'text-gray-600'
               }`}>
-                Here are sports-related events we found and filtered for you, tailored to your interests.
+                Here are some suggested events catered for you.
               </p>
               <button
                 onClick={() => setShowPopup(false)}

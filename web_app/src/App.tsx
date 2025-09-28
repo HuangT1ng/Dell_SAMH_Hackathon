@@ -1,33 +1,23 @@
 import { useState, useEffect } from 'react';
-import { Home, Heart, Brain, Gamepad2, MessageCircle, LogOut, BarChart3, Calendar, User, Menu, X } from 'lucide-react';
+import { Home, Gamepad2, MessageCircle, LogOut, BarChart3, Calendar, User, Menu, X } from 'lucide-react';
 import KAILogo from './Assets/KAILogo.png';
 import HomePage from './components/HomePage';
-import MoodBar from './components/MoodBar';
 import Gaming from './components/Gaming';
 import AcademicStressGamePage from './components/AcademicStressGamePage';
 import PixelHarmonyGamePage from './components/PixelHarmonyGamePage';
 import Chat from './components/Chat';
 import RedditDashboard from './components/RedditDashboard';
 import CommunityEvent from './components/CommunityEvent';
-import MyJourney from './components/MyJourney';
-import UserJourneyModal from './components/UserJourneyModal';
 import Login from './components/Login';
-import { sharedDatabase } from './utils/sharedDatabase';
 import { SessionProvider, useSession } from './utils/sessionContext';
 
 function AppContent() {
   const { user, logout, isLoggedIn } = useSession();
-  const [currentView, setCurrentView] = useState<'home' | 'mood' | 'gaming' | 'academic-stress-game' | 'pixel-harmony-game' | 'chat' | 'community' | 'dashboard' | 'journey'>('home');
-  const [entries, setEntries] = useState<any[]>([]);
-  const [darkMode, setDarkMode] = useState(false);
+  const [currentView, setCurrentView] = useState<'home' | 'gaming' | 'academic-stress-game' | 'pixel-harmony-game' | 'chat' | 'community' | 'dashboard'>('home');
+  const [darkMode] = useState(false);
   const [chatInitialization, setChatInitialization] = useState<{samhUsername: string} | null>(null);
-  const [userJourneyModal, setUserJourneyModal] = useState<{isOpen: boolean, targetUsername: string}>({
-    isOpen: false,
-    targetUsername: ''
-  });
   const [isMobile, setIsMobile] = useState(false);
   const [showNav, setShowNav] = useState(true);
-  const [isJournalSetup, setIsJournalSetup] = useState(false);
 
   // Detect screen size for responsive navigation
   useEffect(() => {
@@ -41,87 +31,8 @@ function AppContent() {
     return () => window.removeEventListener('resize', checkScreenSize);
   }, []);
 
-  useEffect(() => {
-    const loadMoodEntries = async () => {
-      try {
-        // Try to load from shared database first
-        await sharedDatabase.initialize();
-        const dbEntries = await sharedDatabase.getAllMoodEntries();
-        setEntries(dbEntries);
-        console.log('✅ Loaded mood entries from shared database');
-      } catch (error) {
-        console.warn('⚠️ Shared database not available, falling back to localStorage');
-        // Fallback to localStorage if shared database is not available
-        const savedEntries = localStorage.getItem('moodEntries');
-        if (savedEntries) {
-          setEntries(JSON.parse(savedEntries));
-        }
-      }
-    };
 
-    loadMoodEntries();
-  }, []);
 
-  // Check if user has journal preferences set up
-  useEffect(() => {
-    const checkJournalSetup = async () => {
-      if (user?.username) {
-        try {
-          const API_BASE_URL = window.location.hostname === 'localhost' 
-            ? 'http://localhost:3001' 
-            : 'https://backend-ntu.apps.innovate.sg-cna.com';
-          
-          const response = await fetch(`${API_BASE_URL}/api/users/${user.username}/journal-preferences`);
-          if (response.ok) {
-            const data = await response.json();
-            // Check if user has more than just the default mood preference
-            const hasCustomSetup = data.preferences && data.preferences.length > 0 && 
-              !(data.preferences.length === 1 && data.preferences[0] === 'mood');
-            setIsJournalSetup(hasCustomSetup);
-            console.log(`🔍 Preferences check: ${JSON.stringify(data.preferences)}, hasCustomSetup: ${hasCustomSetup}`);
-            console.log(`✅ Journal setup check: ${user.username} - ${hasCustomSetup ? 'Custom setup' : 'Default setup'}`);
-          } else if (response.status === 404) {
-            // User doesn't exist or has no preferences, show setup
-            setIsJournalSetup(false);
-            console.log(`✅ Journal setup check: ${user.username} - No preferences found, showing setup`);
-          } else {
-            // Any other error, default to showing setup
-            setIsJournalSetup(false);
-            console.log(`✅ Journal setup check: ${user.username} - Error response, showing setup`);
-          }
-        } catch (error) {
-          console.warn('⚠️ Failed to check journal setup status:', error);
-          // Default to showing setup if check fails
-          setIsJournalSetup(false);
-        }
-      }
-    };
-
-    checkJournalSetup();
-  }, [user?.username]);
-
-  const saveEntry = (entry: any) => {
-    const newEntry = {
-      ...entry,
-      id: Date.now().toString(),
-      timestamp: Date.now(),
-    };
-
-    const updatedEntries = [newEntry, ...entries];
-    setEntries(updatedEntries);
-
-    // Try to save to shared database (fire and forget)
-    if (entry.mood !== undefined) {
-      sharedDatabase.addMoodEntry(newEntry as any).catch(() => {
-        localStorage.setItem('moodEntries', JSON.stringify(updatedEntries));
-      });
-    }
-
-    // If this is a journal setup completion, refresh the setup status
-    if (entry.notes?.includes('Journal setup completed')) {
-      setIsJournalSetup(true);
-    }
-  };
 
   const handleNavigate = (view: string) => {
     setCurrentView(view as any);
@@ -133,20 +44,6 @@ function AppContent() {
     setCurrentView('chat');
   };
 
-  const handleNavigateToUserJourney = (samhUsername: string) => {
-    console.log('Opening user journey modal for SAMH username:', samhUsername);
-    setUserJourneyModal({
-      isOpen: true,
-      targetUsername: samhUsername
-    });
-  };
-
-  const closeUserJourneyModal = () => {
-    setUserJourneyModal({
-      isOpen: false,
-      targetUsername: ''
-    });
-  };
 
   const clearChatInitialization = () => {
     setChatInitialization(null);
@@ -154,8 +51,6 @@ function AppContent() {
 
   const navigation = [
     { id: 'home', label: 'Home', icon: Home, description: 'Platform Overview' },
-    ...(user?.accountType === 'user' ? [{ id: 'journey', label: 'My Journey', icon: User, description: 'Personal Journey & Progress' }] : []),
-    { id: 'mood', label: 'Mood Bar', icon: Heart, description: 'Mood Tracking & Analytics' },
     { id: 'gaming', label: 'Gaming', icon: Gamepad2, description: 'Gaming Hub & Sessions' },
     { id: 'chat', label: 'Chat', icon: MessageCircle, description: 'Chat Support' },
     ...(user?.accountType === 'user' ? [{ id: 'community', label: 'Community Event', icon: Calendar, description: 'Community Events & Activities' }] : []),
@@ -173,8 +68,8 @@ function AppContent() {
         ? 'bg-[#343541] text-white' 
         : 'text-slate-800'
     }`} style={{ backgroundColor: darkMode ? undefined : '#f1efef' }}>
-      {/* Header - Hidden on mood and chat pages */}
-      {currentView !== 'mood' && currentView !== 'chat' && (
+      {/* Header - Hidden on chat page */}
+      {currentView !== 'chat' && (
         <header className={`border-b transition-colors duration-300 ${
           darkMode 
             ? 'bg-[#40414F] border-gray-700' 
@@ -402,19 +297,6 @@ function AppContent() {
         {/* Main Content */}
         <main>
           {currentView === 'home' && <HomePage darkMode={darkMode} />}
-          {currentView === 'journey' && <MyJourney darkMode={darkMode} />}
-          {currentView === 'mood' && (
-            <MoodBar 
-              entries={entries} 
-              onSave={saveEntry} 
-              onNavigate={handleNavigate}
-              isFirstTime={!isJournalSetup}
-              username={user?.username}
-              navigation={navigation}
-              user={user}
-              darkMode={darkMode}
-            />
-          )}
           {currentView === 'gaming' && <Gaming darkMode={darkMode} onNavigate={handleNavigate} />}
           {currentView === 'academic-stress-game' && (
             <AcademicStressGamePage onBack={() => setCurrentView('gaming')} />
@@ -424,17 +306,10 @@ function AppContent() {
           )}
           {currentView === 'chat' && <Chat darkMode={darkMode} initializationData={chatInitialization || undefined} onInitializationComplete={clearChatInitialization} onNavigate={handleNavigate} navigation={navigation} />}
           {currentView === 'community' && <CommunityEvent darkMode={darkMode} />}
-          {currentView === 'dashboard' && <RedditDashboard darkMode={darkMode} onNavigateToChat={handleNavigateToChat} onNavigateToUserJourney={handleNavigateToUserJourney} />}
+          {currentView === 'dashboard' && <RedditDashboard darkMode={darkMode} onNavigateToChat={handleNavigateToChat} />}
         </main>
       </div>
 
-      {/* User Journey Modal */}
-      <UserJourneyModal
-        isOpen={userJourneyModal.isOpen}
-        onClose={closeUserJourneyModal}
-        targetUsername={userJourneyModal.targetUsername}
-        darkMode={darkMode}
-      />
     </div>
   );
 }

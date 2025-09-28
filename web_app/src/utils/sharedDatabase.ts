@@ -1,15 +1,5 @@
 // Shared database utility for SAMH Platform to communicate with centralized database
 
-export interface MoodEntry {
-  id: string;
-  date: string;
-  mood: number;
-  moodLabel: string;
-  triggers: string[];
-  activities: string[];
-  notes: string;
-  timestamp: number;
-}
 
 export interface MentalHealthPost {
   id: string;
@@ -34,7 +24,7 @@ export interface AnalyticsEvent {
 export interface UserJourneyEvent {
   id: string;
   userId: string;
-  eventType: 'mood_entry' | 'chat_session' | 'gaming_session' | 'community_event' | 'achievement' | 'login' | 'logout';
+  eventType: 'chat_session' | 'gaming_session' | 'community_event' | 'achievement' | 'login' | 'logout';
   eventTitle: string;
   eventDescription: string;
   timestamp: number;
@@ -57,47 +47,6 @@ class SharedDatabaseManager {
     ? 'http://localhost:3001/api' 
     : 'https://backend-ntu.apps.innovate.sg-cna.com/api';
 
-  // Mood Entries Management
-  async getAllMoodEntries(): Promise<MoodEntry[]> {
-    try {
-      console.log('Fetching mood entries from shared database...');
-      const response = await fetch(`${this.baseUrl}/mood-entries`);
-      
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-      
-      const data = await response.json();
-      console.log(`Loaded ${data.length} mood entries from shared database`);
-      return data;
-    } catch (error) {
-      console.error('Error fetching mood entries from shared database:', error);
-      throw error;
-    }
-  }
-
-  async addMoodEntry(entry: MoodEntry): Promise<{ id: string; message: string }> {
-    try {
-      const response = await fetch(`${this.baseUrl}/mood-entries`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(entry),
-      });
-      
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-      
-      const result = await response.json();
-      console.log('Mood entry added to shared database:', result);
-      return result;
-    } catch (error) {
-      console.error('Error adding mood entry to shared database:', error);
-      throw error;
-    }
-  }
 
   // Mental Health Posts (Read-only for SAMH Platform)
   async getMentalHealthPosts(): Promise<MentalHealthPost[]> {
@@ -158,7 +107,7 @@ class SharedDatabaseManager {
   }
 
   // Database Statistics
-  async getStats(): Promise<{ mental_health_posts: number; mood_entries: number; user_analytics: number }> {
+  async getStats(): Promise<{ mental_health_posts: number; user_analytics: number }> {
     try {
       const response = await fetch(`${this.baseUrl}/stats`);
       

@@ -64,15 +64,6 @@ const HomePage: React.FC<HomePageProps> = ({ darkMode }) => {
       color: PALETTE.orange,
     },
     {
-      title: "Mood Diary & Insights",
-      desc:
-        "Private journaling with gentle prompts and clear mood trends.",
-      icon: BookOpen,
-      image: CommunityJournal,
-      tag: "Private by Default",
-      color: PALETTE.yellow,
-    },
-    {
       title: "Community & Events",
       desc:
         "Moderated groups, local events, and a light rewards loop.",
@@ -144,9 +135,8 @@ const HomePage: React.FC<HomePageProps> = ({ darkMode }) => {
             </div>
             
             <p className={`text-xl leading-relaxed ${textSoft} max-w-lg`}>
-              K.AI helps teens build coping skills, keep a private mood diary,
-              and find safe community connections — in a single, privacy-first app.
-              Built for Singapore youth and partners who support them.
+              K.AI helps teens build coping skills and find safe community connections 
+              — in a single, privacy-first app. Built for Singapore youth and partners who support them.
             </p>
 
             <div className="flex flex-wrap gap-3">

@@ -4,7 +4,6 @@ import { Search, Download, RefreshCw, Users, MessageSquare, User, Eye } from 'lu
 interface RedditDashboardProps {
   darkMode: boolean;
   onNavigateToChat?: (samhUsername: string) => void;
-  onNavigateToUserJourney?: (samhUsername: string) => void;
 }
 
 interface ScrapperData {
@@ -27,7 +26,7 @@ const API_BASE_URL = window.location.hostname === 'localhost'
   ? 'http://localhost:3001' 
   : 'https://backend-ntu.apps.innovate.sg-cna.com';
 
-const RedditDashboard: React.FC<RedditDashboardProps> = ({ darkMode, onNavigateToChat, onNavigateToUserJourney }) => {
+const RedditDashboard: React.FC<RedditDashboardProps> = ({ darkMode, onNavigateToChat }) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [data, setData] = useState<ScrapperData[]>([]);
   const [isLoadingData, setIsLoadingData] = useState(false);
@@ -271,30 +270,6 @@ const RedditDashboard: React.FC<RedditDashboardProps> = ({ darkMode, onNavigateT
     }
   };
 
-  const handleViewUserJourney = (postId: string) => {
-    const post = data.find(p => p.id === postId);
-    if (!post) {
-      console.error('Post not found:', postId);
-      return;
-    }
-
-    // Check if the post has a SAMH username
-    if (!post.samh_username) {
-      setStatus('❌ No SAMH username found for this author. Cannot view journey.');
-      setTimeout(() => setStatus(''), 5000);
-      return;
-    }
-
-    console.log('View user journey clicked for post:', postId, 'SAMH username:', post.samh_username);
-    
-    // Call the navigation function if provided
-    if (onNavigateToUserJourney) {
-      onNavigateToUserJourney(post.samh_username);
-    } else {
-      setStatus('✅ SAMH username found: ' + post.samh_username + '. Navigation to journey not configured.');
-      setTimeout(() => setStatus(''), 5000);
-    }
-  };
 
   return (
     <div className="space-y-6">
@@ -531,13 +506,6 @@ const RedditDashboard: React.FC<RedditDashboardProps> = ({ darkMode, onNavigateT
                           <MessageSquare className="w-4 h-4" />
                           Chat
                         </button>
-                        <button
-                          onClick={() => handleViewUserJourney(item.id)}
-                          className="flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 bg-purple-600 hover:bg-purple-700 text-white"
-                        >
-                          <User className="w-4 h-4" />
-                          Summary
-                        </button>
                       </div>
                     )}
                   </div>
@@ -766,21 +734,13 @@ const RedditDashboard: React.FC<RedditDashboardProps> = ({ darkMode, onNavigateT
                   {/* Summary */}
                   <td className="px-6 py-4 text-center">
                     {item.samh_username ? (
-                      <button
-                        onClick={(e) => {
-                          e.preventDefault();
-                          handleViewUserJourney(item.id);
-                        }}
-                        className={`inline-flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-medium transition-all duration-200 hover:shadow-lg transform hover:scale-105 active:scale-95 ${
-                          darkMode 
-                            ? 'bg-purple-600 hover:bg-purple-700 text-white' 
-                            : 'bg-purple-600 hover:bg-purple-700 text-white'
-                        }`}
-                        title={`View journey for ${item.samh_username}`}
-                      >
-                        <Eye className="w-3 h-3" />
-                        View 
-                      </button>
+                      <span className={`inline-flex items-center justify-center px-2 py-1 rounded-full text-xs font-medium ${
+                        darkMode 
+                          ? 'bg-green-600 text-green-200' 
+                          : 'bg-green-200 text-green-800'
+                      }`}>
+                        Available
+                      </span>
                     ) : (
                       <span className={`inline-flex items-center justify-center px-2 py-1 rounded-full text-xs font-medium ${
                         darkMode 
