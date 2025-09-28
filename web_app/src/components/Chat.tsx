@@ -53,6 +53,7 @@ const Chat: React.FC<ChatProps> = ({ darkMode, initializationData, onInitializat
   const initializationCompleted = useRef(false);
   const startingChatWith = useRef<string | null>(null);
 
+
   // Helper function to render user avatar
   const renderUserAvatar = (accountType?: string, size: string = 'w-5 h-5') => {
     if (accountType === 'admin') {
@@ -949,7 +950,7 @@ const Chat: React.FC<ChatProps> = ({ darkMode, initializationData, onInitializat
   }
 
   return (
-    <div className="min-h-screen" style={{ 
+    <div className="min-h-screen relative" style={{ 
       fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
       background: currentView === 'chat' ? '#4a6cf7' : '#ffffff',
       minHeight: '100vh',
@@ -997,7 +998,31 @@ const Chat: React.FC<ChatProps> = ({ darkMode, initializationData, onInitializat
 
           {/* Contact List */}
           <div className="flex-1 overflow-y-auto bg-white">
-            {filteredContacts.map((contact, index) => (
+            {filteredContacts.length === 0 ? (
+              <div className="flex items-center justify-center h-64">
+                {user?.accountType === 'user' ? (
+                  <div className="text-center">
+                    <div className="text-gray-600 text-sm mb-4">
+                      No ongoing conversations
+                    </div>
+                    <button
+                      onClick={() => {
+                        console.log('Initiate Chat button clicked - starting chat with gupta');
+                        startChatWithUser('gupta');
+                      }}
+                      className="px-6 py-3 bg-blue-500 hover:bg-blue-600 text-white rounded-xl font-medium transition-all duration-200 shadow-lg hover:shadow-blue-500/30"
+                    >
+                      Initiate Chat
+                    </button>
+                  </div>
+                ) : (
+                  <span className="text-gray-600 text-sm">
+                    No conversations found
+                  </span>
+                )}
+              </div>
+            ) : (
+              filteredContacts.map((contact, index) => (
               <div
                 key={contact.id}
                 className="flex items-center gap-4 p-4 hover:bg-gray-50 cursor-pointer border-b border-gray-100 transition-colors"
@@ -1061,7 +1086,8 @@ const Chat: React.FC<ChatProps> = ({ darkMode, initializationData, onInitializat
                   </div>
                 </div>
               </div>
-            ))}
+              ))
+            )}
           </div>
 
         </div>
@@ -1461,11 +1487,34 @@ const Chat: React.FC<ChatProps> = ({ darkMode, initializationData, onInitializat
                 </div>
               ) : filteredContacts.length === 0 ? (
                 <div className="flex items-center justify-center h-32">
-                  <span className={`text-sm ${
-                    darkMode ? 'text-gray-400' : 'text-gray-600'
-                  }`}>
-                    No conversations found
-                  </span>
+                  {user?.accountType === 'user' ? (
+                    <div className="text-center">
+                      <div className={`text-sm mb-4 ${
+                        darkMode ? 'text-gray-400' : 'text-gray-600'
+                      }`}>
+                        No ongoing conversations
+                      </div>
+                      <button
+                        onClick={() => {
+                          console.log('Initiate Chat button clicked - starting chat with gupta');
+                          startChatWithUser('gupta');
+                        }}
+                        className={`px-6 py-3 rounded-xl font-medium transition-all duration-200 ${
+                          darkMode
+                            ? 'bg-blue-600 hover:bg-blue-700 text-white shadow-lg hover:shadow-blue-600/30'
+                            : 'bg-blue-500 hover:bg-blue-600 text-white shadow-lg hover:shadow-blue-500/30'
+                        }`}
+                      >
+                        Initiate Chat
+                      </button>
+                    </div>
+                  ) : (
+                    <span className={`text-sm ${
+                      darkMode ? 'text-gray-400' : 'text-gray-600'
+                    }`}>
+                      No conversations found
+                    </span>
+                  )}
                 </div>
               ) : (
                 filteredContacts.map((contact) => (

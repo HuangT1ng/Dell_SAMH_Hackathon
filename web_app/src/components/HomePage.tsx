@@ -83,18 +83,23 @@ const HomePage: React.FC<HomePageProps> = ({ darkMode }) => {
   ];
 
   return (
-    <div
-      className={`${
-        darkMode
-          ? "bg-gradient-to-br from-slate-900 via-slate-850 to-slate-800"
-          : "bg-gradient-to-br from-blue-50 via-white to-pink-50"
-      } min-h-screen`}
-    >
-      <main className="mx-auto max-w-7xl px-6 py-12">
+    <div className="min-h-screen relative">
+      {/* Background decorative circles */}
+      <div className="absolute -top-4 sm:-top-8 -left-4 sm:-left-8 w-24 h-24 sm:w-32 sm:h-32 rounded-full opacity-10" style={{ backgroundColor: PALETTE.blue }}></div>
+      <div className="absolute -bottom-2 sm:-bottom-4 -right-2 sm:-right-4 w-16 h-16 sm:w-24 sm:h-24 rounded-full opacity-10" style={{ backgroundColor: PALETTE.pink }}></div>
+      <div className="absolute top-1/2 -right-4 sm:-right-8 w-12 h-12 sm:w-16 sm:h-16 rounded-full opacity-10" style={{ backgroundColor: PALETTE.orange }}></div>
+      
+      {/* Additional decorative circles */}
+      <div className="absolute top-20 sm:top-32 left-1/4 w-20 h-20 sm:w-28 sm:h-28 rounded-full opacity-8" style={{ backgroundColor: PALETTE.yellow }}></div>
+      <div className="absolute bottom-20 sm:bottom-32 left-1/3 w-14 h-14 sm:w-20 sm:h-20 rounded-full opacity-8" style={{ backgroundColor: PALETTE.green }}></div>
+      <div className="absolute top-1/3 left-10 sm:left-16 w-10 h-10 sm:w-14 sm:h-14 rounded-full opacity-8" style={{ backgroundColor: PALETTE.slate }}></div>
+      <div className="absolute bottom-1/4 right-1/4 w-18 h-18 sm:w-24 sm:h-24 rounded-full opacity-8" style={{ backgroundColor: PALETTE.blue }}></div>
+      
+      <main className="mx-auto max-w-7xl px-6 py-12 relative z-10">
         {/* ===== HERO (Modern Design) ===== */}
         <section className="grid grid-cols-1 gap-12 lg:grid-cols-2 items-center">
           {/* Phone mock / visual block */}
-          <div className="relative">
+          <div className="relative hidden lg:block">
             {/* Background decorative elements */}
             <div className="absolute -top-4 -left-4 w-24 h-24 rounded-full opacity-20" style={{ backgroundColor: PALETTE.blue }}></div>
             <div className="absolute -bottom-4 -right-4 w-32 h-32 rounded-full opacity-20" style={{ backgroundColor: PALETTE.pink }}></div>
