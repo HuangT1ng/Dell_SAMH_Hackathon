@@ -14,6 +14,7 @@ interface ChatProps {
     icon: any;
     description: string;
   }>;
+  onChatStateChange?: (isInConversation: boolean) => void;
 }
 
 interface Message {
@@ -48,7 +49,7 @@ const API_BASE_URL = window.location.hostname === 'localhost'
   ? 'http://localhost:3001' 
   : 'https://backend-ntu.apps.innovate.sg-cna.com';
 
-const Chat: React.FC<ChatProps> = ({ darkMode, initializationData, onInitializationComplete, onNavigate, navigation = [] }) => {
+const Chat: React.FC<ChatProps> = ({ darkMode, initializationData, onInitializationComplete, onNavigate, navigation = [], onChatStateChange }) => {
   const { user } = useSession();
   const initializationCompleted = useRef(false);
   const startingChatWith = useRef<string | null>(null);
@@ -67,6 +68,13 @@ const Chat: React.FC<ChatProps> = ({ darkMode, initializationData, onInitializat
   const [selectedContactId, setSelectedContactId] = useState<string | null>(null);
   const [inputText, setInputText] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+
+  // Track chat state changes for navbar visibility
+  useEffect(() => {
+    if (onChatStateChange) {
+      onChatStateChange(selectedContactId !== null);
+    }
+  }, [selectedContactId, onChatStateChange]);
   const [searchQuery, setSearchQuery] = useState('');
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [contactToDelete, setContactToDelete] = useState<string | null>(null);
@@ -86,7 +94,6 @@ const Chat: React.FC<ChatProps> = ({ darkMode, initializationData, onInitializat
   // Mobile layout state
   const [showContactList, setShowContactList] = useState(true);
   const [isMobile, setIsMobile] = useState(false);
-  const [activeTab, setActiveTab] = useState<'all' | 'groups' | 'contacts'>('all');
   const [currentView, setCurrentView] = useState<'list' | 'chat'>('list');
   const [showNavMenu, setShowNavMenu] = useState(false);
 
@@ -960,41 +967,6 @@ const Chat: React.FC<ChatProps> = ({ darkMode, initializationData, onInitializat
         // Mobile Chat List View - Fullscreen
         <div className="bg-white min-h-screen overflow-hidden">
 
-          {/* Navigation Tabs */}
-          <div className="bg-white px-6 py-4">
-            <div className="bg-gray-100 rounded-full p-1 flex w-full max-w-sm" style={{ fontFamily: "'SF Pro Display', -apple-system, BlinkMacSystemFont, 'Helvetica Neue', sans-serif" }}>
-              <button
-                onClick={() => setActiveTab('all')}
-                className={`flex-1 py-3 px-4 text-sm font-semibold transition-all duration-200 rounded-full text-center ${
-                  activeTab === 'all'
-                    ? 'bg-blue-500 text-white shadow-sm'
-                    : 'text-gray-500 hover:text-gray-700'
-                }`}
-              >
-                All Chats
-              </button>
-              <button
-                onClick={() => setActiveTab('groups')}
-                className={`flex-1 py-3 px-4 text-sm font-semibold transition-all duration-200 rounded-full text-center ${
-                  activeTab === 'groups'
-                    ? 'bg-blue-500 text-white shadow-sm'
-                    : 'text-gray-500 hover:text-gray-700'
-                }`}
-              >
-                Groups
-              </button>
-              <button
-                onClick={() => setActiveTab('contacts')}
-                className={`flex-1 py-3 px-4 text-sm font-semibold transition-all duration-200 rounded-full text-center ${
-                  activeTab === 'contacts'
-                    ? 'bg-blue-500 text-white shadow-sm'
-                    : 'text-gray-500 hover:text-gray-700'
-                }`}
-              >
-                Contacts
-              </button>
-            </div>
-          </div>
 
           {/* Contact List */}
           <div className="flex-1 overflow-y-auto bg-white">
@@ -1107,7 +1079,10 @@ const Chat: React.FC<ChatProps> = ({ darkMode, initializationData, onInitializat
           {selectedContact && (
             <div className="relative z-20 px-6 pt-6 pb-4 flex items-center gap-4 text-white">
               <button
-                onClick={() => setCurrentView('list')}
+                onClick={() => {
+                  setCurrentView('list');
+                  setSelectedContactId(null);
+                }}
                 className="p-3 hover:bg-white/10 rounded-2xl transition-all duration-300 hover:scale-110"
               >
                 <ArrowLeft className="w-6 h-6" />

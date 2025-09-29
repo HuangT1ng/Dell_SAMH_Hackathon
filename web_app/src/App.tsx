@@ -16,6 +16,7 @@ function AppContent() {
   const [currentView, setCurrentView] = useState<'home' | 'gaming' | 'academic-stress-game' | 'pixel-harmony-game' | 'chat' | 'community' | 'dashboard'>('home');
   const [darkMode] = useState(false);
   const [chatInitialization, setChatInitialization] = useState<{samhUsername: string} | null>(null);
+  const [isInChatConversation, setIsInChatConversation] = useState(false);
 
 
 
@@ -68,14 +69,14 @@ function AppContent() {
           {currentView === 'pixel-harmony-game' && user?.accountType === 'user' && (
             <PixelHarmonyGamePage darkMode={darkMode} onNavigate={handleNavigate} />
           )}
-          {currentView === 'chat' && <Chat darkMode={darkMode} initializationData={chatInitialization || undefined} onInitializationComplete={clearChatInitialization} onNavigate={handleNavigate} navigation={navigation} />}
+          {currentView === 'chat' && <Chat darkMode={darkMode} initializationData={chatInitialization || undefined} onInitializationComplete={clearChatInitialization} onNavigate={handleNavigate} navigation={navigation} onChatStateChange={setIsInChatConversation} />}
           {currentView === 'community' && <CommunityEvent darkMode={darkMode} />}
           {currentView === 'dashboard' && <RedditDashboard darkMode={darkMode} onNavigateToChat={handleNavigateToChat} />}
         </main>
       </div>
 
-      {/* Bottom Navigation */}
-      <BottomNav currentView={currentView} onNavigate={handleNavigate} />
+      {/* Bottom Navigation - Hidden only when in chat conversation */}
+      {!(currentView === 'chat' && isInChatConversation) && <BottomNav currentView={currentView} onNavigate={handleNavigate} />}
 
     </div>
   );

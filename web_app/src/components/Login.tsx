@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
-import { Brain, User, Shield } from 'lucide-react';
+import { User, Shield } from 'lucide-react';
 import { useSession } from '../utils/sessionContext';
+import KAILogo from '../Assets/KAILogo.png';
 
 interface LoginProps {
   darkMode: boolean;
@@ -32,14 +33,12 @@ const Login: React.FC<LoginProps> = ({ darkMode }) => {
         {/* Header */}
         <div className="text-center mb-8">
           <div className="flex justify-center mb-4">
-            <div className="w-16 h-16 rounded-xl flex items-center justify-center" style={{ backgroundColor: '#4a6cf7' }}>
-              <Brain className="w-8 h-8 text-white" />
-            </div>
+              <img src={KAILogo} alt="KAI Logo" className="w-10 h-10object-contain" />
           </div>
           <h1 className={`text-2xl font-bold mb-2 ${
             darkMode ? 'text-white' : 'text-slate-800'
           }`}>
-            Welcome to SAMH Platform
+            Welcome to KAI Platform
           </h1>
           <p className={`text-sm ${
             darkMode ? 'text-gray-300' : 'text-slate-600'

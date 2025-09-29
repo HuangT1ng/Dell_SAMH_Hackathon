@@ -6,8 +6,6 @@ WORKDIR /app
 # Copy package files
 COPY package*.json ./
 COPY unified_backend_server.js ./
-COPY scraper_server.js ./
-COPY run_scraper.js ./
 
 # Install dependencies
 RUN npm install
