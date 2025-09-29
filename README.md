@@ -43,11 +43,3 @@ Our solution empowers **teens** to build resilience and **social workers** to sc
 
 - <img width="960" height="1280" alt="image" src="https://github.com/user-attachments/assets/269d380a-fe9c-4fbb-99f6-1998306f6e7c" />
 
-
----
-
-## 🚀 Getting Started  
-Clone the repo and install dependencies:  
-```bash
-git clone https://github.com/HuangT1ng/Dell_SAMH_Hackathon.git
-cd Dell_SAMH_Hackathon
